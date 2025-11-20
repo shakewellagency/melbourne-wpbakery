@@ -1,0 +1,9 @@
+{
+  "name": "shakewellagency/melbourne-wpbakery",
+  "type": "wordpress-plugin",
+  "autoload": {
+    "classmap": [
+      "."
+    ]
+  }
+}
