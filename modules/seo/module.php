@@ -80,6 +80,8 @@ class Vc_Seo_Module extends Vc_Module {
 		});
 
 		add_action( 'wp_ajax_wpb_seo_check_key_phrase', function () {
+			vc_user_access()->checkAdminNonce()->validateDie();
+
 			$is_key_phrase_in_other_posts = $this->check_key_phrase_in_other_posts();
 
 			wp_send_json_success( $is_key_phrase_in_other_posts );

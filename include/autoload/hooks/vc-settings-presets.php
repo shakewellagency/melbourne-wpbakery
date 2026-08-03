@@ -55,14 +55,21 @@ function vc_vendor_preset() {
  */
 function vc_action_save_settings_preset() {
 	vc_include_settings_preset_class();
-	vc_user_access()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to save presets.
+
+	vc_user_access()->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to save presets.
 
 	$id = Vc_Settings_Preset::saveSettingsPreset( vc_post_param( 'shortcode_name' ), vc_post_param( 'title' ), vc_post_param( 'data' ), vc_post_param( 'is_default' ) );
+
+	$saved_title = '';
+	if ( $id ) {
+		$saved_title = get_post_field( 'post_title', $id );
+	}
 
 	$response = [
 		'success' => (bool) $id,
 		'html' => Vc_Settings_Preset::getRenderedSettingsPresetPopup( vc_post_param( 'shortcode_name' ) ),
 		'id' => $id,
+		'title' => $saved_title,
 	];
 
 	wp_send_json( $response );
@@ -81,7 +88,7 @@ function vc_action_save_settings_preset() {
  */
 function vc_action_set_as_default_settings_preset() {
 	vc_include_settings_preset_class();
-	vc_user_access()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to set as default presets.
+	vc_user_access()->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to set as default presets.
 
 	$id = vc_post_param( 'id' );
 	$shortcode_name = vc_post_param( 'shortcode_name' );
@@ -108,7 +115,7 @@ function vc_action_set_as_default_settings_preset() {
  */
 function vc_action_restore_default_settings_preset() {
 	vc_include_settings_preset_class();
-	vc_user_access()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to restore presets.
+	vc_user_access()->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to restore presets.
 
 	$shortcode_name = vc_post_param( 'shortcode_name' );
 
@@ -135,7 +142,7 @@ function vc_action_restore_default_settings_preset() {
  */
 function vc_action_delete_settings_preset() {
 	vc_include_settings_preset_class();
-	vc_user_access()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to delete presets.
+	vc_user_access()->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to delete presets.
 
 	$default = get_post_meta( vc_post_param( 'id' ), '_vc_default', true );
 
@@ -159,6 +166,8 @@ function vc_action_delete_settings_preset() {
  * @since 4.7
  */
 function vc_action_get_settings_preset() {
+	vc_user_access()->checkAdminNonce()->validateDie();
+
 	vc_include_settings_preset_class();
 
 	$data = Vc_Settings_Preset::getSettingsPreset( vc_post_param( 'id' ), true );
@@ -186,6 +195,8 @@ function vc_action_get_settings_preset() {
  * @since 4.7
  */
 function vc_action_render_settings_preset_popup() {
+	vc_user_access()->checkAdminNonce()->validateDie();
+
 	vc_include_settings_preset_class();
 	$html = Vc_Settings_Preset::getRenderedSettingsPresetPopup( vc_post_param( 'shortcode_name' ) );
 
