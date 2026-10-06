@@ -123,7 +123,6 @@ if ( ! function_exists( 'vc_vendor_get_gravityforms' ) ) :
 		}
 
 		$is_edit_form_action =
-			( 'wpb_add_element_edit_window_ajax_cache' === vc_request_param( 'action' ) && 'gravityform' === vc_request_param( 'tag' ) ) ||
 			'vc_load_shortcode' === vc_request_param( 'action' ) ||
 			'vc_edit_form' === vc_request_param( 'action' );
 		if ( ! $is_edit_form_action ) {

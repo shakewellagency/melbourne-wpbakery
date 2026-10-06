@@ -29,14 +29,4 @@ class WPBakeryShortCode_Vc_Flexbox_Container_Item extends WPBakeryShortCode_Vc_C
 	protected function getItemTypeLabel() {
 		return __( 'Flexbox', 'js_composer' );
 	}
-
-	/**
-	 * Get item class.
-	 *
-	 * @return string
-	 * @since 8.7
-	 */
-	protected function getItemClass() {
-		return 'vc_flexbox_container_item';
-	}
 }

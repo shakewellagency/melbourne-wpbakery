@@ -78,6 +78,65 @@ class WPBakeryShortCode_Vc_Row extends WPBakeryShortCode {
 	}
 
 	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) {
+		$settings = [
+			'add' => [
+				'classes' => 'column_add vc_column-add',
+				'title' => __( 'Add column', 'js_composer' ),
+				'icon' => 'vc-c-add-circle',
+			],
+			'delete' => [
+				'classes' => 'column_delete vc_column-delete',
+				'title' => __( 'Delete this row', 'js_composer' ),
+				'icon' => 'vc-c-trash',
+			],
+			'clone' => [
+				'classes' => 'column_clone vc_column-clone',
+				'title' => __( 'Clone this row', 'js_composer' ),
+				'icon' => 'vc-c-icon-clone',
+			],
+			'copy' => [
+				'classes' => 'column_copy vc_column-copy',
+				'title' => __( 'Copy this row', 'js_composer' ),
+				'icon' => 'vc-c-icon-copy',
+			],
+			'paste' => [
+				'classes' => 'column_paste vc_column-paste',
+				'title' => __( 'Paste', 'js_composer' ),
+				'icon' => 'vc-c-icon-paste',
+			],
+			'edit' => [
+				'classes' => 'column_edit vc_column-edit',
+				'title' => __( 'Edit this row', 'js_composer' ),
+				'icon' => 'vc-c-edit',
+			],
+			'toggle' => [
+				'classes' => 'column_toggle vc_column-toggle',
+				'title' => __( 'Toggle row', 'js_composer' ),
+				'icon' => 'vc-c-icon-arrow_drop_down',
+			],
+		];
+
+		$move_access = vc_user_access()->part( 'dragndrop' )->checkStateAny( true, null )->get();
+		if ( $move_access ) {
+			$settings['move'] = [
+				'classes' => 'column_move vc_column-move',
+				'title' => __( 'Drag row to reorder', 'js_composer' ),
+				'icon' => 'vc-c-param-group-dragndrop',
+			];
+		}
+
+		return $settings;
+	}
+
+	/**
 	 * Get column controls.
 	 *
 	 * @param mixed $controls
@@ -91,18 +150,9 @@ class WPBakeryShortCode_Vc_Row extends WPBakeryShortCode {
 		// Create columns.
 		$controls_layout = $this->getLayoutsControl();
 
-		$controls_move = ' <a class="vc_control column_move vc_column-move" href="#" title="' . esc_attr__( 'Drag row to reorder', 'js_composer' ) . '" data-vc-control="move"><i class="vc-composer-icon vc-c-icon-dragndrop"></i></a>';
-		$moveAccess = vc_user_access()->part( 'dragndrop' )->checkStateAny( true, null )->get();
-		if ( ! $moveAccess ) {
-			$controls_move = '';
-		}
-		$controls_add = ' <a class="vc_control column_add vc_column-add" href="#" title="' . esc_attr__( 'Add column', 'js_composer' ) . '" data-vc-control="add"><i class="vc-composer-icon vc-c-icon-add"></i></a>';
-		$controls_delete = '<a class="vc_control column_delete vc_column-delete" href="#" title="' . esc_attr__( 'Delete this row', 'js_composer' ) . '" data-vc-control="delete"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a>';
-		$controls_edit = ' <a class="vc_control column_edit vc_column-edit" href="#" title="' . esc_attr__( 'Edit this row', 'js_composer' ) . '" data-vc-control="edit"><i class="vc-composer-icon vc-c-icon-mode_edit"></i></a>';
-		$controls_clone = ' <a class="vc_control column_clone vc_column-clone" href="#" title="' . esc_attr__( 'Clone this row', 'js_composer' ) . '" data-vc-control="clone"><i class="vc-composer-icon vc-c-icon-clone"></i></a>';
-		$controls_copy = ' <a class="vc_control column_copy vc_column-copy" href="#" title="' . esc_attr__( 'Copy this row', 'js_composer' ) . '" data-vc-control="copy"><i class="vc-composer-icon vc-c-icon-copy"></i></a>';
-		$controls_paste = ' <a class="vc_control column_paste vc_column-paste" href="#" title="' . esc_attr__( 'Paste', 'js_composer' ) . '" data-vc-control="paste"><i class="vc-composer-icon vc-c-icon-paste"></i></a>';
-		$controls_toggle = ' <a class="vc_control column_toggle vc_column-toggle" href="#" title="' . esc_attr__( 'Toggle row', 'js_composer' ) . '" data-vc-control="toggle"><i class="vc-composer-icon vc-c-icon-arrow_drop_down"></i></a>';
+		$control_list = $this->get_column_controls_html_list();
+		$controls_move = isset( $control_list['move'] ) ? $control_list['move'] : '';
+
 		$editAccess = vc_user_access_check_shortcode_edit( $this->shortcode );
 		$allAccess = vc_user_access_check_shortcode_all( $this->shortcode );
 
@@ -126,15 +176,16 @@ class WPBakeryShortCode_Vc_Row extends WPBakeryShortCode {
 		} else {
 			$row_edit_clone_delete = '<span class="vc_row_edit_clone_delete">';
 			if ( $allAccess ) {
-				$row_edit_clone_delete .= $controls_delete . $controls_paste . $controls_copy . $controls_clone . $controls_edit;
+				$copypaste = vc_get_template( 'editors/partials/backend_copypaste_control.tpl.php' );
+				$row_edit_clone_delete .= $control_list['delete'] . $copypaste . $control_list['clone'] . $control_list['edit'];
 			} elseif ( $editAccess ) {
-				$row_edit_clone_delete .= $controls_edit;
+				$row_edit_clone_delete .= $control_list['edit'];
 			}
-			$row_edit_clone_delete .= $controls_toggle;
+			$row_edit_clone_delete .= $control_list['toggle'];
 			$row_edit_clone_delete .= '</span>';
 
 			if ( $allAccess ) {
-				$output .= '<div>' . $controls_move . $controls_layout . $controls_add . '</div>' . $row_edit_clone_delete . $controls_end;
+				$output .= '<div>' . $controls_move . $controls_layout . $control_list['add'] . '</div>' . $row_edit_clone_delete . $controls_end;
 			} elseif ( $editAccess ) {
 				$output .= $row_edit_clone_delete . $controls_end;
 			} else {
@@ -265,5 +316,15 @@ class WPBakeryShortCode_Vc_Row extends WPBakeryShortCode {
 		}
 
 		return empty( $style ) ? '' : ' style="' . esc_attr( $style ) . '"';
+	}
+
+	/**
+	 * Get CSS file names for vc_row shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_row', 'content_block', 'rows_columns', 'frontend_vc_row' ];
 	}
 }

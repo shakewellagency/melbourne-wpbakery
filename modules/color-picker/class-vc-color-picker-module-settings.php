@@ -51,6 +51,9 @@ class Vc_Color_Picker_Module_Settings {
 				$this,
 				'render_setting_tab_html',
 			] );
+			add_action( 'wpb_add_before_settings_form', [ $this, 'open_settings_wrapper' ] );
+
+			add_action( 'wpb_add_after_settings_form', [ $this, 'close_settings_wrapper' ] );
 		}
 
 		add_action( 'vc_after_init', [
@@ -192,7 +195,16 @@ class Vc_Color_Picker_Module_Settings {
 		$field = $args['id'];
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<div class="color-group"><div class="wpb-color-picker"></div><input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" data-default-value="' . esc_attr( $args['default_color'] ) . '" class="vc_color-control css-control vc_ui-hidden"></div>';
+		WPB_Form_Field_Colorpicker::render(
+			[
+				'classes'           => 'css-control',
+				'name'              => vc_settings()::$field_prefix . $field,
+				'value'             => $value,
+				'data_attributes'    => [
+					'default-value' => $args['default_color'],
+				],
+			]
+		);
 	}
 
 	/**
@@ -257,5 +269,25 @@ class Vc_Color_Picker_Module_Settings {
 		wp_enqueue_script( 'pickr', vc_asset_url( 'lib/vendor/dist/@simonwep/pickr/dist/pickr.es5.min.js' ), [], WPB_VC_VERSION, true );
 		wp_enqueue_script( 'wpb_color_picker_module', vc_asset_url( '../modules/color-picker/assets/dist/module.min.js' ), [], WPB_VC_VERSION, true );
 		wp_enqueue_style( 'wpb_automapper_module', vc_asset_url( '../modules/color-picker/assets/dist/module.min.css' ), false, WPB_VC_VERSION );
+	}
+
+	/**
+	 * Open settings wrapper.
+	 *
+	 * @since 9.0
+	 */
+	public function open_settings_wrapper() {
+		vc_include_template( 'partials/open-div.php', [
+			'classes' => 'vc_color_picker_settings_wrapper' ,
+		] );
+	}
+
+	/**
+	 * Close settings wrapper.
+	 *
+	 * @since 9.0
+	 */
+	public function close_settings_wrapper() {
+		vc_include_template( 'partials/close-div.php' );
 	}
 }

@@ -14,13 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $taxonomy
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $title
+ * @var string $taxonomy
+ * @var string $el_class
+ * @var string $el_id
  * Shortcode class
- * @var WPBakeryShortCode_Vc_Wp_Tagcloud $this
+ * @var WPBakeryShortCodeFishBones $this
  */
 $title = $taxonomy = $el_class = $el_id = '';
 $output = '';
@@ -29,7 +29,7 @@ extract( $atts );
 
 $el_class = $this->getExtraClass( $el_class );
 $wrapper_attributes = [];
-if ( ! empty( $el_id ) ) {
+if ( $el_id ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';
 }
 $output = '<div ' . implode( ' ', $wrapper_attributes ) . ' class="vc_wp_tagcloud wpb_content_element' . esc_attr( $el_class ) . '">';

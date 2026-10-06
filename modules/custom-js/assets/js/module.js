@@ -7,16 +7,16 @@ jQuery( document ).ready( function ( $ ) {
 			$editor_input.val( window[editor_slug].getValue() );
 		}
 
-		var editor_js_header = new Vc_postSettingsEditor();
-		editor_js_header.sel = 'wpb_js_header_editor';
-		editor_js_header.mode = 'javascript';
-		var editor_js_footer = new Vc_postSettingsEditor();
-		editor_js_footer.sel = 'wpb_js_footer_editor';
-		editor_js_footer.mode = 'javascript';
+		const editorJsHeader = new Vc_postSettingsEditor( '', 'settings_editor_js_header' );
+		editorJsHeader.sel = 'wpb_js_header_editor';
+		editorJsHeader.mode = 'javascript';
+		const editorJsFooter = new Vc_postSettingsEditor( '', 'settings_editor_js_footer' );
+		editorJsFooter.sel = 'wpb_js_footer_editor';
+		editorJsFooter.mode = 'javascript';
 
 		var editor_list = {
-			js_header: editor_js_header,
-			js_footer: editor_js_footer
+			js_header: editorJsHeader,
+			js_footer: editorJsFooter
 		};
 
 		for ( var editor_name in editor_list ) {

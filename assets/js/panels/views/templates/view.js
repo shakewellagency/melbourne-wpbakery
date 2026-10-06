@@ -40,9 +40,9 @@
 			});
 			// todo check this message appearing: #48591595835639
 			if ( template && data && vc.builder.buildFromTemplate( template, data ) ) {
-				this.showMessage( window.i18nLocale.template_added_with_id, 'error' );
+				window.wpbNotifications.show( window.i18nLocale.template_added_with_id, { type: 'error' });
 			} else {
-				this.showMessage( window.i18nLocale.template_added, 'success' );
+				window.wpbNotifications.show( window.i18nLocale.template_added );
 			}
 			vc.closeActivePanel();
 		}
@@ -53,55 +53,9 @@
 		.vcExtendUI( vc.HelperTemplatesPanelViewSearch )
 		.extend({
 			panelName: 'template_window',
-			showMessageDisabled: false,
 			show: function () {
 				this.clearSearch();
 				window.vc.TemplateWindowUIPanelFrontendEditor.__super__.show.call( this );
-			},
-			showMessage: function ( text, type ) {
-				if ( this.showMessageDisabled ) {
-					return false;
-				}
-				if ( this.message_box_timeout ) {
-					this.$el.find( '[data-vc-panel-message]' ).remove();
-					window.clearTimeout( this.message_box_timeout );
-				}
-				this.message_box_timeout = false;
-				var messageBoxTemplate = vc.template( '<div class="vc_message_box vc_message_box-standard vc_message_box-rounded vc_color-<%- color %>">' + '<div class="vc_message_box-icon"><i class="fa fa fa-<%- icon %>"></i></div><p><%- text %></p></div>' );
-				var $messageBox;
-				var wrapperCssClasses;
-				wrapperCssClasses = 'vc_col-xs-12 wpb_element_wrapper';
-				switch ( type ) {
-					case 'error': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'danger',
-							icon: 'times',
-							text: text
-						}) );
-						break;
-					}
-					case 'warning': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'warning',
-							icon: 'exclamation-triangle',
-							text: text
-						}) );
-						break;
-					}
-					case 'success': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'success',
-							icon: 'check',
-							text: text
-						}) );
-						break;
-					}
-				}
-				$messageBox.prependTo( this.$el.find( '[data-vc-ui-element="panel-edit-element-tab"].vc_row.vc_active' ) );
-				$messageBox.fadeIn();
-				this.message_box_timeout = window.setTimeout( function () {
-					$messageBox.remove();
-				}, 6000 );
 			},
 			changeTab: function ( e ) {
 				if ( e && e.preventDefault ) {

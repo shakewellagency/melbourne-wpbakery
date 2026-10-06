@@ -86,54 +86,5 @@ vc_lean_map( 'vc_tab', null, $vc_config_path . '/deprecated/shortcode-vc-tab.php
 vc_lean_map( 'vc_accordion', null, $vc_config_path . '/deprecated/shortcode-vc-accordion.php' );
 vc_lean_map( 'vc_accordion_tab', null, $vc_config_path . '/deprecated/shortcode-vc-accordion-tab.php' );
 vc_lean_map( 'vc_button', null, $vc_config_path . '/deprecated/shortcode-vc-button.php' );
-vc_lean_map( 'vc_button2', null, $vc_config_path . '/deprecated/shortcode-vc-button2.php' );
 vc_lean_map( 'vc_cta_button', null, $vc_config_path . '/deprecated/shortcode-vc-cta-button.php' );
 vc_lean_map( 'vc_gmaps', null, $vc_config_path . '/deprecated/shortcode-vc-gmaps.php' );
-
-
-if ( is_admin() ) {
-	add_action( 'admin_print_scripts-post.php', [
-		Vc_Shortcodes_Manager::getInstance(),
-		'buildShortcodesAssets',
-	], 1 );
-	add_action( 'admin_print_scripts-post-new.php', [
-		Vc_Shortcodes_Manager::getInstance(),
-		'buildShortcodesAssets',
-	], 1 );
-	add_action( 'vc-render-templates-preview-template', [
-		Vc_Shortcodes_Manager::getInstance(),
-		'buildShortcodesAssets',
-	], 1 );
-} elseif ( vc_is_page_editable() ) {
-	add_action( 'wp_head', [
-		Vc_Shortcodes_Manager::getInstance(),
-		'buildShortcodesAssetsForEditable',
-	] ); // @todo where these icons are used in iframe?
-}
-
-require_once vc_path_dir( 'CONFIG_DIR', 'grids/vc-grids-functions.php' );
-if ( 'vc_get_autocomplete_suggestion' === vc_request_param( 'action' ) || 'vc_edit_form' === vc_post_param( 'action' ) ) {
-	add_filter( 'vc_autocomplete_vc_basic_grid_include_callback', 'vc_include_field_search' ); // Get suggestion(find). Must return an array.
-	add_filter( 'vc_autocomplete_vc_basic_grid_include_render', 'vc_include_field_render' ); // Render exact product. Must return an array (label,value).
-	add_filter( 'vc_autocomplete_vc_masonry_grid_include_callback', 'vc_include_field_search' ); // Get suggestion(find). Must return an array.
-	add_filter( 'vc_autocomplete_vc_masonry_grid_include_render', 'vc_include_field_render' ); // Render exact product. Must return an array (label,value).
-
-	// Narrow data taxonomies.
-	add_filter( 'vc_autocomplete_vc_basic_grid_taxonomies_callback', 'vc_autocomplete_taxonomies_field_search' );
-	add_filter( 'vc_autocomplete_vc_basic_grid_taxonomies_render', 'vc_autocomplete_taxonomies_field_render' );
-
-	add_filter( 'vc_autocomplete_vc_masonry_grid_taxonomies_callback', 'vc_autocomplete_taxonomies_field_search' );
-	add_filter( 'vc_autocomplete_vc_masonry_grid_taxonomies_render', 'vc_autocomplete_taxonomies_field_render' );
-
-	// Narrow data taxonomies for exclude_filter.
-	add_filter( 'vc_autocomplete_vc_basic_grid_exclude_filter_callback', 'vc_autocomplete_taxonomies_field_search' );
-	add_filter( 'vc_autocomplete_vc_basic_grid_exclude_filter_render', 'vc_autocomplete_taxonomies_field_render' );
-
-	add_filter( 'vc_autocomplete_vc_masonry_grid_exclude_filter_callback', 'vc_autocomplete_taxonomies_field_search' );
-	add_filter( 'vc_autocomplete_vc_masonry_grid_exclude_filter_render', 'vc_autocomplete_taxonomies_field_render' );
-
-	add_filter( 'vc_autocomplete_vc_basic_grid_exclude_callback', 'vc_exclude_field_search' ); // Get suggestion(find). Must return an array.
-	add_filter( 'vc_autocomplete_vc_basic_grid_exclude_render', 'vc_exclude_field_render' ); // Render exact product. Must return an array (label,value).
-	add_filter( 'vc_autocomplete_vc_masonry_grid_exclude_callback', 'vc_exclude_field_search' ); // Get suggestion(find). Must return an array.
-	add_filter( 'vc_autocomplete_vc_masonry_grid_exclude_render', 'vc_exclude_field_render' ); // Render exact product. Must return an array (label,value).
-}

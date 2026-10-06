@@ -4,6 +4,7 @@
  *
  * @var string $part
  * @var string $role
+ * @var object $vc_role
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

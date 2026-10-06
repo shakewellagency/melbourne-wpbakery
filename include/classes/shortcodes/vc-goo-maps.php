@@ -44,4 +44,14 @@ class WPBakeryShortCode_Vc_Goo_Maps extends WPBakeryShortCode {
 
 		return vsprintf( $url, $params );
 	}
+
+	/**
+	 * Get CSS file names for vc_goo_maps shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_google_maps' ];
+	}
 }

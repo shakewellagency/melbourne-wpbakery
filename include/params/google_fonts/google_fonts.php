@@ -51,21 +51,81 @@ class Vc_Google_Fonts {
 	 *
 	 * @param array $settings
 	 * @param string|array $value
-	 *
+	 * @param string $param_id since 9.0.
 	 * @return string
 	 * @since 4.3
 	 */
-	public function render( $settings, $value ) {
+	public function render( $settings, $value, $param_id = '' ) { // phpcs:ignore:Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		// @var array $fields - used in template.php
 		$fields = [];
 		// @var array $values - used in template.php
 		$values = [];
 		$set = isset( $settings['settings'], $settings['settings']['fields'] ) ? $settings['settings']['fields'] : [];
 		extract( $this->_vc_google_fonts_parse_attributes( $set, $value ) );
-		ob_start();
-		include vc_path_dir( 'TEMPLATES_DIR', 'params/google_fonts/template.php' );
 
-		return ob_get_clean();
+		$fonts = $this->_vc_google_fonts_get_fonts();
+
+		$font_style_options = $this->get_font_style_options( $fonts, $values );
+
+		return vc_get_template( 'params/google_fonts/template.php', [ // nosemgrep.
+			'fields' => $fields,
+			'values' => $values,
+			'settings' => $settings,
+			'value' => $value,
+			'param_id' => $param_id,
+			'font_style_options' => $font_style_options,
+		] );
+	}
+
+	/**
+	 * Get font style options for dropdown.
+	 *
+	 * @param array $fonts
+	 * @param array $values
+	 * @return array
+	 */
+	public function get_font_style_options( $fonts, $values ) {
+		$typography_module = vc_modules_manager()->get_module( 'vc-typography' );
+		$separator_list = [
+			$typography_module->adobe_controller->get_adobe_dropdown_separator(),
+			$typography_module->get_default_dropdown_separator(),
+		];
+
+		$font_style_options = [];
+		foreach ( $fonts as $font_data ) {
+			$is_separator = in_array( $font_data->font_family, $separator_list );
+			$is_disabled = false;
+			$font_family_slug = empty( $font_data->font_family_slug ) ? $font_data->font_family : $font_data->font_family_slug;
+			// we use Google as default vendor.
+			$font_vendor = empty( $font_data->font_vendor ) ? '' : $font_data->font_vendor;
+			$font_url = empty( $font_data->font_url ) ? '' : $font_data->font_url;
+			if ( $is_separator ) {
+				$is_disabled = true;
+			}
+
+			$font_family_low_case = strtolower( $font_family_slug );
+			$value_family_low_case = strtolower( $values['font_family'] );
+			$font_family_low_case_with_style = $font_family_low_case . ':' . $font_data->font_styles;
+			$selected =
+				$value_family_low_case === $font_family_low_case ||
+				$value_family_low_case === $font_family_low_case_with_style;
+			$font_style_options[] = [
+				'value' => $font_family_slug . ':' . $font_data->font_styles,
+				'label' => $font_data->font_family,
+				'selected' => $selected,
+				'class' => vc_build_safe_css_class( $font_data->font_family ),
+				'is_disabled' => $is_disabled,
+				'font_data' => [
+					'font_types' => $font_data->font_types,
+					'font_family' => $font_family_slug,
+					'font_styles' => $font_data->font_styles,
+					'font_vendor' => $font_vendor,
+					'font_url' => $font_url,
+				],
+			];
+		}
+
+		return $font_style_options;
 	}
 
 	/**
@@ -120,16 +180,16 @@ class Vc_Google_Fonts {
  * Function for rendering param in edit form (add element)
  * Parse settings from vc_map and entered values.
  *
+ * @since 4.3
  * @param array $settings
  * @param string|array $value
- *
+ * @param string $tag
+ * @param string $param_id
  * @return mixed rendered template for params in edit form
- *
- * @since 4.3
  * vc_filter: vc_google_fonts_render_filter
  */
-function vc_google_fonts_form_field( $settings, $value ) {
+function vc_google_fonts_form_field( $settings, $value, $tag, $param_id ) {
 	$google_fonts = new Vc_Google_Fonts();
 
-	return apply_filters( 'vc_google_fonts_render_filter', $google_fonts->render( $settings, $value ) );
+	return apply_filters( 'vc_google_fonts_render_filter', $google_fonts->render( $settings, $value, $param_id ) );
 }

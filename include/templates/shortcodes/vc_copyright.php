@@ -7,19 +7,14 @@
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  *
  * @since 8.0
+ *
+ * @var array $atts
+ * @var WPBakeryShortCode_Vc_Copyright $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
-
-/**
- * Shortcode attributes
- *
- * @var $atts
- * Shortcode class
- * @var WPBakeryShortCode_Vc_Copyright $this
- */
 
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 $this->buildTemplate( $atts );

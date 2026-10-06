@@ -13,7 +13,6 @@ add_action( 'wp_ajax_vc_action_save_settings_preset', 'vc_action_save_settings_p
 add_action( 'wp_ajax_vc_action_set_as_default_settings_preset', 'vc_action_set_as_default_settings_preset' );
 add_action( 'wp_ajax_vc_action_delete_settings_preset', 'vc_action_delete_settings_preset' );
 add_action( 'wp_ajax_vc_action_restore_default_settings_preset', 'vc_action_restore_default_settings_preset' );
-add_action( 'wp_ajax_vc_action_get_settings_preset', 'vc_action_get_settings_preset' );
 add_action( 'wp_ajax_vc_action_render_settings_preset_popup', 'vc_action_render_settings_preset_popup' );
 add_action( 'wp_ajax_vc_action_render_settings_preset_title_prompt', 'vc_action_render_settings_preset_title_prompt' );
 add_action( 'wp_ajax_vc_action_render_settings_templates_prompt', 'vc_action_render_settings_templates_prompt' );
@@ -56,9 +55,14 @@ function vc_vendor_preset() {
 function vc_action_save_settings_preset() {
 	vc_include_settings_preset_class();
 
-	vc_user_access()->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to save presets.
+	vc_user_access()->wpAny( 'edit_posts', 'edit_pages' )->checkAdminNonce()->part( 'presets' )->checkStateAny( true, null )->validateDie(); // user must have permission to work with presets.
+	$shortcode_name = sanitize_key( vc_post_param( 'shortcode_name' ) );
 
-	$id = Vc_Settings_Preset::saveSettingsPreset( vc_post_param( 'shortcode_name' ), vc_post_param( 'title' ), vc_post_param( 'data' ), vc_post_param( 'is_default' ) );
+	if ( in_array( $shortcode_name, wpb_get_elements_with_custom_html(), true ) ) {
+		vc_user_access()->part( 'unfiltered_html' )->checkStateAny( true, null )->validateDie(); // raw HTML/JS presets require unfiltered_html.
+	}
+
+	$id = Vc_Settings_Preset::saveSettingsPreset( $shortcode_name, vc_post_param( 'title' ), vc_post_param( 'data' ), vc_post_param( 'is_default' ) );
 
 	$saved_title = '';
 	if ( $id ) {
@@ -153,35 +157,6 @@ function vc_action_delete_settings_preset() {
 		'default' => $default,
 		'html' => Vc_Settings_Preset::getRenderedSettingsPresetPopup( vc_post_param( 'shortcode_name' ) ),
 	];
-
-	wp_send_json( $response );
-}
-
-/**
- * Get data for specific settings preset
- *
- * Required _POST params:
- * - id int
- *
- * @since 4.7
- */
-function vc_action_get_settings_preset() {
-	vc_user_access()->checkAdminNonce()->validateDie();
-
-	vc_include_settings_preset_class();
-
-	$data = Vc_Settings_Preset::getSettingsPreset( vc_post_param( 'id' ), true );
-
-	if ( false !== $data ) {
-		$response = [
-			'success' => true,
-			'data' => $data,
-		];
-	} else {
-		$response = [
-			'success' => false,
-		];
-	}
 
 	wp_send_json( $response );
 }

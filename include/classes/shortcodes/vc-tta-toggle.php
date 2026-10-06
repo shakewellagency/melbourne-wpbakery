@@ -189,6 +189,7 @@ class WPBakeryShortCode_Vc_Tta_Toggle extends WPBakeryShortCode_Vc_Tta_Pageable 
 		$html = [];
 		$html[] = vc_get_template( 'partials/tta-pagination-start.php', [
 			'classes' => $this->getTtaPaginationClasses(),
+			'style' => $this->getTtaPaginationStyle(),
 		] );
 
 		if ( ! vc_is_page_editable() ) {
@@ -263,5 +264,15 @@ class WPBakeryShortCode_Vc_Tta_Toggle extends WPBakeryShortCode_Vc_Tta_Pageable 
 		}
 
 		return $active_section;
+	}
+
+	/**
+	 * Get CSS file names for vc_tta_toggle shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle', 'vc_pagination' ];
 	}
 }

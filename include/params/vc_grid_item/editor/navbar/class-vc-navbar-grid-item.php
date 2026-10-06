@@ -37,7 +37,10 @@ class Vc_Navbar_Grid_Item extends Vc_Navbar {
 	 * @return string
 	 */
 	public function getControlTemplates() {
-		return vc_get_template( 'editors/navbar/vc_control-templates-button.php' );
+		return vc_get_template(
+			'editors/navbar/vc_control-templates-button.php',
+			[ 'title' => wpb_get_title_with_shortcut( 'Templates' ) ]
+		);
 	}
 
 	/**
@@ -62,9 +65,12 @@ class Vc_Navbar_Grid_Item extends Vc_Navbar {
 	 * @return string
 	 */
 	public function getControlEdit() {
+		$icon = vc_get_template( 'icons/settings-ico.tpl.php' );
 		return '<li class="vc_pull-right vc_hide-mobile vc_hide-desktop-more">
 				<a data-vc-navbar-control="edit" class="vc_icon-btn vc_post-settings" title="' . esc_attr__( 'Grid element settings', 'js_composer' ) . '">
-					<i class="vc-composer-icon vc-c-icon-cog"></i>
+					<div class="vc_post-settings-icon">
+						' . $icon . '
+					</div>
 					<p class="vc_hide-desktop">' . __( 'Settings', 'js_composer' ) . '</p>
 				</a>
 			</li>';
@@ -91,11 +97,22 @@ class Vc_Navbar_Grid_Item extends Vc_Navbar {
 	 * @return string
 	 */
 	public function getControlPreviewItemWidth() {
-		$output = '<li class="vc_pull-right vc_gitem-navbar-dropdown vc_gitem-navbar-preview-width" data-vc-grid-item="navbar_preview_width"><select data-vc-navbar-control="preview_width">';
+		$output = '<li class="vc_pull-right vc_gitem-navbar-dropdown vc_gitem-navbar-preview-width" data-vc-grid-item="navbar_preview_width">';
+		$options = [];
 		for ( $i = 1; $i <= 12; $i++ ) {
-			$output .= '<option value="' . esc_attr( $i ) . '">' . sprintf( esc_html__( '%s/12 width', 'js_composer' ), $i ) . '</option>';
+			$options[] = [
+				'value' => $i,
+				'label' => sprintf( esc_html__( '%s/12 width', 'js_composer' ), $i ),
+			];
 		}
-		$output .= '</select></li>';
+
+		$output .= WPB_Form_Field_Dropdown::get( [
+			'data_attributes' => [
+				'vc-navbar-control' => 'preview_width',
+			],
+			'options' => $options,
+		] );
+		$output .= '</li>';
 
 		return $output;
 	}
@@ -112,11 +129,21 @@ class Vc_Navbar_Grid_Item extends Vc_Navbar {
 
 		$animations = WPBakeryShortCode_Vc_Gitem_Animated_Block::animations();
 		if ( is_array( $animations ) ) {
-			$output .= '<li class="vc_pull-right vc_gitem-navbar-dropdown"><select data-vc-navbar-control="animation">';
+			$output .= '<li class="vc_pull-right vc_gitem-navbar-dropdown">';
+			$options = [];
 			foreach ( $animations as $value => $key ) {
-				$output .= '<option value="' . esc_attr( $key ) . '">' . esc_html( $value ) . '</option>';
+				$options[] = [
+					'value' => $key,
+					'label' => $value,
+				];
 			}
-			$output .= '</select></li>';
+			$output .= WPB_Form_Field_Dropdown::get( [
+				'data_attributes' => [
+					'vc-navbar-control' => 'animation',
+				],
+				'options' => $options,
+			] );
+			$output .= '</li>';
 		}
 
 		return $output;

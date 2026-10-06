@@ -1,6 +1,7 @@
 <?php
 /**
  * Generate AI form template.
+ * Structure is similar to Edit Form, to preserve styling.
  *
  * @var string $element_form_fields_template_path
  * @var string $ai_element_type
@@ -13,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<form method="post" action="" class="vc_ui-panel-content-container vc_ui-hidden">
-	<div class="vc_ui-panel-content vc_properties-list" data-vc-ui-element="panel-content">
-		<div class="vc_row">
+<div class="vc_ui-panel-content-container vc_ui-hidden">
+	<div class="vc_ui-panel-content vc_properties-list wpb_edit_form_elements vc_edit_form_elements" data-vc-ui-element="panel-content">
+		<form method="post" action="" class="vc_edit-form-tab vc_row vc_ui-flex-row">
 			<?php
 			vc_include_template(
 				$element_form_fields_template_path,
@@ -26,6 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 				]
 			);
 			?>
-		</div>
+		</form>
 	</div>
-</form>
+</div>

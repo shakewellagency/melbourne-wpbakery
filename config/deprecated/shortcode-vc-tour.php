@@ -3,7 +3,7 @@
  * Configuration file for [vc_tour] shortcode of 'Old Tour' element.
  *
  * @see https://kb.wpbakery.com/docs/inner-api/vc_map/ for more detailed information about element attributes.
- * @depreacted 4.6
+ * @deprecated 4.6
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,6 +17,7 @@ return [
 	'is_container' => true,
 	'container_not_allowed' => true,
 	'deprecated' => '4.6',
+	'content_element' => false,
 	'icon' => 'icon-wpb-ui-tab-content-vertical',
 	'category' => esc_html__( 'Content', 'js_composer' ),
 	'wrapper_class' => 'vc_clearfix',

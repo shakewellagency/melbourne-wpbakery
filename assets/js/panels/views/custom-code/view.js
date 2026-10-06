@@ -150,7 +150,7 @@
 				}
 			}
 			vc.updateSettingsBadge();
-			window.vc.showMessage( window.i18nLocale.custom_code_updated, 'success' );
+			window.wpbNotifications.show( window.i18nLocale.custom_code_updated );
 
 			vc.storage = vc.storage || {};
 			vc.storage.isChanged = true;
@@ -170,6 +170,7 @@
 				this.initDraggable();
 			}
 			this.fixElContainment();
+			this.focusCloseButton( this.$el );
 			this.trigger( 'show' );
 		},
 		hide: function ( e ) {

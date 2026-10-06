@@ -63,9 +63,43 @@ class Vc_Post_Admin {
 			wp_send_json_error();
 		}
 
+		$status_before = get_post_status( $post_id );
+
 		$this->update_post_data( $post_id );
 
-		wp_send_json_success();
+		$response = null;
+		if ( get_post_status( $post_id ) !== $status_before ) {
+			$response = $this->get_status_controls_html( $post_id );
+		}
+
+		wp_send_json_success( $response );
+	}
+
+	/**
+	 * Render the navbar save buttons and settings footer for the editor to swap in after a status change. #4066
+	 *
+	 * @since 9.0
+	 * @param int $post_id Post ID.
+	 * @return array
+	 */
+	protected function get_status_controls_html( $post_id ) {
+		$post = get_post( $post_id );
+
+		require_once vc_path_dir( 'EDITORS_DIR', 'navbar/class-vc-navbar-frontend.php' );
+		require_once vc_path_dir( 'EDITORS_DIR', 'popups/class-vc-post-settings.php' );
+
+		$navbar = new Vc_Navbar_Frontend( $post );
+		$settings = new Vc_Post_Settings( null, $post );
+
+		return [
+			'status_changed' => true,
+			'save_buttons' => $navbar->getControlSaveButtons(),
+			'save_buttons_mobile' => $navbar->getControlSaveButtonsMobile(),
+			'settings_footer' => vc_get_template(
+				'editors/popups/vc_ui-footer.tpl.php',
+				[ 'controls' => $settings->getControls() ]
+			),
+		];
 	}
 
 	/**
@@ -226,6 +260,25 @@ class Vc_Post_Admin {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Mark post as using new CSS bundles in hybrid mode.
+	 *
+	 * When a post is saved/edited, mark it to use new CSS bundles.
+	 * This only applies in hybrid CSS loading mode.
+	 *
+	 * @param int $post_id
+	 * @since 9.0
+	 */
+	public function set_optimized_css_flag( $post_id ) {
+		$strategy = Vc_Css_Manager::get_css_loading_strategy();
+
+		if ( 'hybrid' !== $strategy ) {
+			return;
+		}
+
+		update_post_meta( $post_id, '_wpb_vc_use_optimized_css', '1' );
 	}
 
 	/**
@@ -532,6 +585,8 @@ class Vc_Post_Admin {
 			wp_send_json_error( [ 'message' => esc_html__( 'Error fetching tags.', 'js_composer' ) ] );
 		}
 
+		$tags = wpb_sort_terms_by_relevance( $tags, $search );
+
 		$response = array_map( function ( $tag ) {
 			return [
 				'id' => $tag->term_id,
@@ -569,6 +624,9 @@ class Vc_Post_Admin {
 
 		$meta_list = $this->get_post_meta_list();
 		$this->setPostMetaByList( $id, $meta_list );
+
+		// Mark post as using new CSS in hybrid mode.
+		$this->set_optimized_css_flag( $id );
 
 		$types = [
 			'default',

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<div class="vc_modal modal-backdrop vc_modal-popup-container" id="vc_ui-helper-modal-ai">
+<div class="vc_modal modal-backdrop vc_modal-popup-container" id="vc_ui-helper-modal-ai" role="dialog" aria-modal="true" aria-labelledby="modal-ai-title">
 	<div class="vc_ui-font-open-sans vc_media-xs vc_modal-popup-content" >
 		<div class="vc_ui-panel-window-inner">
 			<?php
@@ -18,8 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 
 			vc_include_template('editors/popups/vc_ui-header.tpl.php', [
+				'id' => 'modal-ai',
 				'title' => esc_html__( 'WPBakery AI (Beta)', 'js_composer' ),
-				'controls' => [ 'close' ],
+				'controls' => [
+					'close' => [
+						'title' => esc_html__( 'Close', 'js_composer' ),
+					],
+				],
 				'header_css_class' => 'vc_ui-post-settings-header-container',
 				'header_tabs_template' => '',
 				'is_ai_token_usage' => $is_license_activated,
@@ -57,7 +62,3 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 </div>
-
-<?php
-// Add HTML after Form.
-do_action( 'wpb_add_after_settings_form' );

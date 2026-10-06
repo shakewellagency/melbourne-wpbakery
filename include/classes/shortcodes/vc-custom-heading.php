@@ -64,18 +64,19 @@ class WPBakeryShortCode_Vc_Custom_Heading extends WPBakeryShortCode {
 	 * @since 4.3
 	 */
 	public function getAttributes( $atts ) {
+		$atts = vc_map_get_attributes( $this->getShortcode(), $atts );
+		extract( $atts );
+
 		/**
 		 * Shortcode attributes
 		 *
-		 * @var $text
-		 * @var $google_fonts
-		 * @var $font_container
-		 * @var $el_class
-		 * @var $link
-		 * @var $css
+		 * @var string|null $text
+		 * @var string|array $google_fonts
+		 * @var array|string $font_container
+		 * @var string $el_class
+		 * @var string $link
+		 * @var string|null $css
 		 */
-		$atts = vc_map_get_attributes( $this->getShortcode(), $atts );
-		extract( $atts );
 
 		/**
 		 * Get default values from VC_MAP.

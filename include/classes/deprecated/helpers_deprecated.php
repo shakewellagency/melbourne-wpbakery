@@ -24,7 +24,7 @@ if ( ! function_exists( 'add_shortcode_param' ) ) :
 	 * @since 4.2
 	 */
 	function add_shortcode_param( $name, $form_field_callback, $script_url = null ) {
-		_deprecated_function( 'add_shortcode_param', '4.4 (will be removed in 6.0)', 'vc_add_shortcode_param' );
+		_deprecated_function( 'add_shortcode_param', '4.4', 'vc_add_shortcode_param' );
 
 		return vc_add_shortcode_param( $name, $form_field_callback, $script_url );
 	}
@@ -38,7 +38,7 @@ if ( ! function_exists( 'get_row_css_class' ) ) :
 	 * @deprecated 4.2
 	 */
 	function get_row_css_class() {
-		_deprecated_function( 'get_row_css_class', '4.2 (will be removed in 6.0)' );
+		_deprecated_function( 'get_row_css_class', '4.2' );
 		$custom = vc_settings()->get( 'row_css_class' );
 
 		return ! empty( $custom ) ? $custom : 'vc_row-fluid';
@@ -52,7 +52,7 @@ if ( ! function_exists( 'vc_generate_dependencies_attributes' ) ) :
 	 * @deprecated 5.2
 	 */
 	function vc_generate_dependencies_attributes() {
-		_deprecated_function( 'vc_generate_dependencies_attributes', '5.1', '' );
+		_deprecated_function( 'vc_generate_dependencies_attributes', '5.1' );
 
 		return '';
 	}
@@ -123,7 +123,7 @@ if ( ! function_exists( 'set_vc_is_inline' ) ) :
 	 *
 	 * @param bool $value
 	 *
-	 * @depreacted 5.2
+	 * @deprecated 5.2
 	 * @since 4.3
 	 */
 	function set_vc_is_inline( $value = true ) {
@@ -136,7 +136,7 @@ if ( ! function_exists( 'vc_is_editor' ) ) :
 	/**
 	 * Check is plugin editor;
 	 *
-	 * @depreacted since 4.8 ( use vc_is_frontend_editor ).
+	 * @deprecated since 4.8 ( use vc_is_frontend_editor ).
 	 * @return bool
 	 * @since 4.2
 	 */
@@ -149,7 +149,7 @@ if ( ! function_exists( 'vc_disable_automapper' ) ) :
 	/**
 	 * Disable automapper.
 	 *
-	 * @depreacted 7.7 ( use modules settings )
+	 * @deprecated 7.7 ( use modules settings )
 	 * @param bool $disable
 	 * @since 4.2
 	 */
@@ -162,7 +162,7 @@ if ( ! function_exists( 'vc_automapper_is_disabled' ) ) :
 	/**
 	 * Check is automapper disabled.
 	 *
-	 * @depreacted 7.7 ( use modules settings )
+	 * @deprecated 7.7 ( use modules settings )
 	 * @return bool
 	 * @since 4.2
 	 */
@@ -177,7 +177,7 @@ if ( ! function_exists( 'visual_composer' ) ) :
 	 *
 	 * @return Vc_Base
 	 * @since 4.2
-	 * @depreacted 5.8, use wpbakery() instead
+	 * @deprecated 5.8, use wpbakery() instead
 	 */
 	function visual_composer() {
 		_deprecated_function( __FUNCTION__, '5.8', 'wpbakery' );
@@ -316,5 +316,230 @@ if ( ! function_exists( 'vc_target_param_list' ) ) :
 	function vc_target_param_list() {
 		_deprecated_function( __FUNCTION__, '8.6', "vc_get_shared( 'target param list' )" );
 		return vc_get_shared( 'target param list' );
+	}
+endif;
+if ( ! function_exists( 'vc_siteAttachedImages' ) ) :
+	/**
+	 *  Helper function which returns list of site attached images, and if image is attached to the current post it adds class 'added'
+	 *
+	 * @param array $att_ids
+	 *
+	 * @return string
+	 * @since 4.11
+	 * @deprecated 8.8
+	 */
+    function vc_siteAttachedImages( $att_ids = array() ) { // phpcs:ignore
+		_deprecated_function( __FUNCTION__, '8.8' );
+
+		$output = '';
+
+		$limit = (int) apply_filters( 'vc_site_attached_images_query_limit', - 1 );
+		$media_images = get_posts( 'post_type=attachment&orderby=ID&numberposts=' . $limit );
+		foreach ( $media_images as $image_post ) {
+			$thumb_src = wp_get_attachment_image_src( $image_post->ID );
+			$thumb_src = $thumb_src[0];
+
+			$class = ( in_array( $image_post->ID, $att_ids, true ) ) ? ' class="added"' : '';
+
+			$output .= '<li' . $class . '>
+						<img rel="' . esc_attr( $image_post->ID ) . '" src="' . esc_url( $thumb_src ) . '" />
+						<span class="img-added">' . esc_html__( 'Added', 'js_composer' ) . '</span>
+					</li>';
+		}
+
+		if ( '' !== $output ) {
+			$output = '<ul class="gallery_widget_img_select">' . $output . '</ul>';
+		}
+
+		return $output;
+	}
+endif;
+if ( ! function_exists( 'vc_parse_options_string' ) ) :
+	/**
+	 * String parser for options.
+	 *
+	 * @param string $initial_string
+	 * @param string $tag
+	 * @param string $param
+	 *
+	 * @return array
+	 * @throws \Exception
+	 * @since 4.2
+	 * @deprecated 8.8
+	 */
+	function vc_parse_options_string( $initial_string, $tag, $param ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
+		_deprecated_function( __FUNCTION__, '8.8' );
+
+		$options = [];
+		$option_settings_list = [];
+		$settings = WPBMap::getParam( $tag, $param );
+
+		foreach ( preg_split( '/\|/', $initial_string ) as $value ) {
+			if ( preg_match( '/\:/', $value ) ) {
+				$split = preg_split( '/\:/', $value );
+				$option_name = $split[0];
+				$option_settings = vc_param_options_get_settings( $option_name, $settings['options'] );
+				$option_settings_list[ $option_name ] = $option_settings;
+				if ( isset( $option_settings['type'] ) && 'checkbox' === $option_settings['type'] ) {
+					$option_value = array_map( 'vc_param_options_parse_values', preg_split( '/\,/', $split[1] ) );
+				} else {
+					$option_value = rawurldecode( $split[1] );
+				}
+				$options[ $option_name ] = $option_value;
+			}
+		}
+		if ( isset( $settings['options'] ) ) {
+			foreach ( $settings['options'] as $setting_option ) {
+				if ( 'separator' !== $setting_option['type'] && isset( $setting_option['value'] ) && empty( $options[ $setting_option['name'] ] ) ) {
+					$options[ $setting_option['name'] ] = 'checkbox' === $setting_option['type'] ? preg_split( '/\,/', $setting_option['value'] ) : $setting_option['value'];
+				}
+				if ( isset( $setting_option['name'] ) && isset( $options[ $setting_option['name'] ] ) && isset( $setting_option['value_type'] ) ) {
+					if ( 'integer' === $setting_option['value_type'] ) {
+						$options[ $setting_option['name'] ] = (int) $options[ $setting_option['name'] ];
+					} elseif ( 'float' === $setting_option['value_type'] ) {
+						$options[ $setting_option['name'] ] = (float) $options[ $setting_option['name'] ];
+					} elseif ( 'boolean' === $setting_option['value_type'] ) {
+						$options[ $setting_option['name'] ] = (bool) $options[ $setting_option['name'] ];
+					}
+				}
+			}
+		}
+
+		return $options;
+	}
+endif;
+if ( ! function_exists( 'vc_is_responsive_disabled' ) ) :
+	/**
+	 * Check if plugin no_resonsive_css settings is disabled.
+	 *
+	 * @return bool
+	 * @deprecated 8.8
+	 */
+	function vc_is_responsive_disabled() {
+		_deprecated_function( __FUNCTION__, '8.8' );
+
+		$disable_responsive = vc_settings()->get( 'not_responsive_css' );
+
+		return '1' === $disable_responsive;
+	}
+endif;
+if ( ! function_exists( 'vc_map_integrate_get_atts' ) ) :
+	/**
+	 * Retrieves and processes default attributes for integrated shortcodes.
+	 *
+	 * This function fetches the parameters for a base shortcode and an integrated shortcode,
+	 * then processes these parameters to generate a default set of attributes.
+	 * The resulting associative array of attributes is returned.
+	 *
+	 * @param string $base_shortcode
+	 * @param string $integrated_shortcode
+	 * @param string $field_prefix
+	 * @return array
+	 * @throws Exception
+	 * @since 4.5
+	 * @deprecated 8.8
+	 */
+	function vc_map_integrate_get_atts( $base_shortcode, $integrated_shortcode, $field_prefix = '' ) {
+		_deprecated_function( __FUNCTION__, '8.8' );
+
+		$params = vc_map_integrate_get_params( $base_shortcode, $integrated_shortcode, $field_prefix );
+		$atts = [];
+		if ( is_array( $params ) && ! empty( $params ) ) {
+			foreach ( $params as $param ) {
+				$value = '';
+				if ( isset( $param['value'] ) ) {
+					if ( isset( $param['std'] ) ) {
+						$value = $param['std'];
+					} elseif ( is_array( $param['value'] ) ) {
+						reset( $param['value'] );
+						$value = current( $param['value'] );
+					} else {
+						$value = $param['value'];
+					}
+				}
+				$atts[ $param['param_name'] ] = $value;
+			}
+		}
+
+		return $atts;
+	}
+endif;
+if ( ! function_exists( 'vc_map_add_css_animation' ) ) :
+	/**
+	 * Get CSS animation for shortcode params.
+	 *
+	 * @param bool $label
+	 * @return array
+	 * @deprecated 9.0 use vc_config()->get_css_animation()
+	 */
+	function vc_map_add_css_animation( $label = true ) {
+		_deprecated_function( __FUNCTION__, '9.0', 'vc_config()->get_css_animation()' );
+
+		return vc_config()->get_css_animation( $label );
+	}
+endif;
+if ( ! function_exists( 'vc_navbar_undoredo' ) ) :
+	/**
+	 * Undo Redo navbar for frontend editor.
+	 *
+	 * @deprecated 9.0 without replacement
+	 */
+	function vc_navbar_undoredo() {
+		_deprecated_function( __FUNCTION__, '9.0' );
+
+		/**
+		 * Class Vc_Navbar_Undoredo
+		 *
+		 * @deprecated 9.0
+		 */
+		class Vc_Navbar_Undoredo {
+			/**
+			 * Vc_Navbar_Undoredo constructor.
+			 */
+			public function __construct() {
+				// Backend.
+				add_filter( 'vc_nav_controls', [
+					$this,
+					'addControls',
+				] );
+
+				// Frontend.
+				add_filter( 'vc_nav_front_controls', [
+					$this,
+					'addControls',
+				] );
+			}
+
+			/**
+			 * Add undo/redo controls.
+			 *
+			 * @param array $controls
+			 * @return array
+			 */
+			public function addControls( $controls ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+				$undo_title = esc_attr( wpb_get_title_with_shortcut( 'Undo' ) );
+				$redo_title = esc_attr( wpb_get_title_with_shortcut( 'Redo' ) );
+				$controls[] = [
+					'undo',
+					'<li class="vc_hide-mobile vc_hide-desktop-more">
+                        <a id="vc_navbar-undo" class="vc_icon-btn vc_undo-redo vc_undo-button vc_hide-mobile" disabled tabindex="0" title="' . $undo_title . '" role="button" aria-label="' . $undo_title . '">
+                            <i class="vc-composer-icon vc-c-icon-undo" aria-hidden="true"></i>
+                            <p class="vc_hide-desktop" aria-hidden="true">' . __( 'Undo', 'js_composer' ) . '</p>
+                        </a>
+                    </li>',
+				];
+				$controls[] = [
+					'redo',
+					'<li class="vc_hide-mobile vc_hide-desktop-more">
+                        <a id="vc_navbar-redo" class="vc_icon-btn vc_undo-redo vc_redo-button vc_hide-mobile" disabled tabindex="0" title="' . $redo_title . '" role="button" aria-label="' . $redo_title . '">
+                            <i class="vc-composer-icon vc-c-icon-redo" aria-hidden="true"></i>
+                            <p class="vc_hide-desktop" aria-hidden="true">' . __( 'Redo', 'js_composer' ) . '</p>
+                        </a>
+                    </li>',
+				];
+
+				return $controls;
+			}
+		}
 	}
 endif;

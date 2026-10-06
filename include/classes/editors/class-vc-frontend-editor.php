@@ -795,7 +795,11 @@ class Vc_Frontend_Editor extends Vc_Editor {
 		wp_enqueue_script( 'jquery-ui-autocomplete' );
 		wp_enqueue_script( 'wpb_composer_front_js' );
 		wp_enqueue_style( 'js_composer_front' );
+		wp_enqueue_style( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.css' ), [], WPB_VC_VERSION );
 		wp_enqueue_style( 'vc_inline_css', vc_asset_url( 'css/js_composer_frontend_editor_iframe.min.css' ), [], WPB_VC_VERSION );
+		// When version is added, we can't use multiple fonts, it only loads the last font from the url.
+		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_enqueue_style( 'vc_google_fonts_iframe', 'https://fonts.googleapis.com/css2?family=Sora:wght@500;600&display=swap&ver=' . WPB_VC_VERSION, [], null );
 		wp_enqueue_script( 'vc_waypoints' );
 		wp_enqueue_script( 'wpb_scrollTo_js', vc_asset_url( 'lib/vendor/dist/jquery.scrollto/jquery.scrollTo.min.js' ), [ 'jquery-core' ], WPB_VC_VERSION, true );
 
@@ -983,7 +987,7 @@ class Vc_Frontend_Editor extends Vc_Editor {
 		wp_register_script( 'vc-image-drop', vc_asset_url( 'js/dist/image-drop.min.js' ), [ 'jquery-core' ], WPB_VC_VERSION, true );
 		wp_register_script( 'vc-frontend-editor-min-js', vc_asset_url( 'js/dist/frontend-editor.min.js' ), [], WPB_VC_VERSION, true );
 		wp_register_script( 'pickr', vc_asset_url( 'lib/vendor/dist/@simonwep/pickr/dist/pickr.es5.min.js' ), [], WPB_VC_VERSION, true );
-		wp_register_script( 'select2', vc_asset_url( 'lib/vendor/dist/select2/dist/js/select2.min.js' ), [], WPB_VC_VERSION, true );
+		wp_register_script( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.js' ), [ 'jquery-core' ], WPB_VC_VERSION, true );
 		// Conditionally register mousetrap based on shortcuts setting.
 		$shortcuts_disabled = get_option( 'wpb_js_shortcuts', false );
 		if ( ! $shortcuts_disabled ) {
@@ -1023,7 +1027,7 @@ class Vc_Frontend_Editor extends Vc_Editor {
 			'wp-color-picker',
 			'farbtastic',
 			'pickr',
-			'select2',
+			'wpb-select2',
 		];
 		$dependencies = [
 			'vc_bootstrap_js',
@@ -1072,8 +1076,8 @@ class Vc_Frontend_Editor extends Vc_Editor {
 		wp_register_style( 'pickr', vc_asset_url( 'lib/vendor/dist/@simonwep/pickr/dist/themes/classic.min.css' ), [], WPB_VC_VERSION, false );
 		// When version is added, we can't use multiple fonts, it only loads the last font from the url.
 		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-		wp_register_style( 'vc_google_fonts', 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,500;1,14..32,500&family=Open+Sans:ital,wght@1,600&family=Roboto:wght@400;700&family=Roboto:ital,wght@1,500&family=Sora:wght@600&display=swap&ver=' . WPB_VC_VERSION, [], null );
-		wp_register_style( 'select2', vc_asset_url( 'lib/vendor/dist/select2/dist/css/select2.min.css' ), [], WPB_VC_VERSION, false );
+		wp_register_style( 'vc_google_fonts', 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,500;1,14..32,500&family=Open+Sans:ital,wght@1,600&family=Roboto:wght@400;700&family=Roboto:ital,wght@1,500&family=Sora:wght@500;600&display=swap&ver=' . WPB_VC_VERSION, [], null );
+		wp_register_style( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.css' ), [], WPB_VC_VERSION, false );
 
 		do_action( 'wpb_after_register_frontend_editor_css', $this );
 	}
@@ -1095,7 +1099,7 @@ class Vc_Frontend_Editor extends Vc_Editor {
 			'wpb_modules_css',
 			'pickr',
 			'vc_google_fonts',
-			'select2',
+			'wpb-select2',
 		];
 
 		$common = apply_filters( 'wpb_enqueue_frontend_editor_css', array_merge( $wp_dependencies, $dependencies ) );

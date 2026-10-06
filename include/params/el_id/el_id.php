@@ -16,12 +16,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param array $settings
  * @param string $value
+ * @param string $tag
+ * @param string $param_id
  *
  * @return string
  * @since 4.5
  */
-function vc_el_id_form_field( $settings, $value ) {
-	$value_output = sprintf( '<div class="vc-param-el_id"><input name="%s" class="wpb_vc_param_value wpb-textinput %s_field" type="text" value="%s" /></div>', esc_attr( $settings['param_name'] ), esc_attr( $settings['param_name'] . ' ' . $settings['type'] ), $value );
+function vc_el_id_form_field( $settings, $value, $tag, $param_id ) {
+	$value_output = vc_get_template( 'params/el_id/template.php', [
+		'settings' => $settings,
+		'value' => $value,
+		'param_id' => $param_id,
+	] );
 
 	return apply_filters( 'vc_el_id_render_filter', $value_output );
 }

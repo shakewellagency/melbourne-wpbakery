@@ -24,6 +24,16 @@ class WPBakeryShortCode_Vc_Round_Chart extends WPBakeryShortCode {
 	}
 
 	/**
+	 * Get CSS file names for vc_round_chart shortcode.
+	 *
+	 * @since 9.0
+	 * @return string
+	 */
+	public function get_shortcode_css_files() {
+		return 'vc_charts';
+	}
+
+	/**
 	 * Register scripts.
 	 */
 	public function jsScripts() {

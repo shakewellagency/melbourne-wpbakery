@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php
 	foreach ( $vc_post_seo->get_social_network_list() as $network_slug => $network_name ) {
 		$slug = 'social-image-' . $network_slug;
-		$image_id = (int) empty( $seo_settings[ $slug ] ) ? 0 : $seo_settings[ $slug ];
+		$image_id = (int) empty( $seo_settings[ $slug ] ) ? '' : $seo_settings[ $slug ];
 		?>
 		<div class="vc_row vc_seo-social-block">
 			<div class="vc_col-sm-12 vc_column">
@@ -40,61 +40,64 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<div class="wpb_element_label"><?php esc_html_e( 'Image', 'js_composer' ); ?></div>
 				<div class="edit_form_line" data-social-net-preview-slug="<?php echo esc_attr( 'wpb-' . $network_slug . '-preview' ); ?>">
 					<?php
-					vc_include_template( 'params/attache_images/template.php', [
-						'settings' => [
-							'type' => 'attach_image',
-							'heading' => 'Image',
-							'param_name' => 'social-image-' . $network_slug,
-							'value' => '',
-							'description' => '',
-							'dependency' => [
-								'element' => 'source',
-								'value' => 'media_library',
-							],
-							'admin_label' => true,
-							'vc_single_param_edit_holder_class' => [],
-						],
-						'value' => $image_id,
-						'tag' => 'vc_single_image',
-						'single' => true,
-						'param_value' => $image_id,
-					] );
+					WPB_Form_Field_Attach_Image::render(
+						[
+							'param_value' => $image_id,
+							'image_id'    => $image_id,
+							'thumb_src' => wpb_get_image_thumb( $image_id, 'medium' ),
+							'name' => 'social-image-' . $network_slug,
+							'classes' => wpbakery()->editForm()->get_value_control_classes( 'social-image-' . $network_slug, 'attach_image' ),
+						]
+					);
 					?>
 				</div>
-				<span class="wpb-social-attr-description">Select image from media library</span>
 			</div>
 			<div class="vc_col-sm-12 vc_column">
-				<div class="wpb_element_label"><?php esc_html_e( 'Social title', 'js_composer' ); ?></div>
+				<?php
+				$title_name = 'social-title-' . $network_slug;
+				$title_id = $title_name;
+				$value = empty( $seo_settings[ $title_name ] ) ? '' : $seo_settings[ $title_name ];
+				?>
+				<label for="<?php echo esc_attr( $title_id ); ?>" class="wpb_element_label"><?php esc_html_e( 'Social title', 'js_composer' ); ?></label>
 				<div class="edit_form_line">
 					<?php
-					$title_name = 'social-title-' . $network_slug;
-					$title_id = $title_name;
-					$value = empty( $seo_settings[ $title_name ] ) ? '' : $seo_settings[ $title_name ];
-
 					if ( vc_modules_manager()->is_module_on( 'vc-ai' ) ) {
 						wpb_add_ai_icon_to_text_field( 'seo_title', $title_id );
 					}
+					WPB_Form_Field_Textfield::render(
+						[
+							'id' => $title_id,
+							'classes' => 'vc_social-title-field',
+							'name' => $title_name,
+							'value' => $value,
+						]
+					);
 					?>
-					<input name="<?php echo esc_attr( $title_name ); ?>" id="<?php echo esc_attr( $title_id ); ?>" class="wpb-textinput vc_social-title-field" type="text" value="<?php echo esc_attr( $value ); ?>" placeholder="">
 				</div>
 			</div>
 			<div class="vc_col-sm-12 vc_column">
-				<div class="wpb_element_label"><?php esc_html_e( 'Social description', 'js_composer' ); ?></div>
+				<?php
+				$description_name = 'social-description-' . $network_slug;
+				$description_id = $description_name;
+
+				$value = empty( $seo_settings[ $description_name ] ) ? '' : $seo_settings[ $description_name ];
+				?>
+				<label for="<?php echo esc_attr( $description_id ); ?>" class="wpb_element_label"><?php esc_html_e( 'Social description', 'js_composer' ); ?></label>
 				<div class="edit_form_line">
 					<?php
-					$description_name = 'social-description-' . $network_slug;
-					$description_id = $description_name;
-
-					$value = empty( $seo_settings[ $description_name ] ) ? '' : $seo_settings[ $description_name ];
-					$count = mb_strlen( $value ) ? mb_strlen( $value ) : 0;
-
-
 					if ( vc_modules_manager()->is_module_on( 'vc-ai' ) ) {
 						wpb_add_ai_icon_to_text_field( 'seo_meta_description_social', $description_id );
 					}
 					?>
-					<textarea name="<?php echo esc_attr( $description_name ); ?>" id="<?php echo esc_attr( $description_id ); ?>" class="wpb-textinput vc_social-description-field" maxlength="255"><?php echo esc_html( $value ); ?></textarea>
-					<div class="wpb-social-attr-description"><span class="vc_social-description-counter"><?php echo esc_html( $count ); ?></span>/255</div>
+					<?php
+					WPB_Form_Field_Textarea::render( [
+						'id'        => $description_id,
+						'name'      => $description_name,
+						'value'     => $value,
+						'class'     => 'vc_social-description-field',
+						'maxlength' => '255',
+					] );
+					?>
 				</div>
 			</div>
 		</div>

@@ -111,7 +111,7 @@
 				if ( template && data ) {
 					vc.builder.buildFromTemplate( template, data );
 				}
-				this.showMessage( window.i18nLocale.template_added, 'success' );
+				window.wpbNotifications.show( window.i18nLocale.template_added );
 				vc.closeActivePanel();
 			});
 		},
@@ -157,7 +157,7 @@
 				if ( template && data ) {
 					vc.builder.buildFromTemplate( template, data );
 				}
-				this.showMessage( window.i18nLocale.template_added, 'success' );
+				window.wpbNotifications.show( window.i18nLocale.template_added );
 			});
 		},
 		/**
@@ -174,7 +174,7 @@
 			if ( _.isString( name ) && name.length ) {
 				shortcodes = this.getPostContent();
 				if ( !shortcodes.trim().length ) {
-					this.showMessage( window.i18nLocale.template_is_empty, 'error' );
+					window.wpbNotifications.show( window.i18nLocale.template_is_empty, { type: 'error' });
 					return false;
 				}
 				data = {
@@ -186,10 +186,10 @@
 					_vcnonce: window.vcAdminNonce
 				};
 				this.$name.val( '' );
-				this.showMessage( window.i18nLocale.template_save, 'success' );
+				window.wpbNotifications.show( window.i18nLocale.template_save );
 				this.reloadTemplateList( data );
 			} else {
-				this.showMessage( window.i18nLocale.please_enter_templates_name, 'error' );
+				window.wpbNotifications.show( window.i18nLocale.please_enter_templates_name, { type: 'error' });
 			}
 		},
 		reloadTemplateList: function ( data ) {

@@ -30,7 +30,6 @@ if ( vc_user_access()->part( 'presets' )->can()->get() ) {
 $custom_tag = 'script';
 ?>
 	<<?php echo esc_attr( $custom_tag ); ?>>
-		window.vc_user_mapper = <?php echo wp_json_encode( WpbMap_Grid_Item::getGitemUserShortCodes() ); ?>;
 		window.vc_mapper = <?php echo wp_json_encode( WpbMap_Grid_Item::getShortCodes() ); ?>;
 		window.vc_vendor_settings_presets = <?php echo wp_json_encode( $vc_vendor_settings_presets ); ?>;
 		window.vc_all_presets = <?php echo wp_json_encode( $vc_all_presets ); ?>;
@@ -41,14 +40,7 @@ $custom_tag = 'script';
 		window.vc_modules = <?php echo wp_json_encode( $modules ); ?>;
 	</<?php echo esc_attr( $custom_tag ); ?>>
 
-	<<?php echo esc_attr( $custom_tag ); ?> type="text/html" id="vc_settings-image-block">
-		<li class="added">
-			<div class="inner" style="width: 80px; height: 80px; overflow: hidden;text-align: center;">
-				<img rel="{{ id }}" src="<# if(sizes && sizes.thumbnail) { #>{{ sizes.thumbnail.url }}<# } else {#>{{ url }}<# } #>"/>
-			</div>
-			<a href="#" class="vc_icon-remove"><i class="vc-composer-icon vc-c-icon-close"></i></a>
-		</li>
-	</<?php echo esc_attr( $custom_tag ); ?>>
+<?php vc_include_template( 'editors/partials/vc_settings-single-image-block.tpl.php' ); ?>
 <?php foreach ( WpbMap_Grid_Item::getShortCodes() as $sc_base => $el ) : ?>
 	<<?php echo esc_attr( $custom_tag ); ?> type="text/html" id="vc_shortcode-template-<?php echo esc_attr( $sc_base ); ?>">
 		<?php

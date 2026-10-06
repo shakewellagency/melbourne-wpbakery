@@ -128,45 +128,27 @@ class Vc_IconPicker {
 	 * wp-content/plugins/js_composer/include/autoload/hook-vc-iconpicker-param.php
 	 * folder
 	 *
+	 * @param string $id since 9.0.
 	 * @return string - rendered param field for editor panel
 	 * @since 4.4
 	 */
-	public function render() { // phpcs:ignore:CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-
-		$output = '<div class="vc-iconpicker-wrapper"><select class="vc-iconpicker">';
-
+	public function render( $id = '' ) {
 		// call filter vc_iconpicker-type-{your_type}, e.g. vc_iconpicker-type-fontawesome with passed source from shortcode(default empty array). to get icons.
 		$arr = apply_filters( 'vc_iconpicker-type-' . esc_attr( $this->settings['settings']['type'] ), $this->source );
 		if ( isset( $this->settings['settings'], $this->settings['settings']['emptyIcon'] ) && true === $this->settings['settings']['emptyIcon'] ) {
 			array_unshift( $arr, [] );
 		}
-		if ( ! empty( $arr ) ) {
-			foreach ( $arr as $group => $icons ) {
-				if ( ! is_array( $icons ) || ! is_array( current( $icons ) ) ) {
-					$class_key = empty( $icons ) ? '' : key( $icons );
-					$output .= vc_get_template( 'params/iconpicker/single_icon.php',
-						[
-							'class_key' => $class_key,
-							'selected' => null !== $this->value && 0 === strcmp( $class_key, $this->value ) ? 'selected' : '',
-							'icon' => current( $icons ),
-						]
-					);
-				} else {
-					$output .= vc_get_template( 'params/iconpicker/icon_group.php',
-						[
-							'icons' => $icons,
-							'group' => $group,
-							'value' => $this->value,
-						]
-					);
-				}
-			}
-		}
-		$output .= '</select></div>';
 
-		$output .= '<input name="' . esc_attr( $this->settings['param_name'] ) . '" class="wpb_vc_param_value  ' . esc_attr( $this->settings['param_name'] ) . ' ' . esc_attr( $this->settings['type'] ) . '_field" type="hidden" value="' . esc_attr( $this->value ) . '" ' . ( ( isset( $this->settings['settings'] ) && ! empty( $this->settings['settings'] ) ) ? ' data-settings="' . esc_attr( wp_json_encode( $this->settings['settings'] ) ) . '" ' : '' ) . ' />';
-
-		return $output;
+		return WPB_Form_Field_Iconpicker::get([ // nosemgrep - escaping handled by WPB_Form_Field_Iconpicker.
+			'name' => $this->settings['param_name'],
+			'classes' => wpbakery()->editForm()->get_value_control_classes( $this->settings['param_name'], $this->settings['type'] . '_field' ),
+			'icon_lib_list' => $arr,
+			'id' => wpbakery()->editForm()->get_value_control_id( $id, $this->settings['type'] ),
+			'value' => $this->value,
+			'data_attributes' => [
+				'settings' => empty( $this->settings['settings'] ) ? '' : wp_json_encode( $this->settings['settings'] ),
+			],
+		]);
 	}
 }
 
@@ -177,16 +159,17 @@ class Vc_IconPicker {
  * @param array $settings
  * @param string $value
  * @param string $tag
+ * @param string $param_id
  *
  * @return string - rendered template for params in edit form
  *
  * @since 4.4
  */
-function vc_iconpicker_form_field( $settings, $value, $tag ) { // phpcs:ignore:Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+function vc_iconpicker_form_field( $settings, $value, $tag = '', $param_id = '' ) {
 
 	$icon_picker = new Vc_IconPicker( $settings, $value );
 
-	return apply_filters( 'vc_iconpicker_render_filter', $icon_picker->render() );
+	return apply_filters( 'vc_iconpicker_render_filter', $icon_picker->render( $param_id ) );
 }
 
 // SEE HOOKS FOLDER FOR FONTS REGISTERING/ENQUEUE IN BASE @path "/include/autoload/hook-vc-iconpicker-param.php".

@@ -188,11 +188,25 @@ class Vc_Settings {
 			$this->tabs['vc-modules'] = esc_html__( 'Module Manager', 'js_composer' );
 		}
 
+		if ( $this->is_license_tab() ) {
+			$this->tabs['vc-updater'] = esc_html__( 'Product License', 'js_composer' );
+		}
+	}
+
+	/**
+	 * Check if we need license tab.
+	 *
+	 * @return bool
+	 * @since 9.0
+	 */
+	private function is_license_tab() {
 		if ( ! vc_is_network_plugin() || ( vc_is_network_plugin() && is_network_admin() ) ) {
-			if ( ! vc_is_updater_disabled() && ! wpb_check_wordpress_com_env() ) {
-				$this->tabs['vc-updater'] = esc_html__( 'Product License', 'js_composer' );
+			if ( ! vc_manager()->isUpdaterDisabled() && ! wpb_check_wordpress_com_env() ) {
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	/**
@@ -203,7 +217,16 @@ class Vc_Settings {
 			$this->setTabs();
 		}
 
-		return apply_filters( 'vc_settings_tabs', $this->tabs );
+		$tabs = apply_filters( 'vc_settings_tabs', $this->tabs );
+
+		if ( ! isset( $tabs['vc-updater'] ) && $this->is_license_tab() ) {
+			$tabs['vc-updater'] = esc_html__( 'Product License', 'js_composer' );
+		}
+
+		// Add "About" welcome page to the navigation at the end.
+		$tabs['vc-welcome'] = esc_html__( 'About', 'js_composer' );
+
+		return $tabs;
 	}
 
 	/**
@@ -231,8 +254,17 @@ class Vc_Settings {
 			}
 		}
 		$page = new Vc_Page();
-        // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
-		$page->setSlug( $tab )->setTitle( isset( $tabs[ $tab ] ) ? $tabs[ $tab ] : '' )->setTemplatePath( apply_filters( 'vc_settings-render-tab-' . $tab, 'pages/vc-settings/tab.php' ) );
+		$tab_template = 'pages/vc-settings/tab.php';
+		if ( 'vc-updater' === $tab ) {
+			$template = $tab_template;
+		} elseif ( 'vc-welcome' === $tab ) {
+			// Render welcome page inside settings container.
+			$template = 'pages/vc-welcome/index.php';
+		} else {
+            // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
+			$template = apply_filters( 'vc_settings-render-tab-' . $tab, $tab_template );
+		}
+		$page->setSlug( $tab )->setTitle( $tabs[ $tab ] ?? '' )->setTemplatePath( $template );
 
         // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
 		do_action( 'vc-settings-render-tab-' . $tab, $page );
@@ -250,6 +282,14 @@ class Vc_Settings {
 	 */
 	public function initAdmin() {
 		$this->setTabs();
+
+		// Mark a save attempt while options.php is handling our settings group, so the
+		// settings page can render a notification even if the transient/URL pipeline
+		// is interrupted by host-side referrer or redirect policies.
+		add_filter( 'option_page_capability_' . $this->option_group, [ $this, 'flag_settings_save_attempt' ] );
+		foreach ( $this->getTabs() as $tab => $title ) {
+			add_filter( 'option_page_capability_' . $this->option_group . '_' . preg_replace( '/^vc\-/', '', $tab ), [ $this, 'flag_settings_save_attempt' ] );
+		}
 
 		add_action( 'update_option_wpb_js_modules', [
 			$this,
@@ -291,6 +331,73 @@ class Vc_Settings {
 		 */
 		$tab = 'updater';
 		$this->addSection( $tab );
+	}
+
+	/**
+	 * Flag the current user as having just submitted one of our settings forms.
+	 *
+	 * @param string $capability Unchanged.
+	 * @return string
+	 * @since 9.0
+	 */
+	public function flag_settings_save_attempt( $capability ) {
+		$user_id = get_current_user_id();
+		if ( $user_id ) {
+			set_transient( 'wpb_settings_saved_' . $user_id, time(), 60 );
+		}
+		return $capability;
+	}
+
+	/**
+	 * Pipe any pending settings notice to the notifications bundle.
+	 *
+	 * @since 9.0
+	 * @return void
+	 */
+	public function render_save_notice() {
+		$user_id = get_current_user_id();
+		$has_save_flag = $user_id && false !== get_transient( 'wpb_settings_saved_' . $user_id );
+		if ( $has_save_flag ) {
+			delete_transient( 'wpb_settings_saved_' . $user_id );
+		}
+
+		$notices = get_settings_errors();
+		$transient_errors = get_transient( 'settings_errors' );
+		if ( is_array( $transient_errors ) ) {
+			delete_transient( 'settings_errors' );
+			$notices = array_merge( $notices, $transient_errors );
+		}
+
+		if ( empty( $notices ) && $has_save_flag ) {
+			$notices = [
+				[
+					'message' => __( 'Settings saved.', 'js_composer' ),
+					'type'    => 'success',
+				],
+			];
+		}
+
+		if ( empty( $notices ) ) {
+			return;
+		}
+
+		// Stop WP from also rendering these as native .notice markup.
+		global $wp_settings_errors;
+		$wp_settings_errors = [];
+
+		$payload = array_values(
+			array_map(
+				function ( $notice ) {
+					return [
+						'message' => $notice['message'],
+						'type'    => 'error' === $notice['type'] ? 'error' : 'success',
+					];
+				},
+				$notices
+			)
+		);
+
+		wp_localize_script( 'wpb_js_composer_settings', 'wpbPendingNotifications', $payload );
 	}
 
 	/**
@@ -363,6 +470,16 @@ class Vc_Settings {
 			'shortcuts_callback',
 		], [
 			'info' => esc_html__( 'Disable keyboard shortcuts.', 'js_composer' ),
+		] );
+
+		$this->addField( $tab, esc_html__( 'CSS loading', 'js_composer' ), 'css_loading', [
+			$this,
+			'sanitize_css_loading_callback',
+		], [
+			$this,
+			'css_loading_callback',
+		], [
+			'info' => esc_html__( 'Select how CSS is being loaded for the editor. This is a transitional option and all pages and posts will be covered to optimized CSS loading from March 2026', 'js_composer' ),
 		] );
 	}
 
@@ -449,7 +566,12 @@ class Vc_Settings {
 	public function adminLoad() {
 		wp_register_script( 'wpb_js_composer_settings', vc_asset_url( 'js/dist/settings.min.js' ), [], WPB_VC_VERSION, true );
 		wp_register_script( 'wpb-popper', vc_asset_url( 'lib/vendor/dist/@popperjs/core/dist/umd/popper.min.js' ), [], WPB_VC_VERSION, true );
-		wp_enqueue_style( 'js_composer_settings', vc_asset_url( 'css/js_composer_settings.min.css' ), false, WPB_VC_VERSION );
+		wp_register_script( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.js' ), [ 'jquery-core' ], WPB_VC_VERSION, true );
+		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_register_style( 'vc_google_fonts', 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,500;1,14..32,500&family=Open+Sans:ital,wght@1,600&family=Roboto:wght@400;700&family=Roboto:ital,wght@1,500&family=Sora:wght@500;600&display=swap&ver=' . WPB_VC_VERSION, [], null );
+		wp_enqueue_style( 'vc_google_fonts' );
+		wp_enqueue_style( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.css' ), [], WPB_VC_VERSION, false );
+		wp_enqueue_style( 'js_composer_settings', vc_asset_url( 'css/js_composer_settings.min.css' ), [ 'vc_google_fonts' ], WPB_VC_VERSION );
 		wp_enqueue_script( 'backbone' );
 		wp_enqueue_script( 'shortcode' );
 		wp_enqueue_script( 'underscore' );
@@ -457,11 +579,12 @@ class Vc_Settings {
 		wp_enqueue_script( 'jquery-ui-sortable' );
 		wp_enqueue_script( 'wpb_js_composer_settings' );
 		wp_enqueue_script( 'wpb-popper' );
+		wp_enqueue_script( 'wpb-select2', vc_asset_url( 'lib/vc/wpb-select2/select2.min.js' ), [ 'jquery-core' ], WPB_VC_VERSION, true );
 
 		$this->locale = apply_filters( 'vc_get_settings_locale', [
 			'are_you_sure_reset_css_classes' => esc_html__( 'Are you sure you want to reset to defaults?', 'js_composer' ),
 			'are_you_sure_reset_color' => esc_html__( 'Are you sure you want to reset to defaults?', 'js_composer' ),
-			'saving' => esc_html__( 'Saving...', 'js_composer' ),
+			'loading' => esc_html__( 'Loading', 'js_composer' ),
 			'save' => esc_html__( 'Save Changes', 'js_composer' ),
 			'saved' => esc_html__( 'Design Options successfully saved.', 'js_composer' ),
 			'save_error' => esc_html__( 'Design Options could not be saved', 'js_composer' ),
@@ -499,12 +622,14 @@ class Vc_Settings {
 		if ( empty( $checked ) ) {
 			$checked = false;
 		}
-		?>
-		<label>
-			<input type="checkbox"<?php echo $checked ? ' checked' : ''; ?> value="1" id="wpb_js_not_responsive_css" name="<?php echo esc_attr( self::$field_prefix . 'not_responsive_css' ); ?>">
-			<?php esc_html_e( 'Disable', 'js_composer' ); ?>
-		</label>
-		<?php
+
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => 'wpb_js_not_responsive_css',
+			'name'    => self::$field_prefix . 'not_responsive_css',
+			'value'   => '1',
+			'checked' => $checked,
+			'label'   => esc_html__( 'Disable', 'js_composer' ),
+		] );
 	}
 
 	/**
@@ -520,19 +645,15 @@ class Vc_Settings {
 		$hidden_value = [];
 
 		foreach ( $all_modules as $module_slug => $module_data ) {
-			if ( $modules_manager->get_module_status( $module_slug ) ) {
-				$hidden_value[ $module_slug ] = true;
-				$module_value = 'checked';
-			} else {
-				$hidden_value[ $module_slug ] = false;
-				$module_value = '';
-			}
+			$is_module_active = $modules_manager->get_module_status( $module_slug );
+			$hidden_value[ $module_slug ] = $is_module_active;
+
 			vc_include_template(
 				'pages/vc-settings/partials/modules/toggle.php',
 				[
 					'module_data' => $module_data,
 					'module_slug' => $module_slug,
-					'module_value' => $module_value,
+					'is_module_active' => $is_module_active,
 				]
 			);
 		}
@@ -552,21 +673,24 @@ class Vc_Settings {
 	public function google_fonts_subsets_callback() {
 		$pt_array = get_option( self::$field_prefix . 'google_fonts_subsets' );
 		$pt_array = $pt_array ? $pt_array : $this->googleFontsSubsets();
+
+		echo '<div class="wpb_checkbox-container wpb_checkbox-container-vertical" role="group" aria-label="' . esc_attr__( 'Google Fonts Subsets', 'js_composer' ) . '">';
+
 		foreach ( $this->getGoogleFontsSubsets() as $pt ) {
 			if ( ! in_array( $pt, $this->getGoogleFontsSubsetsExcluded(), true ) ) {
-				$checked = ( in_array( $pt, $pt_array, true ) ) ? ' checked' : '';
-				?>
-				<label>
-					<input type="checkbox"<?php echo esc_attr( $checked ); ?> value="<?php echo esc_attr( $pt ); ?>"
-						id="wpb_js_gf_subsets_<?php echo esc_attr( $pt ); ?>"
-						name="<?php echo esc_attr( self::$field_prefix . 'google_fonts_subsets' ); ?>[]">
-					<?php echo esc_html( $pt ); ?>
-				</label><br>
-				<?php
+				$checked = in_array( $pt, $pt_array, true );
+
+				WPB_Form_Field_Checkbox::render( [
+					'id'      => 'wpb_js_gf_subsets_' . $pt,
+					'name'    => self::$field_prefix . 'google_fonts_subsets[]',
+					'value'   => $pt,
+					'checked' => $checked,
+					'label'   => $pt,
+				] );
 			}
 		}
-		?>
-		<?php
+
+		echo '</div>';
 	}
 
 	/**
@@ -600,12 +724,14 @@ class Vc_Settings {
 		if ( empty( $checked ) ) {
 			$checked = false;
 		}
-		?>
-		<label>
-			<input type="checkbox"<?php echo $checked ? ' checked' : ''; ?> value="1" id="local_google_fonts" name="<?php echo esc_attr( self::$field_prefix . 'local_google_fonts' ); ?>">
-			<?php esc_html_e( 'Enable', 'js_composer' ); ?>
-		</label>
-		<?php
+
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => 'local_google_fonts',
+			'name'    => self::$field_prefix . 'local_google_fonts',
+			'value'   => '1',
+			'checked' => $checked,
+			'label'   => esc_html__( 'Enable', 'js_composer' ),
+		] );
 	}
 
 	/**
@@ -737,7 +863,7 @@ class Vc_Settings {
 	/**
 	 * Sanitize callback for google fonts subsets.
 	 *
-	 * @param array $subsets
+	 * @param array|null $subsets
 	 *
 	 * @return array
 	 */
@@ -772,14 +898,41 @@ class Vc_Settings {
 	 */
 	public function shortcuts_callback() {
 		$disabled = $this->get( 'shortcuts' ); // Default false means enabled.
-		?>
-		<label>
-			<input type="checkbox"<?php echo $disabled ? ' checked' : ''; ?> value="1"
-				id="<?php echo esc_attr( self::$field_prefix . 'shortcuts' ); ?>"
-				name="<?php echo esc_attr( self::$field_prefix . 'shortcuts' ); ?>">
-			<?php esc_html_e( 'Disable', 'js_composer' ); ?>
-		</label>
-		<?php
+
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => self::$field_prefix . 'shortcuts',
+			'name'    => self::$field_prefix . 'shortcuts',
+			'value'   => '1',
+			'checked' => $disabled,
+			'label'   => esc_html__( 'Disable', 'js_composer' ),
+		] );
+	}
+
+	/**
+	 * Sanitizes the CSS loading option.
+	 *
+	 * @param mixed $value The CSS loading value.
+	 * @return string Sanitized CSS loading status.
+	 */
+	public function sanitize_css_loading_callback( $value ) {
+		$allowed_values = [ 'hybrid', 'optimized', 'legacy' ];
+		if ( in_array( $value, $allowed_values, true ) ) {
+			return $value;
+		}
+		return 'legacy';
+	}
+
+	/**
+	 * Renders the CSS loading radio buttons.
+	 */
+	public function css_loading_callback() {
+		vc_include_template(
+			'pages/vc-settings/fields/css-loading.php',
+			[
+				'current_value' => $this->get( 'css_loading', 'legacy' ),
+				'field_prefix'  => self::$field_prefix,
+			]
+		);
 	}
 
 	/**

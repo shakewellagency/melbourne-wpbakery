@@ -219,7 +219,7 @@ class Vc_Settings_Preset {
 	 */
 	public static function saveSettingsPreset( $shortcode_name, $title, $content, $is_default = false ) {
 		// Trim the title and use '(no title)' if empty.
-		$title = isset( $title ) ? trim( $title ) : '';
+		$title = trim( $title );
 		if ( '' === $title ) {
 			$title = __( '(no title)', 'js_composer' );
 		}
@@ -293,42 +293,6 @@ class Vc_Settings_Preset {
 		}
 
 		return $list;
-	}
-
-	/**
-	 * Get specific shortcode preset
-	 *
-	 * @since 4.7
-	 *
-	 * @param mixed $id Can be int (user preset) or string (vendor preset).
-	 * @param array|bool $initial If true, return array instead of string.
-	 *
-	 * @return mixed string?array Post content
-	 */
-	public static function getSettingsPreset( $id, $initial = false ) {
-		if ( is_numeric( $id ) ) {
-			// user preset.
-
-			$post = get_post( $id );
-
-			if ( ! $post ) {
-				return false;
-			}
-
-			$params = $initial ? (array) json_decode( $post->post_content ) : $post->post_content;
-		} else {
-			// vendor preset.
-
-			$preset = vc_vendor_preset()->get( $id );
-
-			if ( ! $preset ) {
-				return false;
-			}
-
-			$params = $preset['params'];
-		}
-
-		return $params;
 	}
 
 	/**

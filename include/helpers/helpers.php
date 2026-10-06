@@ -16,6 +16,8 @@ if ( ! defined( 'WPB_VC_VERSION' ) ) {
 	die( '-1' );
 }
 
+require_once __DIR__ . '/class-vc-color-helper.php';
+
 if ( ! function_exists( 'wpb_get_keyboard_modifier_key' ) ) :
 	/**
 	 * Get the keyboard modifier key based on user's platform.
@@ -59,6 +61,19 @@ if ( ! function_exists( 'wpb_get_title_with_shortcut' ) ) :
 		// Return title with shortcut in parentheses.
 		/* translators: %1$s: Button title, %2$s: Keyboard shortcut */
 		return sprintf( __( '%1$s (%2$s)', 'js_composer' ), $title, $shortcut );
+	}
+endif;
+
+if ( ! function_exists( 'wpb_get_post_type_noun' ) ) :
+	/**
+	 * Get the post type noun used to build post settings UI labels.
+	 *
+	 * @param int|WP_Post|null $post Optional. Post to resolve the noun for. Defaults to the current post.
+	 * @return string
+	 * @since 9.0
+	 */
+	function wpb_get_post_type_noun( $post = null ) {
+		return 'page' === get_post_type( $post ) ? __( 'Page', 'js_composer' ) : __( 'Post', 'js_composer' );
 	}
 endif;
 
@@ -231,34 +246,11 @@ if ( ! function_exists( 'vc_generate_nonce' ) ) :
 	 * Generate nonce.
 	 *
 	 * @param string|array $data
-	 * @param bool $from_esi
 	 *
 	 * @return string
 	 */
-	function vc_generate_nonce( $data, $from_esi = false ) {
-		if ( ! $from_esi && ! vc_is_frontend_editor() ) {
-			if ( method_exists( 'LiteSpeed_Cache_API', 'esi_enabled' ) && LiteSpeed_Cache_API::esi_enabled() ) {
-				if ( method_exists( 'LiteSpeed_Cache_API', 'v' ) && LiteSpeed_Cache_API::v( '1.3' ) ) {
-					$params = [ 'data' => $data ];
-
-					return LiteSpeed_Cache_API::esi_url( 'js_composer', 'WPBakery Page Builder', $params, 'default', true );// The last parameter is to remove ESI comment wrapper.
-				}
-			}
-		}
-
+	function vc_generate_nonce( $data ) {
 		return wp_create_nonce( is_array( $data ) ? ( 'vc-nonce-' . implode( '|', $data ) ) : ( 'vc-nonce-' . $data ) );
-	}
-endif;
-if ( ! function_exists( 'vc_hook_esi' ) ) :
-	/**
-	 * Output ESI nonce.
-	 *
-	 * @param array $params
-	 */
-	function vc_hook_esi( $params ) {
-		$data = $params['data'];
-		echo vc_generate_nonce( $data, true ); // phpcs:ignore:WordPress.Security.EscapeOutput.OutputNotEscaped
-		exit;
 	}
 endif;
 if ( ! function_exists( 'vc_verify_nonce' ) ) :
@@ -612,14 +604,17 @@ if ( ! function_exists( 'wpb_getImageBySize' ) ) :
 		];
 		if ( is_string( $thumb_size ) && ( ( ! empty( $_wp_additional_image_sizes[ $thumb_size ] ) && is_array( $_wp_additional_image_sizes[ $thumb_size ] ) ) || in_array( $thumb_size, $sizes, true ) ) ) {
 			$attachment = get_post( $attach_id );
-			$title = trim( wp_strip_all_tags( $attachment->post_title ) );
-			$attributes = [
-				'class' => $thumb_class . 'attachment-' . $thumb_size,
-				'title' => $title,
-				'alt'   => trim( esc_attr( do_shortcode( get_post_meta( $attach_id, '_wp_attachment_image_alt', true ) ) ) ),
-			];
 
-			$thumbnail = wp_get_attachment_image( $attach_id, $thumb_size, false, $attributes );
+			if ( $attachment ) {
+				$title = trim( wp_strip_all_tags( $attachment->post_title ) );
+				$attributes = [
+					'class' => $thumb_class . 'attachment-' . $thumb_size,
+					'title' => $title,
+					'alt' => trim( esc_attr( do_shortcode( get_post_meta( $attach_id, '_wp_attachment_image_alt', true ) ) ) ),
+				];
+
+				$thumbnail = wp_get_attachment_image( $attach_id, $thumb_size, false, $attributes );
+			}
 		} elseif ( $attach_id ) {
 			if ( is_string( $thumb_size ) ) {
 				preg_match_all( '/\d+/', $thumb_size, $thumb_matches );
@@ -686,10 +681,11 @@ if ( ! function_exists( 'wpb_get_image_data_by_source' ) ) :
 	 * @param int $post_id
 	 * @param int $image_id
 	 * @param string $img_size
+	 * @param array $params
 	 * @return array
 	 */
-	function wpb_get_image_data_by_source( $source, $post_id, $image_id, $img_size ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		$image_src = '';
+	function wpb_get_image_data_by_source( $source, $post_id, $image_id, $img_size, $params = [] ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
+		$image_src = $alt_text = '';
 		switch ( $source ) {
 			case 'media_library':
 			case 'featured_image':
@@ -721,7 +717,6 @@ if ( ! function_exists( 'wpb_get_image_data_by_source' ) ) :
 				if ( ! empty( $params['custom_src'] ) ) {
 					$image_src = $params['custom_src'];
 				}
-				$alt_text = '';
 				break;
 		}
 
@@ -888,86 +883,78 @@ if ( ! function_exists( 'wpb_js_remove_wpautop' ) ) :
 		return do_shortcode( shortcode_unautop( $content ) );
 	}
 endif;
-if ( ! function_exists( 'vc_siteAttachedImages' ) ) :
-	/**
-	 *  Helper function which returns list of site attached images, and if image is attached to the current post it adds class 'added'
-	 *
-	 * @param array $att_ids
-	 *
-	 * @return string
-	 * @since 4.11
-	 */
-    function vc_siteAttachedImages( $att_ids = array() ) { // phpcs:ignore
-		$output = '';
-
-		$limit = (int) apply_filters( 'vc_site_attached_images_query_limit', - 1 );
-		$media_images = get_posts( 'post_type=attachment&orderby=ID&numberposts=' . $limit );
-		foreach ( $media_images as $image_post ) {
-			$thumb_src = wp_get_attachment_image_src( $image_post->ID );
-			$thumb_src = $thumb_src[0];
-
-			$class = ( in_array( $image_post->ID, $att_ids, true ) ) ? ' class="added"' : '';
-
-			$output .= '<li' . $class . '>
-						<img rel="' . esc_attr( $image_post->ID ) . '" src="' . esc_url( $thumb_src ) . '" />
-						<span class="img-added">' . esc_html__( 'Added', 'js_composer' ) . '</span>
-					</li>';
-		}
-
-		if ( '' !== $output ) {
-			$output = '<ul class="gallery_widget_img_select">' . $output . '</ul>';
-		}
-
-		return $output;
-	}
-endif;
 if ( ! function_exists( 'vc_field_attached_images' ) ) :
 	/**
 	 * Get attached images to the list.
 	 *
 	 * @param array $images IDs or srcs of images.
+	 * @param bool $is_link_icon
 	 *
 	 * @return string
 	 * @since 5.8
 	 */
-	function vc_field_attached_images( $images = [] ) {
+	function vc_field_attached_images( $images = [], $is_link_icon = false ) {
 		$output = '';
 
 		foreach ( $images as $image ) {
-			if ( is_numeric( $image ) ) {
-				$thumb_src = wp_get_attachment_image_src( $image );
-				$thumb_src = isset( $thumb_src[0] ) ? $thumb_src[0] : '';
-			} else {
-				$thumb_src = $image;
-			}
+			$thumb_src = wpb_get_image_thumb( $image );
 
 			if ( $thumb_src ) {
-				$output .= '
-                <li class="added">
-                    <img rel="' . esc_attr( $image ) . '" src="' . esc_url( $thumb_src ) . '" />
-                    <a href="javascript:;" class="vc_icon-remove"><i class="vc-composer-icon vc-c-icon-close"></i></a>
-                </li>';
+				$label_remove = esc_attr__( 'Remove', 'js_composer' );
+				$output .= vc_get_template('form-fields/attach_image/attach_images_single_image.php', [
+					'label_remove' => $label_remove,
+					'is_template' => false,
+					'image' => $image,
+					'thumb_src' => $thumb_src,
+					'is_link_icon' => $is_link_icon,
+				] );
 			}
 		}
 
 		return $output;
 	}
 endif;
+if ( ! function_exists( 'wpb_get_image_thumb' ) ) :
+	/**
+	 * Get image thumbnail.
+	 *
+	 * @since 9.0
+	 * @param string $image
+	 * @param string $size
+	 *
+	 * @return string
+	 */
+	function wpb_get_image_thumb( $image, $size = 'thumbnail' ) {
+		if ( is_numeric( $image ) ) {
+			$thumb_src = wp_get_attachment_image_src( $image, $size );
+			if ( isset( $thumb_src[0] ) ) {
+				$thumb_src = $thumb_src[0];
+			} else {
+				$thumb_src = wp_get_attachment_url( $image );
+			}
+		} else {
+			$thumb_src = $image;
+		}
+
+		return $thumb_src;
+	}
+endif;
+
 if ( ! function_exists( 'wpb_removeNotExistingImgIDs' ) ) :
 	/**
 	 * Remove not existing image IDs.
 	 *
 	 * @param null|string $param_value
 	 *
-	 * @return array
+	 * @return string
 	 * @since 4.2
 	 */
-    function wpb_removeNotExistingImgIDs( $param_value ) { // phpcs:ignore
+	function wpb_removeNotExistingImgIDs( $param_value ) { // phpcs:ignore: WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 		$param_value = is_null( $param_value ) ? '' : $param_value;
 		$tmp = explode( ',', $param_value );
 		$return_ar = [];
 		foreach ( $tmp as $id ) {
-			if ( wp_get_attachment_image( $id ) ) {
+			if ( wp_attachment_is_image( $id ) ) {
 				$return_ar[] = $id;
 			}
 		}
@@ -1474,57 +1461,6 @@ if ( ! function_exists( 'vc_convert_atts_to_string' ) ) :
 		return $output;
 	}
 endif;
-if ( ! function_exists( 'vc_parse_options_string' ) ) :
-	/**
-	 * String parser for options.
-	 *
-	 * @param string $initial_string
-	 * @param string $tag
-	 * @param string $param
-	 *
-	 * @return array
-	 * @throws \Exception
-	 * @since 4.2
-	 */
-	function vc_parse_options_string( $initial_string, $tag, $param ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		$options = [];
-		$option_settings_list = [];
-		$settings = WPBMap::getParam( $tag, $param );
-
-		foreach ( preg_split( '/\|/', $initial_string ) as $value ) {
-			if ( preg_match( '/\:/', $value ) ) {
-				$split = preg_split( '/\:/', $value );
-				$option_name = $split[0];
-				$option_settings = vc_param_options_get_settings( $option_name, $settings['options'] );
-				$option_settings_list[ $option_name ] = $option_settings;
-				if ( isset( $option_settings['type'] ) && 'checkbox' === $option_settings['type'] ) {
-					$option_value = array_map( 'vc_param_options_parse_values', preg_split( '/\,/', $split[1] ) );
-				} else {
-					$option_value = rawurldecode( $split[1] );
-				}
-				$options[ $option_name ] = $option_value;
-			}
-		}
-		if ( isset( $settings['options'] ) ) {
-			foreach ( $settings['options'] as $setting_option ) {
-				if ( 'separator' !== $setting_option['type'] && isset( $setting_option['value'] ) && empty( $options[ $setting_option['name'] ] ) ) {
-					$options[ $setting_option['name'] ] = 'checkbox' === $setting_option['type'] ? preg_split( '/\,/', $setting_option['value'] ) : $setting_option['value'];
-				}
-				if ( isset( $setting_option['name'] ) && isset( $options[ $setting_option['name'] ] ) && isset( $setting_option['value_type'] ) ) {
-					if ( 'integer' === $setting_option['value_type'] ) {
-						$options[ $setting_option['name'] ] = (int) $options[ $setting_option['name'] ];
-					} elseif ( 'float' === $setting_option['value_type'] ) {
-						$options[ $setting_option['name'] ] = (float) $options[ $setting_option['name'] ];
-					} elseif ( 'boolean' === $setting_option['value_type'] ) {
-						$options[ $setting_option['name'] ] = (bool) $options[ $setting_option['name'] ];
-					}
-				}
-			}
-		}
-
-		return $options;
-	}
-endif;
 if ( ! function_exists( 'vc_build_safe_css_class' ) ) :
 	/**
 	 * Convert string to a valid css class name.
@@ -1803,18 +1739,6 @@ if ( ! function_exists( 'vc_stringify_attributes' ) ) :
 		return implode( ' ', $atts );
 	}
 endif;
-if ( ! function_exists( 'vc_is_responsive_disabled' ) ) :
-	/**
-	 * Check if plugin no_resonsive_css settings is disabled.
-	 *
-	 * @return bool
-	 */
-	function vc_is_responsive_disabled() {
-		$disable_responsive = vc_settings()->get( 'not_responsive_css' );
-
-		return '1' === $disable_responsive;
-	}
-endif;
 if ( ! function_exists( 'vc_do_shortcode' ) ) :
 	/**
 	 * Do shortcode single render point.
@@ -2070,8 +1994,13 @@ if ( ! function_exists( 'wpb_format_with_css_unit' ) ) :
 	 * @since 7.9
 	 */
 	function wpb_format_with_css_unit( $value ) {
-		$value = preg_replace( '/\s+/', '', $value );
-		$pattern = '/^(\d*(?:\.\d+)?)\s*(px|\%|in|cm|mm|em|rem|ex|pt|pc|vw|vh|vmin|vmax)?$/';
+		$value = preg_replace( '/\s+/', '', (string) $value );
+		$css_units = vc_get_shared( 'css-units' );
+		$units = array_map( function ( $unit ) {
+			return preg_quote( $unit, '/' );
+		}, $css_units );
+
+		$pattern = '/^(\d*(?:\.\d+)?)\s*(' . implode( '|', $units ) . ')?$/';
 		preg_match( $pattern, $value, $matches );
 		$numeric_value = isset( $matches[1] ) ? (float) $matches[1] : (float) $value;
 		$unit = isset( $matches[2] ) ? $matches[2] : 'px';
@@ -2202,24 +2131,7 @@ if ( ! function_exists( 'vc_map_integrate_include_exclude_fields' ) ) :
 	 * @internal
 	 */
 	function vc_map_integrate_include_exclude_fields( $param, $change_fields ) {
-		if ( ! is_array( $change_fields ) || ! isset( $param['param_name'] ) ) {
-			return $param;
-		}
-		$param_name = $param['param_name'];
-
-		if ( isset( $change_fields['exclude'] ) ) {
-			$param = in_array( $param_name, $change_fields['exclude'], true ) ? null : $param;
-		} elseif ( isset( $change_fields['exclude_regex'] ) ) {
-			$param = vc_map_check_param_field_against_regex( $param, $change_fields['exclude_regex'], 'exclude' );
-		}
-
-		if ( isset( $change_fields['include_only'] ) ) {
-			$param = ! in_array( $param_name, $change_fields['include_only'], true ) ? null : $param;
-		} elseif ( isset( $change_fields['include_only_regex'] ) ) {
-			$param = vc_map_check_param_field_against_regex( $param, $change_fields['include_only_regex'], 'include' );
-		}
-
-		return $param;
+		return wpb_map_integrator()->integrate_include_exclude_fields( $param, $change_fields );
 	}
 endif;
 if ( ! function_exists( 'vc_map_check_param_field_against_regex' ) ) :
@@ -2233,36 +2145,8 @@ if ( ! function_exists( 'vc_map_check_param_field_against_regex' ) ) :
 	 * @since 7.8
 	 * @return array
 	 */
-	function vc_map_check_param_field_against_regex( $param, $regex_list, $condition ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		$check_against = 'exclude' === $condition ? 1 : 0;
-
-		if ( is_array( $regex_list ) && ! empty( $regex_list ) ) {
-			$break_foreach = false;
-
-			foreach ( $regex_list as $regex ) {
-				if ( wpb_is_regex_valid( $regex ) ) {
-					if ( preg_match( $regex, $param['param_name'] ) === $check_against ) {
-						$param = null;
-						$break_foreach = true;
-					}
-				}
-				if ( $break_foreach ) {
-					break;
-				}
-			}
-			if ( $break_foreach ) {
-				return $param; // to prevent group adding to $param.
-			}
-		} elseif ( is_string( $regex_list ) && strlen( $regex_list ) > 0 ) {
-			$regex = $regex_list;
-			if ( wpb_is_regex_valid( $regex ) ) {
-				if ( preg_match( $regex, $param['param_name'] ) === $check_against ) {
-					return null; // to prevent group adding to $param.
-				}
-			}
-		}
-
-		return $param;
+	function vc_map_check_param_field_against_regex( $param, $regex_list, $condition ) {
+		return wpb_map_integrator()->check_param_field_against_regex( $param, $regex_list, $condition );
 	}
 endif;
 if ( ! function_exists( 'vc_map_integrate_add_dependency' ) ) :
@@ -2276,14 +2160,7 @@ if ( ! function_exists( 'vc_map_integrate_add_dependency' ) ) :
 	 * @internal used to add dependency to exist param.
 	 */
 	function vc_map_integrate_add_dependency( $param, $dependency ) {
-		// activator must be used for all elements if they do not have 'dependency'.
-		if ( ! empty( $dependency ) && empty( $param['dependency'] ) ) {
-			if ( is_array( $dependency ) ) {
-				$param['dependency'] = $dependency;
-			}
-		}
-
-		return $param;
+		return wpb_map_integrator()->add_dependency( $param, $dependency );
 	}
 endif;
 if ( ! function_exists( 'vc_map_integrate_get_params' ) ) :
@@ -2296,96 +2173,8 @@ if ( ! function_exists( 'vc_map_integrate_get_params' ) ) :
 	 * @return array
 	 * @throws Exception
 	 */
-	function vc_map_integrate_get_params( $base_shortcode, $integrated_shortcode, $field_prefix = '' ) { // phpcs:ignore:CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		$shortcode_data = WPBMap::getShortCode( $base_shortcode );
-		$params = [];
-		if ( is_array( $shortcode_data ) && is_array( $shortcode_data['params'] ) && ! empty( $shortcode_data['params'] ) ) {
-			foreach ( $shortcode_data['params'] as $param ) {
-				if ( is_array( $param ) && isset( $param['integrated_shortcode'] ) && $integrated_shortcode === $param['integrated_shortcode'] ) {
-					if ( ! empty( $field_prefix ) ) {
-						if ( isset( $param['integrated_shortcode_field'] ) && $field_prefix === $param['integrated_shortcode_field'] ) {
-							$params[] = $param;
-						}
-					} else {
-						$params[] = $param;
-					}
-				}
-			}
-		}
-
-		return $params;
-	}
-endif;
-if ( ! function_exists( 'vc_map_integrate_get_atts' ) ) :
-	/**
-	 * Retrieves and processes default attributes for integrated shortcodes.
-	 *
-	 * This function fetches the parameters for a base shortcode and an integrated shortcode,
-	 * then processes these parameters to generate a default set of attributes.
-	 * The resulting associative array of attributes is returned.
-	 *
-	 * @param string $base_shortcode
-	 * @param string $integrated_shortcode
-	 * @param string $field_prefix
-	 * @return array
-	 * @throws Exception
-	 */
-	function vc_map_integrate_get_atts( $base_shortcode, $integrated_shortcode, $field_prefix = '' ) {
-		$params = vc_map_integrate_get_params( $base_shortcode, $integrated_shortcode, $field_prefix );
-		$atts = [];
-		if ( is_array( $params ) && ! empty( $params ) ) {
-			foreach ( $params as $param ) {
-				$value = '';
-				if ( isset( $param['value'] ) ) {
-					if ( isset( $param['std'] ) ) {
-						$value = $param['std'];
-					} elseif ( is_array( $param['value'] ) ) {
-						reset( $param['value'] );
-						$value = current( $param['value'] );
-					} else {
-						$value = $param['value'];
-					}
-				}
-				$atts[ $param['param_name'] ] = $value;
-			}
-		}
-
-		return $atts;
-	}
-endif;
-if ( ! function_exists( 'vc_map_add_css_animation' ) ) :
-	/**
-	 * Get CSS animation for shortcode params.
-	 *
-	 * @param bool $label
-	 * @return mixed|void
-	 */
-	function vc_map_add_css_animation( $label = true ) {
-		$data = [
-			'type' => 'animation_style',
-			'heading' => esc_html__( 'CSS Animation', 'js_composer' ),
-			'param_name' => 'css_animation',
-			'admin_label' => $label,
-			'value' => '',
-			'settings' => [
-				'type' => 'in',
-				'custom' => [
-					[
-						'label' => esc_html__( 'Default', 'js_composer' ),
-						'values' => [
-							esc_html__( 'Top to bottom', 'js_composer' ) => 'top-to-bottom',
-							esc_html__( 'Bottom to top', 'js_composer' ) => 'bottom-to-top',
-							esc_html__( 'Left to right', 'js_composer' ) => 'left-to-right',
-							esc_html__( 'Right to left', 'js_composer' ) => 'right-to-left',
-							esc_html__( 'Appear from center', 'js_composer' ) => 'appear',
-						],
-					],
-				],
-			],
-			'description' => esc_html__( 'Select type of animation for element to be animated when it "enters" the browsers viewport (Note: works only in modern browsers).', 'js_composer' ),
-		];
-
-		return apply_filters( 'vc_map_add_css_animation', $data, $label );
+	function vc_map_integrate_get_params( $base_shortcode, $integrated_shortcode, $field_prefix = '' ) {
+		return wpb_map_integrator()->get_params( $base_shortcode, $integrated_shortcode, $field_prefix );
 	}
 endif;
 if ( ! function_exists( 'vc_convert_vc_color' ) ) :
@@ -2435,6 +2224,29 @@ if ( ! function_exists( 'vc_get_shared' ) ) :
 		switch ( $asset ) {
 			case 'colors':
 				$asset = VcSharedLibrary::getColors();
+				break;
+			case 'colors-hash':
+				$asset = VcSharedLibrary::getColorsHash();
+				break;
+
+			case 'dashed-colors-hash':
+				$asset = VcSharedLibrary::getDashedColorHash();
+				break;
+
+			case 'cta-colors':
+				$asset = VcSharedLibrary::getCTAColors();
+				break;
+
+			case 'btn-solid-colors':
+				$asset = VcSharedLibrary::getBtnSolidColors();
+				break;
+
+			case 'btn-outline-colors':
+				$asset = VcSharedLibrary::getBtnOutlineColors();
+				break;
+
+			case 'btn-3d-colors':
+				$asset = VcSharedLibrary::getBtn3dColors();
 				break;
 
 			case 'colors-dashed':
@@ -2517,6 +2329,15 @@ if ( ! function_exists( 'vc_get_shared' ) ) :
 			case 'shortcuts':
 				$asset = VcSharedLibrary::get_shortcut_list();
 				break;
+			case 'screen sizes':
+				$asset = VcSharedLibrary::get_screen_sizes();
+				break;
+			case 'default-units':
+				$asset = VcSharedLibrary::getDefaultUnits();
+				break;
+			case 'css-units':
+				$asset = VcSharedLibrary::get_css_units();
+				break;
 		}
 
 		return $asset;
@@ -2530,12 +2351,13 @@ if ( ! function_exists( 'vc_do_shortcode_param_settings_field' ) ) :
 	 * @param array $param_settings - attribute settings from shortcode.
 	 * @param mixed $param_value - attribute value.
 	 * @param string $tag - attribute tag.
+	 * @param string $param_id since 9.0.
 	 *
 	 * @return mixed|string - returns html which will be render in hook
 	 * @since 4.4
 	 */
-	function vc_do_shortcode_param_settings_field( $name, $param_settings, $param_value, $tag ) {
-		return WpbakeryShortcodeParams::renderSettingsField( $name, $param_settings, $param_value, $tag );
+	function vc_do_shortcode_param_settings_field( $name, $param_settings, $param_value, $tag, $param_id = '' ) {
+		return WpbakeryShortcodeParams::renderSettingsField( $name, $param_settings, $param_value, $tag, $param_id );
 	}
 endif;
 if ( ! function_exists( 'wpb_remove_emoji_assets' ) ) :
@@ -2561,5 +2383,52 @@ if ( ! function_exists( 'vc_container_anchor' ) ) :
 	 */
 	function vc_container_anchor() {
 		return vc_get_template( 'editors/partials/front_editor_container_anchor.tpl.php' );
+	}
+endif;
+
+if ( ! function_exists( 'wpb_sort_terms_by_relevance' ) ) :
+	/**
+	 * Sort terms by search relevance.
+	 *
+	 * WordPress get_terms() doesn't support relevance-based ordering for search results.
+	 * This function sorts terms to prioritize exact matches
+	 *
+	 * @param array $terms Array of term objects.
+	 * @param string $search Search string.
+	 * @return array Sorted array of terms.
+	 * @since 9.2
+	 */
+	function wpb_sort_terms_by_relevance( $terms, $search ) {
+		if ( empty( $search ) || ! is_array( $terms ) ) {
+			return $terms;
+		}
+
+		$search_lower = strtolower( $search );
+
+		usort( $terms, function ( $a, $b ) use ( $search_lower ) {
+			$a_lower = strtolower( $a->name );
+			$b_lower = strtolower( $b->name );
+
+			if ( $a_lower === $search_lower && $b_lower !== $search_lower ) {
+				return -1;
+			}
+			if ( $b_lower === $search_lower && $a_lower !== $search_lower ) {
+				return 1;
+			}
+
+			$a_starts = ( 0 === strpos( $a_lower, $search_lower ) );
+			$b_starts = ( 0 === strpos( $b_lower, $search_lower ) );
+
+			if ( $a_starts && ! $b_starts ) {
+				return -1;
+			}
+			if ( $b_starts && ! $a_starts ) {
+				return 1;
+			}
+
+			return strcasecmp( $a->name, $b->name );
+		} );
+
+		return $terms;
 	}
 endif;

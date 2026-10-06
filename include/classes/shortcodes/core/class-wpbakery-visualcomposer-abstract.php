@@ -7,7 +7,7 @@
  * methods for adding and removing actions, filters, shortcodes, and handling
  * asset URLs and paths. These methods are no longer recommended for use.
  *
- * @depreacted
+ * @deprecated
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

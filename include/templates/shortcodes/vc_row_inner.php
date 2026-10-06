@@ -14,13 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $el_class
- * @var $css
- * @var $el_id
- * @var $equal_height
- * @var $content_placement
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $el_class
+ * @var string $css
+ * @var string $el_id
+ * @var string $equal_height
+ * @var string $content_placement
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Row_Inner $this
  */
@@ -42,7 +42,7 @@ $css_classes = [
 ];
 if ( 'yes' === $disable_element ) {
 	if ( vc_is_page_editable() ) {
-		$css_classes[] = 'vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
+		$css_classes[] = 'vc_hidden-xl vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
 	} else {
 		return '';
 	}
@@ -83,7 +83,7 @@ if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';
 }
 
-$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( array_unique( $css_classes ) ) ), $this->settings['base'], $atts ) );
+$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( array_unique( $css_classes ) ) ), $this->getSettings()['base'], $atts ) );
 $wrapper_attributes[] = 'class="' . esc_attr( trim( $css_class ) ) . '"';
 
 $output .= '<div ' . implode( ' ', $wrapper_attributes ) . '>';

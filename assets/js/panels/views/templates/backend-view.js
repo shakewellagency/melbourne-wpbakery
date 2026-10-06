@@ -56,7 +56,7 @@
 			_this = this;
 			shortcodes = this.getPostContent();
 			if ( !shortcodes.trim().length ) {
-				this.showMessage( window.i18nLocale.template_is_empty, 'error' );
+				window.wpbNotifications.show( window.i18nLocale.template_is_empty, { type: 'error' });
 				return false;
 			}
 			data = {
@@ -73,7 +73,7 @@
 					_this.$name.val( '' ).trigger( 'change' );
 				}, function () {
 					// error
-					_this.showMessage( window.i18nLocale.template_save_error, 'error' );
+					window.wpbNotifications.show( window.i18nLocale.template_save_error, { type: 'error' });
 					_this.clearButtonMessage();
 				});
 		},
@@ -117,7 +117,7 @@
 					},
 					context: this
 				}).done( function () {
-					this.showMessage( window.i18nLocale.template_removed, 'success' );
+					window.wpbNotifications.show( window.i18nLocale.template_removed );
 					vc.events.trigger( 'templates:delete', {
 						id: templateId,
 						type: templateType
@@ -138,6 +138,9 @@
 					_this.$list = _this.$el.find( '.vc_templates-list-my_templates' );
 				}
 				_this.$list.prepend( $( html ) );
+				if ( vc.events && 'function' === typeof vc.events.trigger ) {
+					vc.events.trigger( 'templates:cardAdded', _this.$list );
+				}
 				if ( 'function' === typeof successCallback ) {
 					successCallback( html );
 				}
@@ -180,6 +183,7 @@
 				vc.latestAddedElement = vc.shortcodes.get( model.id );
 			});
 			vc.events.trigger( 'templateAdd' );
+			window.wpbNotifications.show( window.i18nLocale.template_added );
 			vc.closeActivePanel();
 		},
 		buildTemplatePreview: function ( e ) {
@@ -233,7 +237,7 @@
 				if ( window.console && window.console.warn ) {
 					window.console.warn( 'buildTemplatePreview error', err );
 				}
-				this.showMessage( 'Failed to build preview', 'error' );
+				window.wpbNotifications.show( 'Failed to build preview', { type: 'error' });
 			}
 		},
 		/**
@@ -258,7 +262,6 @@
 		.vcExtendUI( vc.HelperTemplatesPanelViewSearch )
 		.extend({
 			panelName: 'template_window',
-			showMessageDisabled: false,
 			initialize: function () {
 				window.vc.TemplateWindowUIPanelBackendEditor.__super__.initialize.call( this );
 				this.trigger( 'show', this.initTemplatesTabs, this );
@@ -269,51 +272,6 @@
 			},
 			initTemplatesTabs: function () {
 				this.$el.find( '[data-vc-ui-element="panel-tabs-controls"]' ).vcTabsLine( 'moveTabs' );
-			},
-			showMessage: function ( text, type ) {
-				var wrapperCssClasses;
-				if ( this.showMessageDisabled ) {
-					return false;
-				}
-				wrapperCssClasses = 'vc_col-xs-12 wpb_element_wrapper';
-				if ( this.message_box_timeout ) {
-					this.$el.find( '[data-vc-panel-message]' ).remove();
-					window.clearTimeout( this.message_box_timeout );
-				}
-				this.message_box_timeout = false;
-				var messageBoxTemplate = vc.template( '<div class="vc_message_box vc_message_box-standard vc_message_box-rounded vc_color-<%- color %>">' + '<div class="vc_message_box-icon"><i class="fa fa fa-<%- icon %>"></i></div><p><%- text %></p></div>' );
-				var $messageBox;
-				switch ( type ) {
-					case 'error': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'danger',
-							icon: 'times',
-							text: text
-						}) );
-						break;
-					}
-					case 'warning': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'warning',
-							icon: 'exclamation-triangle',
-							text: text
-						}) );
-						break;
-					}
-					case 'success': {
-						$messageBox = $( '<div class="' + wrapperCssClasses + '" data-vc-panel-message>' ).html( messageBoxTemplate({
-							color: 'success',
-							icon: 'check',
-							text: text
-						}) );
-						break;
-					}
-				}
-				$messageBox.prependTo( this.$el.find( '[data-vc-ui-element="panel-edit-element-tab"].vc_row.vc_active' ) );
-				$messageBox.fadeIn();
-				this.message_box_timeout = window.setTimeout( function () {
-					$messageBox.remove();
-				}, 6000 );
 			},
 			changeTab: function ( e ) {
 				if ( e && e.preventDefault ) {
@@ -348,7 +306,7 @@
 			'click [data-vc-ui-element="button-save"]': 'save', // need to save, hide into this code.
 			'click [data-vc-ui-element="button-close"]': 'hide',
 			'touchstart [data-vc-ui-element="button-close"]': 'hide',
-			'click [data-vc-ui-element="button-minimize"]': 'toggleOpacity',
+			'click [data-vc-ui-element="button-panel-minimize"]': 'toggleOpacity',
 			// search
 			'keyup [data-vc-templates-name-filter]': 'searchTemplate',
 			'search [data-vc-templates-name-filter]': 'searchTemplate',

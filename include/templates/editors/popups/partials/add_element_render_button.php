@@ -18,10 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <li class="wpb-layout-element-button<?php echo esc_attr( $deprecated . $category_css_classes . $class_out ); ?>" <?php echo $data_atts; // phpcs:ignore:WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 	<div class="vc_el-container">
-		<a id="<?php echo esc_attr( $params['base'] ); ?>" data-tag="<?php echo esc_attr( $params['base'] ); ?>" class="dropable_el vc_shortcode-link<?php echo esc_attr( $class ); ?>" href="javascript:;" data-vc-clickable>
+		<a id="<?php echo esc_attr( $params['base'] ); ?>" data-tag="<?php echo esc_attr( $params['base'] ); ?>" class="dropable_el vc_shortcode-link<?php echo esc_attr( $class ); ?>" href="javascript:;" data-vc-clickable role="button" tabindex="0" aria-haspopup="dialog">
 			<?php echo $icon; // phpcs:ignore:WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<span data-vc-shortcode-name><?php echo esc_html( stripslashes( $params['name'] ) ); ?></span>
-			<?php echo empty( $params['description'] ) ? '' : '<span class="vc_element-description">' . esc_html( $params['description'] ) . '</span>'; ?>
+			<span class="wpb-element-title" data-vc-shortcode-name><?php echo esc_html( stripslashes( $params['name'] ) ); ?></span>
 		</a>
 	</div>
 </li>

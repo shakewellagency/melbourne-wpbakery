@@ -13,11 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $height
- * @var $el_class
- * @var $el_id
- * @var $css
+ * @var array $atts
+ * @var string $height
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $css
+ * @var string $output
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Empty_space $this
  */
@@ -33,7 +34,7 @@ if ( empty( $height ) ) {
 $inline_css = ( (float) $height >= 0.0 ) ? ' style="height: ' . esc_attr( $height ) . '"' : '';
 
 $class = 'vc_empty_space ' . $this->getExtraClass( $el_class ) . vc_shortcode_custom_css_class( $css, ' ' );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class, $this->getSettings()['base'], $atts );
 $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';

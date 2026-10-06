@@ -29,8 +29,7 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 		'add',
 		'edit',
 		'clone',
-		'copy',
-		'paste',
+		'copypaste',
 		'delete',
 	];
 
@@ -140,7 +139,7 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 */
 	public function getColumnControls( $controls = 'full', $extended_css = '' ) {
 		// we don't need containers bottom-controls for tabs.
-		if ( 'bottom-controls' === $extended_css ) {
+		if ( false !== strpos( $extended_css, 'bottom-controls' ) ) {
 			return '';
 		}
 		$column_controls = $this->getColumnControlsModular();
@@ -211,10 +210,38 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 		}
 
 		if ( isset( $this->atts['pagination_color'] ) && strlen( $this->atts['pagination_color'] ) > 0 ) {
-			$classes[] = 'vc_pagination-color-' . $this->atts['pagination_color'];
+			if ( $this->isColorCustom( $this->atts['pagination_color'] ) ) {
+				// Custom colorpicker value (hex/rgb/etc). Color is applied via CSS variable.
+				$classes[] = 'vc_pagination-color-custom';
+			} else {
+				$classes[] = 'vc_pagination-color-' . $this->atts['pagination_color'];
+			}
+		} else {
+			$classes[] = 'vc_pagination-color-grey';
 		}
 
 		return implode( ' ', $classes );
+	}
+
+	/**
+	 * Get inline style for pagination wrapper.
+	 *
+	 * Returns a CSS custom property declaration when the pagination color is
+	 * a custom value (hex/rgb/etc), so styles can read it via var(--vc-pagination-color).
+	 *
+	 * @return string
+	 * @since 9.0
+	 */
+	public function getTtaPaginationStyle() {
+		if (
+			isset( $this->atts['pagination_color'] )
+			&& strlen( $this->atts['pagination_color'] ) > 0
+			&& $this->isColorCustom( $this->atts['pagination_color'] )
+		) {
+			return '--vc-pagination-color: ' . $this->atts['pagination_color'] . ';';
+		}
+
+		return '';
 	}
 
 	/**
@@ -268,11 +295,234 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 * @return string|null
 	 */
 	public function getParamColor( $atts, $content ) {
+		$has_custom_override = $this->hasCustomColorOverride( $atts );
+
 		if ( isset( $atts['color'] ) && strlen( $atts['color'] ) > 0 ) {
-			return 'vc_tta-color-' . esc_attr( $atts['color'] );
+			if ( ! $this->isColorCustom( $atts['color'] ) ) {
+				return 'vc_tta-color-' . esc_attr( $atts['color'] );
+			}
+
+			$palette_slug = $this->getPaletteColorSlug( $atts['color'] );
+			if ( '' !== $palette_slug && ! $has_custom_override ) {
+				return 'vc_tta-color-' . $palette_slug;
+			}
+
+			return 'vc_tta-color-custom';
+		}
+
+		// No `color` value but a custom override (active/title color) is provided. We still
+		// need to emit the custom class so the CSS variable pipeline applies.
+		if ( $has_custom_override ) {
+			return 'vc_tta-color-custom';
 		}
 
 		return null;
+	}
+
+	/**
+	 * Get legacy palette color slug matching the given custom color value.
+	 *
+	 * @param string $value
+	 * @return string Dashed palette slug or empty string when there is no match.
+	 * @since 9.0
+	 */
+	protected function getPaletteColorSlug( $value ) {
+		$value = strtolower( trim( (string) $value ) );
+		foreach ( vc_get_shared( 'colors-dashed' ) as $slug ) {
+			if ( strtolower( vc_convert_vc_color( $slug ) ) === $value ) {
+				return $slug;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Check whether the color value is a custom colorpicker value.
+	 *
+	 * @param string $value
+	 * @return bool
+	 * @since 9.0
+	 */
+	protected function isColorCustom( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) {
+			return false;
+		}
+		return (bool) preg_match( '/^(#|rgb|hsl)/i', $value );
+	}
+
+	/**
+	 * Get inline style for the TTA general wrapper.
+	 *
+	 * Returns a CSS custom property declaration when the color attribute is
+	 * a custom value (hex/rgb/etc), so styles can read it via var(--vc-tta-color).
+	 *
+	 * @return string
+	 * @since 9.0
+	 */
+	public function getTtaGeneralStyle() {
+		$declarations = array_merge(
+			$this->getTtaColorDeclarations(),
+			$this->getTtaUnitDeclaration( '--vc-tta-spacing', $this->atts['spacing'] ?? '' ),
+			$this->getTtaUnitDeclaration( '--vc-tta-gap', $this->atts['gap'] ?? '' )
+		);
+
+		if ( empty( $declarations ) ) {
+			return '';
+		}
+
+		return implode( '; ', $declarations ) . ';';
+	}
+
+	/**
+	 * Build CSS custom property declarations for the TTA color attribute.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	protected function getTtaColorDeclarations() {
+		$declarations = $this->getBaseColorDeclarations();
+
+		$title_color_map = [
+			'inactive_title_color' => '--vc-tta-title-color',
+			'active_title_color' => '--vc-tta-active-title-color',
+		];
+		foreach ( $title_color_map as $key => $property ) {
+			$value = $this->atts[ $key ] ?? '';
+			if ( $this->isColorCustom( $value ) ) {
+				$declarations[] = $property . ': ' . $value;
+			}
+		}
+
+		return $declarations;
+	}
+
+	/**
+	 * Build CSS custom property declarations for the inactive/active background colors.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	protected function getBaseColorDeclarations() {
+		$is_accordion_outline = 'accordion' === $this->layout
+			&& isset( $this->atts['style'] ) && 'outline' === $this->atts['style'];
+
+		if ( $is_accordion_outline ) {
+			return $this->getOutlineColorDeclarations();
+		}
+
+		return $this->getFilledColorDeclarations();
+	}
+
+	/**
+	 * Build CSS custom property declarations for the outline style.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	protected function getOutlineColorDeclarations() {
+		$declarations = [];
+
+		$outline_color = $this->atts['outline_color'] ?? '';
+		if ( $this->isColorCustom( $outline_color ) ) {
+			$declarations[] = '--vc-tta-color: ' . $outline_color;
+			$declarations[] = '--vc-tta-color-contrast: ' . $this->getContrastColor( $outline_color );
+		}
+
+		return $declarations;
+	}
+
+	/**
+	 * Build CSS custom property declarations for the filled styles.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	protected function getFilledColorDeclarations() {
+		$declarations = [];
+
+		$color = $this->atts['color'] ?? '';
+		if ( $this->isColorCustom( $color ) ) {
+			$is_palette = '' !== $this->getPaletteColorSlug( $color ) && ! $this->hasCustomColorOverride( $this->atts );
+			if ( ! $is_palette ) {
+				$declarations[] = '--vc-tta-color: ' . $color;
+				$declarations[] = '--vc-tta-color-contrast: ' . $this->getContrastColor( $color );
+			}
+		}
+
+		$active_color = $this->atts['active_color'] ?? '';
+		if ( $this->isColorCustom( $active_color ) ) {
+			$declarations[] = '--vc-tta-active-color: ' . $active_color;
+			$declarations[] = '--vc-tta-active-color-contrast: ' . $this->getContrastColor( $active_color );
+		}
+
+		return $declarations;
+	}
+
+	/**
+	 * Whether a custom (colorpicker) active or title color override is set.
+	 *
+	 * When any of these is custom the wrapper must use the `vc_tta-color-custom`
+	 * class so the CSS variable pipeline applies instead of a palette class.
+	 *
+	 * @param array $atts
+	 * @return bool
+	 * @since 9.0
+	 */
+	protected function hasCustomColorOverride( $atts ) {
+		foreach ( [ 'active_color', 'active_title_color', 'inactive_title_color' ] as $key ) {
+			if ( $this->isColorCustom( $atts[ $key ] ?? '' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Build a CSS custom property declaration for a unit-aware attribute.
+	 *
+	 * @param string $property CSS custom property name.
+	 * @param string $value Raw attribute value.
+	 * @return array
+	 * @since 9.0
+	 */
+	protected function getTtaUnitDeclaration( $property, $value ) {
+		$formatted = wpb_format_with_css_unit( $value );
+		if ( empty( $formatted ) ) {
+			$formatted = wpb_format_with_css_unit( 0 );
+		}
+
+		if ( '' === (string) $formatted || ! $this->isUnitValueCustom( $formatted ) ) {
+			return [];
+		}
+
+		return [ $property . ': ' . $formatted ];
+	}
+
+	/**
+	 * Resolve a readable contrast color (dark or light) for the given input.
+	 *
+	 * Mirrors the existing palette behaviour where dark backgrounds use `#fff`
+	 * text and the light grey palette uses `#666`. Supports hex (#rgb, #rrggbb)
+	 * and `rgb()/rgba()` notations; falls back to `#fff` when the value cannot
+	 * be parsed.
+	 *
+	 * @param string $value
+	 * @return string
+	 * @since 9.0
+	 */
+	protected function getContrastColor( $value ) {
+		$rgb = Vc_Color_Helper::hexToRgb( $value );
+		if ( null === $rgb ) {
+			return '#fff';
+		}
+
+		// Relative luminance (sRGB, simplified).
+		$luminance = ( $rgb['R'] * 0.299 + $rgb['G'] * 0.587 + $rgb['B'] * 0.114 ) / 255;
+
+		return $luminance > 0.7 ? '#666' : '#fff';
 	}
 
 	/**
@@ -362,6 +612,10 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 */
 	public function getParamSpacing( $atts, $content ) {
 		if ( isset( $atts['spacing'] ) && strlen( $atts['spacing'] ) > 0 ) {
+			if ( $this->isUnitValueCustom( $atts['spacing'] ) ) {
+				return 'vc_tta-spacing-custom';
+			}
+
 			return 'vc_tta-spacing-' . $atts['spacing'];
 		}
 
@@ -379,10 +633,41 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 */
 	public function getParamGap( $atts, $content ) {
 		if ( isset( $atts['gap'] ) && strlen( $atts['gap'] ) > 0 ) {
+			// Extract numeric value to check if it's 0.
+			$numeric_value = floatval( $atts['gap'] );
+
+			// When gap is explicitly 0 (even with units like "0px"), use vc_tta-gap-0.
+			if ( 0.0 === $numeric_value ) {
+				return 'vc_tta-gap-0';
+			}
+
+			if ( $this->isUnitValueCustom( $atts['gap'] ) ) {
+				return 'vc_tta-gap-custom';
+			}
+
 			return 'vc_tta-gap-' . $atts['gap'];
 		}
 
 		return null;
+	}
+
+	/**
+	 * Check whether a numeric param value carries a CSS unit suffix (px, em, %, etc.).
+	 *
+	 * Legacy values were bare integers matching predefined LESS classes
+	 * (`vc_tta-spacing-2`). New values from the unit-aware number field are
+	 * suffixed (e.g. `2px`, `1.5em`) and are applied through CSS variables.
+	 *
+	 * @param string $value
+	 * @return bool
+	 * @since 9.0
+	 */
+	protected function isUnitValueCustom( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) {
+			return false;
+		}
+		return (bool) preg_match( '/^-?\d*\.?\d+[a-zA-Z%]+$/', $value );
 	}
 
 	/**
@@ -394,7 +679,11 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 * @return string|null
 	 */
 	public function getParamNoFill( $atts, $content ) {
-		if ( isset( $atts['no_fill'] ) && 'true' === $atts['no_fill'] ) {
+		$fill = isset( $atts['fill_content_area'] )
+			&& ! empty( $atts['fill_content_area'] )
+			&& 'false' !== $atts['fill_content_area'];
+
+		if ( ! $fill ) {
 			return 'vc_tta-o-no-fill';
 		}
 
@@ -480,6 +769,7 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 		$html = [];
 		$html[] = vc_get_template( 'partials/tta-pagination-start.php', [
 			'classes' => $this->getTtaPaginationClasses(),
+			'style' => $this->getTtaPaginationStyle(),
 		] );
 
 		if ( ! vc_is_page_editable() ) {
@@ -547,5 +837,15 @@ class WPBakeryShortCode_Vc_Tta_Accordion extends WPBakeryShortCodesContainer {
 	 */
 	public function getAddAllowed() {
 		return vc_user_access_check_shortcode_all( 'vc_tta_section' );
+	}
+
+	/**
+	 * Get CSS file names for vc_tta_accordion shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
 	}
 }

@@ -4,6 +4,8 @@
  *
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_message.php.
  *
+ * @version 9.0
+ *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  */
 
@@ -16,18 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @todo add $icon_... defaults
  * @todo add $icon_typicons and etc
  *
- * @var $atts
- * @var $el_class
- * @var $el_id
- * @var $message_box_style
- * @var $style
- * @var $color
- * @var $message_box_color
- * @var $css_animation
- * @var $icon_type
- * @var $icon_fontawesome
- * @var $content - shortcode content
- * @var $css
+ * @var array $atts
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $message_box_style
+ * @var string $style
+ * @var string $color
+ * @var string $message_box_color
+ * @var string $css_animation
+ * @var string $icon_type
+ * @var string $icon_fontawesome
+ * @var string $content - shortcode content
+ * @var string $css
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Message $this
  */
@@ -38,15 +40,27 @@ $atts = $this->convertAttributesToMessageBox2( $atts );
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
 
+$color_class = '';
+$hex_color_style = '';
+if ( strlen( $color ) > 0 ) {
+	$color_class = 'vc_color-' . $color;
+} elseif ( strlen( $message_box_color ) > 0 ) {
+	$color_class = $this->resolveColorClass( $message_box_color );
+	$hex_color_style = $this->buildHexColorStyle( $message_box_color );
+} else {
+	$color_class = 'vc_color-info';
+}
+
+$settings = $this->getSettings();
 $element_class_list = [
-	'base' => apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'vc_message_box', $this->settings['base'], $atts ),
+	'base' => apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'vc_message_box', $settings['base'], $atts ),
 	'style' => 'vc_message_box-' . $message_box_style,
 	'shape' => 'vc_message_box-' . $style,
-	'color' => ( ( strlen( $color ) > 0 && false === strpos( 'alert', $color ) ) ? ( 'vc_color-' . $color ) : ( 'vc_color-' . $message_box_color ) ),
+	'color' => $color_class,
 	'css_animation' => $this->getCSSAnimation( $css_animation ),
 ];
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $class_to_filter = preg_replace( [
 	'/\s+/',
 	'/^\s|\s$/',
@@ -55,7 +69,7 @@ $class_to_filter = preg_replace( [
 	'',
 ], implode( ' ', $element_class_list ) );
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . ' ' . esc_attr( $element_class ) . $this->getExtraClass( $el_class );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $settings['base'], $atts );
 
 // Pick up icons.
 $icon_class = isset( ${'icon_' . $icon_type} ) ? ${'icon_' . $icon_type} : $default_icon_class;
@@ -105,7 +119,7 @@ $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';
 }
-$output = '';
+$output = $hex_color_style;
 $output .= '<div class="' . esc_attr( $css_class ) . '" ' . implode( ' ', $wrapper_attributes ) . '><div class="vc_message_box-icon"><i class="' . esc_attr( $icon_class ) . '"></i></div>' . wpb_js_remove_wpautop( $content, true ) . '</div>';
 
 return $output;

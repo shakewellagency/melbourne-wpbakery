@@ -68,4 +68,14 @@ class WPBakeryShortCode_Vc_Tta_Pageable extends WPBakeryShortCode_Vc_Tta_Tabs {
 	public function getParamTabsList( $atts, $content ) {
 		return '';
 	}
+
+	/**
+	 * Get CSS file names for vc_tta_pageable shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle', 'vc_pagination' ];
+	}
 }

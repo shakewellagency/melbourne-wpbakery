@@ -64,20 +64,19 @@ if ( vc_modules_manager()->is_module_on( 'vc-post-custom-layout' ) ) {
 ?>
 <div id="vc_no-content-helper"
 	class="vc_welcome vc_select-post-custom-layout-frontend-editor vc_ui-font-open-sans <?php echo esc_attr( $template_class ); ?>">
-	<?php
-	vc_include_template(
-		'editors/partials/start-logo.tpl.php'
-	);
-	vc_include_template(
-		'editors/partials/start-select-layout-title.tpl.php'
-	);
-	if ( vc_modules_manager()->is_module_on( 'vc-post-custom-layout' ) ) {
+	<div class="vc_welcome-wrapper">
+		<?php
 		vc_include_template(
-			'editors/partials/vc_post_custom_layout.tpl.php',
-			[ 'location' => 'welcome' ]
+			'editors/partials/start-select-layout-title.tpl.php'
 		);
-	}
-	?>
+		if ( vc_modules_manager()->is_module_on( 'vc-post-custom-layout' ) ) {
+			vc_include_template(
+				'editors/partials/vc_post_custom_layout.tpl.php',
+				[ 'location' => 'welcome' ]
+			);
+		}
+		?>
+	</div>
 </div>
 
 <div id="vc_inline-frame-wrapper" class="<?php echo esc_attr( $template_class ); ?> vc_selected-post-custom-layout-visible-e"></div>
@@ -110,7 +109,6 @@ vc_include_template(
 );
 ?>
 <<?php echo esc_attr( $custom_tag ); ?>>
-	window.vc_user_mapper = <?php echo wp_json_encode( WPBMap::getUserShortCodes() ); ?>;
 	window.vc_mapper = <?php echo wp_json_encode( WPBMap::getShortCodes() ); ?>;
 	window.vc_vendor_settings_presets = <?php echo wp_json_encode( $vc_vendor_settings_presets ); ?>;
 	window.vc_all_presets = <?php echo wp_json_encode( $vc_all_presets ); ?>;
@@ -123,6 +121,7 @@ vc_include_template(
 </<?php echo esc_attr( $custom_tag ); ?>>
 
 <?php vc_include_template( 'editors/partials/vc_settings-image-block.tpl.php' ); ?>
+<?php vc_include_template( 'editors/partials/vc_settings-single-image-block.tpl.php' ); ?>
 <!-- BC for older plugins 5.5 !-->
 <input type="hidden" id="post_ID" name="post_ID" value="<?php echo esc_attr( $post_ID ); ?>"/>
 	<div style="height: 1px; visibility: hidden; overflow: hidden;">

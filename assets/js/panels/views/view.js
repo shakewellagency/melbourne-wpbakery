@@ -31,7 +31,6 @@
 			startTab: 0
 		},
 		clicked: false,
-		showMessageDisabled: true, // disabled in 4.7 due to button and new ui.
 		initialize: function () {
 			this.clicked = false;
 			this.$el.removeClass( 'vc_panel-opacity' );
@@ -85,6 +84,7 @@
 				this.initDraggable();
 			}
 			this.fixElContainment();
+			this.focusCloseButton( this.$el );
 			this.trigger( 'show' );
 		},
 		hide: function ( e ) {
@@ -96,6 +96,26 @@
 			}
 			vc.active_panel = false;
 			this.$el.removeClass( 'vc_active' );
+		},
+		keydownHide ( e ) {
+			// 13 = Enter, 32 = Space
+			if ( e.keyCode === 13 || e.keyCode === 32 ) {
+				e.preventDefault();
+				this.hide( e );
+			}
+		},
+		keydownSave ( e ) {
+			// 13 = Enter, 32 = Space
+			if ( e.keyCode === 13 || e.keyCode === 32 ) {
+				e.preventDefault();
+				this.save( e );
+			}
+		},
+		focusCloseButton ( el ) {
+			const closeButton = el.find( '.vc_ui-close-button' );
+			if ( closeButton.length ) {
+				closeButton.focus();
+			}
 		},
 		content: function () {
 			return this.$el.find( '.panel-body' );
@@ -114,6 +134,12 @@
 				md: false,
 				lg: false
 			};
+			// Toggle the vc_ui-media-min-width class to apply full width styles for params modals on smaller screens
+			if ( modalWidth < 430 ) {
+				this.$el.addClass( 'vc_ui-media-min-width' );
+			} else {
+				this.$el.removeClass( 'vc_ui-media-min-width' );
+			}
 			if ( 525 <= modalWidth ) {
 				classes.sm = true;
 			}
@@ -166,9 +192,13 @@
 		},
 		/**
 		 * Init draggable feature for panels to allow it Moving, also allow moving only in proper containment
+		 * This method is called multiple times from HelperPanelViewDraggable by triggering 'show' event
 		 */
-		initDraggable: function () {
+		initDraggable () {
 			var _this = this;
+			if ( !this.draggable ) {
+				return;
+			}
 			this.$el.draggable({
 				iframeFix: true,
 				handle: '.vc_panel-heading',
@@ -217,22 +247,6 @@
 				this.$el.find( $tab.data( 'target' ) ).addClass( 'vc_active' );
 				window.setTimeout( this.setTabsSize, 100 );
 			}
-		},
-		showMessage: function ( text, type ) {
-			if ( this.showMessageDisabled ) {
-				return false;
-			}
-			if ( this.message_box_timeout ) {
-				this.$el.find( '.vc_panel-message' ).remove();
-				window.clearTimeout( this.message_box_timeout );
-			}
-
-			this.message_box_timeout = false;
-			var $messageBox = $( '<div class="vc_panel-message type-' + type + '"></div>' ).appendTo( this.$el.find( '.vc_ui-panel-content-container' ) );
-			$messageBox.text( text ).fadeIn();
-			this.message_box_timeout = window.setTimeout( function () {
-				$messageBox.remove();
-			}, 6000 );
 		},
 		isVisible: function () {
 			return this.$el.is( ':visible' );

@@ -29,24 +29,34 @@ if ( ! empty( $templates ) ) :
 	?>
 	<div class="vc_col-sm-12 vc_column" id="vc_settings-post_template">
 		<div class="wpb_settings-title">
-			<div class="wpb_element_label"><?php esc_html_e( 'Template', 'js_composer' ); ?></div>
+			<label for="vc_post_template" class="wpb_element_label"><?php esc_html_e( 'Template', 'js_composer' ); ?></label>
 			<?php
 				vc_include_template( 'editors/partials/param-info.tpl.php', [ 'description' => sprintf( esc_html__( 'Select a template for your %s type from templates defined in WordPress.', 'js_composer' ), esc_html( get_post_type() ) ) ] );
 			?>
 		</div>
-		<select id="vc_post_template" name="vc_post_template" class="wpb_vc_param_value wpb-input wpb-select wpb-select--full">
-			<option value="default" <?php selected( $saved_template, 'default' ); ?>>
-				<?php esc_html_e( 'Default', 'js_composer' ); ?>
-			</option>
-			<?php foreach ( $templates as $key => $value ) : ?>
-				<?php
-				$template_file = 'page' === $post_type ? $value : $key;
-				$template_name = 'page' === $post_type ? $key : $value;
-				?>
-				<option value="<?php echo esc_attr( $template_file ); ?>"<?php selected( $saved_template, $template_file ); ?>>
-					<?php echo esc_html( $template_name ); ?>
-				</option>
-			<?php endforeach; ?>
-		</select>
+		<?php
+		$options = [
+			[
+				'value' => 'default',
+				'label' => esc_html__( 'Default', 'js_composer' ),
+				'selected' => 'default' === $saved_template,
+			],
+		];
+		foreach ( $templates as $key => $value ) {
+			$template_file = 'page' === $post_type ? $value : $key;
+			$template_name = 'page' === $post_type ? $key : $value;
+			$options[] = [
+				'value' => $template_file,
+				'label' => $template_name,
+				'selected' => $saved_template === $template_file,
+			];
+		}
+		WPB_Form_Field_Dropdown::render( [
+			'id' => 'vc_post_template',
+			'classes' => 'wpb_vc_param_value wpb-input wpb-select wpb-select--full',
+			'name' => 'vc_post_template',
+			'options' => $options,
+		] );
+		?>
 	</div>
 <?php endif; ?>

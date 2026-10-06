@@ -1,5 +1,5 @@
 jQuery( document ).ready( function ( $ ) {
-	vc.initColorPicker();
+	vc.formComponents.colorPicker.init();
 
 	var previewPickerElement = document.querySelector( '#preview-picker' );
 	if ( previewPickerElement ) {
@@ -15,7 +15,7 @@ jQuery( document ).ready( function ( $ ) {
 			showAlways: true,
 			position: 'bottom-start'
 		};
-		vc.initColorPicker( null, pickrOptions );
+		vc.formComponents.colorPicker.init( null, pickrOptions );
 	}
 
 	function repositionPreview () {

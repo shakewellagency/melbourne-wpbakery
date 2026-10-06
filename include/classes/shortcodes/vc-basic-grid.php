@@ -44,6 +44,13 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 	protected $element_template = '';
 
 	/**
+	 * Computed gap CSS value for template use.
+	 *
+	 * @var string
+	 */
+	public $grid_gap_css = '';
+
+	/**
 	 * Default maximum number of items.
 	 *
 	 * @var int
@@ -79,7 +86,7 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 		'initial_loading_animation' => 'zoomIn',
 		'full_width' => '',
 		'layout' => '',
-		'element_width' => '4',
+		'items_per_row' => '3',
 		'items_per_page' => '5',
 		'gap' => '',
 		'style' => 'all',
@@ -124,13 +131,20 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 		'btn_el_id' => '',
 		'btn_custom_background' => '#ededed',
 		'btn_custom_text' => '#666',
+		'btn_custom_border' => '',
+		'btn_custom_hover_background' => '',
+		'btn_custom_hover_text' => '',
+		'btn_custom_hover_border' => '',
+		'btn_gradient_custom_color_1' => '',
+		'btn_gradient_custom_color_2' => '',
+		'btn_gradient_text_color' => '',
 		'btn_outline_custom_color' => '#666',
 		'btn_outline_custom_hover_background' => '#666',
 		'btn_outline_custom_hover_text' => '#fff',
 		'btn_shape' => 'rounded',
 		'btn_color' => 'blue',
 		'btn_size' => 'md',
-		'btn_align' => 'inline',
+		'btn_align' => 'center',
 		'btn_button_block' => '',
 		'btn_add_icon' => '',
 		'btn_i_align' => 'left',
@@ -152,7 +166,7 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 	 *
 	 * @var array
 	 */
-	protected $grid_settings = [];
+	public $grid_settings = [];
 
 	/**
 	 * Unique name for the grid ID.
@@ -364,7 +378,7 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 		$settings = $this->grid_settings;
 		$filter_terms = $this->filter_terms;
 		$is_end = isset( $this->is_end ) && $this->is_end;
-		$css_classes = 'vc_grid vc_row' . esc_attr( $atts['gap'] > 0 ? ' vc_grid-gutter-' . (int) $atts['gap'] . 'px' : '' );
+		$css_classes = 'vc_grid vc_row' . ( '' !== $this->getGridGapCssValue() ? ' vc_grid-gutter' : '' );
 		$current_scope = WPBMap::getScope();
 		if ( is_array( $this->items ) && ! empty( $this->items ) ) {
 			// Adding before vc_map.
@@ -384,8 +398,8 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 			$attributes = [
 				'filter_terms' => $filter_terms,
 				'atts' => $atts,
-				'grid_item',
-				$this->grid_item,
+				'filter_color_contrast' => Vc_Color_Helper::contrastColor( $atts['filter_color'] ?? '' ),
+				'grid_item' => $this->grid_item,
 			];
 			$output .= apply_filters( 'vc_basic_grid_template_filter', vc_get_template( 'shortcodes/vc_basic_grid_filter.php', $attributes ), $attributes );
 			global $post;
@@ -509,7 +523,6 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 			$id_to_save = $this->getId( $atts, $content );
 		}
 
-		$atts = $this->convertButton2ToButton3( $atts );
 		$atts = shortcode_atts( $this->attributes_defaults, vc_map_get_attributes( $this->getShortcode(), $atts ) );
 		$this->atts = $atts;
 		if ( isset( $id_to_save ) ) {
@@ -523,6 +536,75 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 		if ( 'custom' === $this->attr( 'post_type' ) ) {
 			$this->atts['style'] = 'all';
 		}
+
+		$this->resolveItemsPerRowAtts();
+
+		// Compute gap CSS value for template use.
+		$this->grid_gap_css = $this->getGridGapCssValue();
+	}
+
+	/**
+	 * Resolve items_per_row based on input precedence.
+	 */
+	protected function resolveItemsPerRowAtts() {
+		$items_per_row = $this->snapItemsPerRowToSupported( (int) $this->atts['items_per_row'] );
+		$this->atts['items_per_row'] = (string) $items_per_row;
+		// Special case: items_per_row = 5 uses fractional column class 1/5 (20% width).
+		if ( 5 === $items_per_row ) {
+			$this->atts['element_width'] = '1/5';
+		} else {
+			$this->atts['element_width'] = (string) (int) ( 12 / $items_per_row );
+		}
+	}
+
+	/**
+	 * Snap items-per-row to the nearest supported value {1,2,3,4,5,6}.
+	 * Clamped to [1..6]; ties prefer the smaller count to avoid row overflow.
+	 *
+	 * @param int $items_per_row
+	 * @return int
+	 */
+	protected function snapItemsPerRowToSupported( $items_per_row ) {
+		$supported = [ 1, 2, 3, 4, 5, 6 ];
+
+		if ( $items_per_row < 1 ) {
+			return 1;
+		}
+		if ( $items_per_row > 6 ) {
+			return 6;
+		}
+		if ( in_array( $items_per_row, $supported, true ) ) {
+			return $items_per_row;
+		}
+
+		$best = $supported[0];
+		$best_distance = abs( $items_per_row - $best );
+		foreach ( $supported as $candidate ) {
+			$distance = abs( $items_per_row - $candidate );
+			if ( $distance < $best_distance ) {
+				$best = $candidate;
+				$best_distance = $distance;
+			}
+		}
+
+		return $best;
+	}
+
+	/**
+	 * Normalize the `gap` att to a valid CSS length used by the `--vc-grid-gap`
+	 * custom property. Unit-less legacy/default values get `px`; a zero or empty
+	 * gap returns '' so no gutter is applied.
+	 *
+	 * @return string
+	 * @since 9.0
+	 */
+	protected function getGridGapCssValue() {
+		$gap = isset( $this->atts['gap'] ) ? trim( (string) $this->atts['gap'] ) : '';
+		if ( '' === $gap || (float) $gap <= 0 ) {
+			return '';
+		}
+
+		return is_numeric( $gap ) ? $gap . 'px' : $gap;
 	}
 
 	/**
@@ -734,32 +816,36 @@ class WPBakeryShortCode_Vc_Basic_Grid extends WPBakeryShortCode_Vc_Pageable {
 	}
 
 	/**
-	 * Convert attributes button old to button new.
+	 * Build CSS custom properties for the grid container.
 	 *
-	 * @param array $atts
-	 * @return mixed
+	 * @return array
 	 */
-	public static function convertButton2ToButton3( $atts ) {
-		if ( ! empty( $atts['button_style'] ) || ! empty( $atts['button_size'] ) || ! empty( $atts['button_color'] ) ) {
-			// we use old button 2 attributes.
-			$style = isset( $atts['button_style'] ) ? $atts['button_style'] : 'rounded';
-			$size = isset( $atts['button_size'] ) ? $atts['button_size'] : 'md';
-			$color = isset( $atts['button_color'] ) ? $atts['button_color'] : 'blue';
-			$old_data = [
-				'style' => $style,
-				'size' => $size,
-				'color' => str_replace( '_', '-', $color ),
-			];
-			// remove attributes on save.
-			$atts['button_style'] = '';
-			$atts['button_size'] = '';
-			$atts['button_color'] = '';
-			$new_data = WPBakeryShortCode_Vc_Btn::convertAttributesToButton3( $old_data );
-			foreach ( $new_data as $key => $value ) {
-				$atts[ 'btn_' . $key ] = $value;
+	public function build_grid_css_vars() {
+		$grid_css_vars = [];
+		$grid_gap = $this->grid_gap_css;
+		if ( '' !== $grid_gap ) {
+			$grid_css_vars[] = '--vc-grid-gap:' . $grid_gap;
+		}
+		// Pagination colors come from colorpicker params; expose them as custom
+		// properties consumed by the `*-color-custom` style variants.
+		// Validate colors to prevent legacy slugs (e.g. sandy_brown) from being written as invalid CSS.
+		if ( ! empty( $this->atts['arrows_color'] ) ) {
+			$arrows_color = sanitize_hex_color( $this->atts['arrows_color'] );
+			if ( $arrows_color ) {
+				$grid_css_vars[] = '--vc-grid-arrows-color:' . $arrows_color;
+			}
+		}
+		if ( ! empty( $this->atts['paging_color'] ) ) {
+			$paging_color = sanitize_hex_color( $this->atts['paging_color'] );
+			if ( $paging_color ) {
+				$grid_css_vars[] = '--vc-grid-paging-color:' . $paging_color;
+				$paging_color_contrast = Vc_Color_Helper::contrastColor( $paging_color );
+				if ( '' !== $paging_color_contrast ) {
+					$grid_css_vars[] = '--vc-grid-paging-color-contrast:' . $paging_color_contrast;
+				}
 			}
 		}
 
-		return $atts;
+		return $grid_css_vars;
 	}
 }

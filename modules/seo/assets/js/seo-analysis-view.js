@@ -16,6 +16,9 @@ if ( !window.vc ) {
 		$wpbContentWrapper: null,
 		$navbarIcon: null,
 		currentBadge: '',
+		events: {
+			'click [data-vc-ui-element="seo-results-toggle"]': 'toggleSection'
+		},
 		initialize: function () {
 			this.$wpbContentWrapper = this.getContentWrapper();
 			this.$navbarIcon = $( '.vc_seo-button' );
@@ -95,11 +98,25 @@ if ( !window.vc ) {
 			this.currentBadge = 'vc_ui-badge--' + state;
 			this.$navbarIcon.addClass( this.currentBadge );
 		},
-		getResultsHtml: function ( type, data ) {
-			var $section = $( '<div class="vc_ui-seo-results-section"><strong>' + window.i18nLocale[type] + '</strong><ul class="vc_ui-seo-results-list"></ul></div>' );
-			var $resultList = $section.find( 'ul' );
-			$.each( data, function ( i, val ) {
-				var $item = $( '<li class="vc_ui-seo-results-list-item vc_ui-seo-results-list-item--' + val.state + '">' + val.title + ': ' + val.description + '</li>' );
+		toggleSection ( e ) {
+			$( e.currentTarget ).closest( '.vc_ui-seo-results-section' )
+				.toggleClass( 'vc_ui-seo-results-section--collapsed' );
+		},
+		getResultsHtml ( type, data ) {
+			const $section = $(
+				`<div class="vc_ui-seo-results-section">
+					<div class="vc_ui-seo-results-header" data-vc-ui-element="seo-results-toggle">
+						<span class="vc_ui-seo-results-title">${window.i18nLocale[type]}</span>
+						<span class="vc_ui-seo-results-toggle"></span>
+					</div>
+					<div class="vc_ui-seo-results-body">
+						<ul class="vc_ui-seo-results-list"></ul>
+					</div>
+				</div>`
+			);
+			const $resultList = $section.find( 'ul' );
+			$.each( data, ( i, val ) => {
+				const $item = $( `<li class="vc_ui-seo-results-list-item vc_ui-seo-results-list-item--${val.state}">${val.title}: ${val.description}</li>` );
 				$resultList.append( $item );
 			});
 			return $section;

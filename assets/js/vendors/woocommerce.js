@@ -11,15 +11,15 @@ if ( !window.ajaxurl ) {
 			var $filterDropdown, $empty;
 
 			$filterDropdown = $( '[data-vc-shortcode-param-name="filter"]', that.$content );
-			$filterDropdown.removeClass( 'vc_dependent-hidden' );
 			$empty = $( '#filter-empty', $filterDropdown );
 			if ( $empty.length ) {
 				$empty.parent().remove();
-				$( '.edit_form_line', $filterDropdown ).prepend( $( '<div class="vc_checkbox-label"><span>No values found</span></div>' ) );
+				$filterDropdown.addClass( 'vc_dependent-hidden' );
+			} else {
+				$filterDropdown.removeClass( 'vc_dependent-hidden' );
 			}
 			$( 'select[name="attribute"]', that.$content ).on( 'change', function () {
 				$( '.vc_checkbox-label', $filterDropdown ).remove();
-				$filterDropdown.removeClass( 'vc_dependent-hidden' );
 
 				$.ajax({
 					type: 'POST',
@@ -32,12 +32,13 @@ if ( !window.ajaxurl ) {
 					}
 				}).done( function ( data ) {
 					if ( 0 < data.length ) {
-						$( '.edit_form_line', $filterDropdown ).prepend( $( data ) );
+						$filterDropdown.removeClass( 'vc_dependent-hidden' );
+						$( '.wpb_checkbox-container-vertical', $filterDropdown ).prepend( $( data ) );
 					} else {
-						$( '.edit_form_line', $filterDropdown ).prepend( $( '<div class="vc_checkbox-label"><span>No values found</span></div>' ) );
+						$filterDropdown.addClass( 'vc_dependent-hidden' );
 					}
 				});
-			});
+			}).trigger( 'change' );
 		}( window.jQuery, this ) );
 	};
 

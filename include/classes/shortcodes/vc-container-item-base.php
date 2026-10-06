@@ -145,6 +145,42 @@ abstract class WPBakeryShortCode_Vc_Container_Item_Base extends WPBakeryShortCod
 	}
 
 	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) {
+		$item_type = $this->getItemTypeLabel();
+
+		$add_icon = 'vc-c-add-circle';
+		return [
+			'add' => [
+				'classes' => 'column_add vc_column-add',
+				'title' => ( false !== strpos( $extended_css, 'bottom-controls' ) ? sprintf( __( 'Append to this %s item', 'js_composer' ), $item_type ) : sprintf( __( 'Prepend to this %s item', 'js_composer' ), $item_type ) ),
+				'icon' => $add_icon,
+			],
+			'edit' => [
+				'classes' => 'column_edit vc_column-edit',
+				'title' => sprintf( __( 'Edit %s item', 'js_composer' ), $item_type ),
+				'icon' => 'vc-c-edit',
+			],
+			'paste' => [
+				'classes' => 'column_paste vc_column-paste',
+				'title' => __( 'Paste', 'js_composer' ),
+				'icon' => 'vc-c-icon-paste',
+			],
+			'delete' => [
+				'classes' => 'column_delete vc_column-delete',
+				'title' => sprintf( __( 'Delete this %s item', 'js_composer' ), $item_type ),
+				'icon' => 'vc-c-trash',
+			],
+		];
+	}
+
+	/**
 	 * Returns HTML for a specific control.
 	 *
 	 * @since 8.7
@@ -154,18 +190,8 @@ abstract class WPBakeryShortCode_Vc_Container_Item_Base extends WPBakeryShortCod
 	 * @return string HTML for the control or empty string.
 	 */
 	public function getControlHtml( $control, $extended_css ) {
-		$item_type = $this->getItemTypeLabel();
-		$controls_map = [
-			'add' => '<a class="vc_control column_add vc_column-add" data-vc-control="add" href="#" title="' .
-				( 'bottom-controls' === $extended_css ? sprintf( __( 'Append to this %s item', 'js_composer' ), $item_type ) : sprintf( __( 'Prepend to this %s item', 'js_composer' ), $item_type ) ) .
-				'"><i class="vc-composer-icon vc-c-icon-add"></i></a>',
-			'edit' => '<a class="vc_control column_edit vc_column-edit"  data-vc-control="edit" href="#" title="' .
-				sprintf( __( 'Edit %s item', 'js_composer' ), $item_type ) . '"><i class="vc-composer-icon vc-c-icon-mode_edit"></i></a>',
-			'paste' => '<a class="vc_control column_paste vc_column-paste"  data-vc-control="paste" href="#" title="' .
-				__( 'Paste', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-paste"></i></a>',
-			'delete' => '<a class="vc_control column_delete vc_column-delete" data-vc-control="delete"  href="#" title="' .
-				sprintf( __( 'Delete this %s item', 'js_composer' ), $item_type ) . '"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a>',
-		];
+		$controls_map = $this->get_column_controls_html_list( $extended_css );
+
 		return isset( $controls_map[ $control ] ) ? $controls_map[ $control ] : '';
 	}
 
@@ -304,5 +330,15 @@ abstract class WPBakeryShortCode_Vc_Container_Item_Base extends WPBakeryShortCod
 		}
 
 		echo esc_attr( trim( vc_shortcode_custom_css_class( $atts['css'] ) ) );
+	}
+
+	/**
+	 * Get item class.
+	 *
+	 * @return string
+	 * @since 8.7
+	 */
+	public function getItemClass() {
+		return 'vc_flexbox_container_item';
 	}
 }

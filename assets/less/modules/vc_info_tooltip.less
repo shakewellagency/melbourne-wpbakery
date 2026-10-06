@@ -21,7 +21,7 @@
     height: 14px;
     width: 14px;
     &:hover {
-        cursor: pointer;
+        cursor: help;
         svg .info-circle {
             fill: #0872CF;
         }
@@ -37,17 +37,21 @@
 
 }
 .edit-form-info + .tooltip-content {
+    // Keep out of flow by default so it reserves no space if Popper (which sets
+    // inline fixed positioning) is unavailable and tooltips are disabled.
+    position: fixed;
     display: block;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-    background: #2C3339;
+    background: @textGrayDark;
     color: #EBEBEB;
     font-weight: 400;
     padding: 4px 12px;
     font-size: 12px;
     line-height: 20px;
     border-radius: 14px;
+    max-width: 600px;
     z-index: 99999; // compensate the post categories dropdown (select2 field)
 }
 .edit-form-info + .tooltip-content a {
@@ -60,6 +64,6 @@
     opacity: 1;
     visibility: visible;
     &:hover {
-        cursor: pointer;
+        cursor: default;
     }
 }

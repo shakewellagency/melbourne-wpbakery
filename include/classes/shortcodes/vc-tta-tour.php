@@ -109,4 +109,14 @@ class WPBakeryShortCode_Vc_Tta_Tour extends WPBakeryShortCode_Vc_Tta_Tabs {
 	public function getParamPaginationBottom( $atts, $content ) {
 		return $this->getParamPaginationList( $atts, $content );
 	}
+
+	/**
+	 * Get CSS file names for vc_tta_tour shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
+	}
 }

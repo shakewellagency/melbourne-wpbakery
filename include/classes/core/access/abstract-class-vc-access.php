@@ -122,7 +122,7 @@ abstract class Vc_Access {
 		if ( $this->getValidAccess() ) {
 			$args = func_get_args();
 			$args = array_slice( $args, 1 );
-			if ( ! empty( $func ) ) {
+			if ( is_callable( $func ) ) {
 				$this->setValidAccess( call_user_func_array( $func, $args ) );
 			}
 		}

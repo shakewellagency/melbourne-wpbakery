@@ -69,7 +69,7 @@ class WpbakeryShortcodeParams {
 	 */
 	public static function addField( $name, $form_field_callback, $script_url = null ) {
 		$result = false;
-		if ( ! empty( $name ) && ! empty( $form_field_callback ) ) {
+		if ( ! empty( $name ) && is_callable( $form_field_callback ) ) {
 			self::$params[ $name ] = [
 				'callbacks' => [
 					'form' => $form_field_callback,
@@ -88,18 +88,19 @@ class WpbakeryShortcodeParams {
 	/**
 	 * Calls hook for attribute type
 	 *
-	 * @param string $name - attribute name.
+	 * @param string $type - attribute type.
 	 * @param array $param_settings - attribute settings from shortcode.
 	 * @param mixed $param_value - attribute value.
 	 * @param string $tag - attribute tag.
+	 * @param string $param_id since 9.0.
 	 *
 	 * @return mixed|string - returns html which will be render in hook
 	 * @since 4.2
 	 * @static
 	 */
-	public static function renderSettingsField( $name, $param_settings, $param_value, $tag ) {
-		if ( isset( self::$params[ $name ]['callbacks']['form'] ) ) {
-			return call_user_func( self::$params[ $name ]['callbacks']['form'], $param_settings, $param_value, $tag );
+	public static function renderSettingsField( $type, $param_settings, $param_value, $tag, $param_id = '' ) {
+		if ( isset( self::$params[ $type ]['callbacks']['form'] ) ) {
+			return call_user_func( self::$params[ $type ]['callbacks']['form'], $param_settings, $param_value, $tag, $param_id );
 		}
 
 		return '';

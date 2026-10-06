@@ -13,25 +13,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $onclick
- * @var $custom_links
- * @var $custom_links_target
- * @var $img_size
- * @var $images
- * @var $el_class
- * @var $el_id
- * @var $mode
- * @var $slides_per_view
- * @var $wrap
- * @var $autoplay
- * @var $hide_pagination_control
- * @var $hide_prev_next_buttons
- * @var $speed
- * @var $partial_view
- * @var $css
- * @var $css_animation
+ * @var array $atts
+ * @var string $title
+ * @var string $onclick
+ * @var string $custom_links
+ * @var string $custom_links_target
+ * @var string $img_size
+ * @var string $images
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $mode
+ * @var string $slides_per_view
+ * @var string $wrap
+ * @var string $autoplay
+ * @var string $hide_pagination_control
+ * @var string $hide_prev_next_buttons
+ * @var string $speed
+ * @var string $partial_view
+ * @var string $css
+ * @var string $css_animation
  * Shortcode class
  * @var WPBakeryShortCode_Vc_images_carousel $this
  */
@@ -68,16 +68,18 @@ if ( 'custom_link' === $onclick ) {
 $images = explode( ',', $images );
 $i = - 1;
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $class_to_filter = 'wpb_images_carousel wpb_content_element vc_clearfix';
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . ' ' . esc_attr( $element_class ) . $this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $settings['base'], $atts );
 
 $carousel_id = 'vc_images-carousel-' . WPBakeryShortCode_Vc_Images_Carousel::getCarouselIndex();
 $slider_width = $this->getSliderWidth( $img_size );
 
 $output = '';
-$output .= '<div' . ( ! empty( $el_id ) ? ' id="' . esc_attr( $el_id ) . '"' : '' ) . ' class="' . esc_attr( apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $css_class, $this->settings['base'], $atts ) ) . '">';
+$output .= '<div' . ( ! empty( $el_id ) ? ' id="' . esc_attr( $el_id ) . '"' : '' ) . ' class="' . esc_attr( apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $css_class, $settings['base'], $atts ) ) . '">';
 $output .= '<div class="wpb_wrapper">';
 
 $output .= wpb_widget_title( [

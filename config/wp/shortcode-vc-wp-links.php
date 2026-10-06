@@ -23,6 +23,44 @@ if ( 'vc_edit_form' === vc_post_param( 'action' ) && vc_verify_admin_nonce() ) {
 	$link_category = [];
 }
 
+$params = [
+	[
+		'type' => 'dropdown',
+		'heading' => esc_html__( 'Link Category', 'js_composer' ),
+		'param_name' => 'category',
+		'value' => $link_category,
+		'admin_label' => true,
+	],
+	[
+		'type' => 'dropdown',
+		'heading' => esc_html__( 'Order by', 'js_composer' ),
+		'param_name' => 'orderby',
+		'value' => [
+			esc_html__( 'Link title', 'js_composer' ) => 'name',
+			esc_html__( 'Link rating', 'js_composer' ) => 'rating',
+			esc_html__( 'Link ID', 'js_composer' ) => 'id',
+			esc_html__( 'Random', 'js_composer' ) => 'rand',
+		],
+	],
+	[
+		'type' => 'checkbox',
+		'heading' => esc_html__( 'Options', 'js_composer' ),
+		'param_name' => 'options',
+		'value' => [
+			esc_html__( 'Show Link Image', 'js_composer' ) => 'images',
+			esc_html__( 'Show Link Name', 'js_composer' ) => 'name',
+			esc_html__( 'Show Link Description', 'js_composer' ) => 'description',
+			esc_html__( 'Show Link Rating', 'js_composer' ) => 'rating',
+		],
+	],
+	[
+		'type' => 'textfield',
+		'heading' => esc_html__( 'Number of links to show', 'js_composer' ),
+		'param_name' => 'limit',
+		'value' => - 1,
+	],
+];
+
 return [
 	'name' => 'WP ' . esc_html__( 'Links' ),
 	'base' => 'vc_wp_links',
@@ -32,53 +70,5 @@ return [
 	'content_element' => (bool) get_option( 'link_manager_enabled' ),
 	'weight' => - 50,
 	'description' => esc_html__( 'Your blogroll', 'js_composer' ),
-	'params' => [
-		[
-			'type' => 'dropdown',
-			'heading' => esc_html__( 'Link Category', 'js_composer' ),
-			'param_name' => 'category',
-			'value' => $link_category,
-			'admin_label' => true,
-		],
-		[
-			'type' => 'dropdown',
-			'heading' => esc_html__( 'Order by', 'js_composer' ),
-			'param_name' => 'orderby',
-			'value' => [
-				esc_html__( 'Link title', 'js_composer' ) => 'name',
-				esc_html__( 'Link rating', 'js_composer' ) => 'rating',
-				esc_html__( 'Link ID', 'js_composer' ) => 'id',
-				esc_html__( 'Random', 'js_composer' ) => 'rand',
-			],
-		],
-		[
-			'type' => 'checkbox',
-			'heading' => esc_html__( 'Options', 'js_composer' ),
-			'param_name' => 'options',
-			'value' => [
-				esc_html__( 'Show Link Image', 'js_composer' ) => 'images',
-				esc_html__( 'Show Link Name', 'js_composer' ) => 'name',
-				esc_html__( 'Show Link Description', 'js_composer' ) => 'description',
-				esc_html__( 'Show Link Rating', 'js_composer' ) => 'rating',
-			],
-		],
-		[
-			'type' => 'textfield',
-			'heading' => esc_html__( 'Number of links to show', 'js_composer' ),
-			'param_name' => 'limit',
-			'value' => - 1,
-		],
-		[
-			'type' => 'el_id',
-			'heading' => esc_html__( 'Element ID', 'js_composer' ),
-			'param_name' => 'el_id',
-			'description' => sprintf( esc_html__( 'Enter element ID (Note: make sure it is unique and valid according to %1$sw3c specification%2$s).', 'js_composer' ), '<a href="https://www.w3schools.com/tags/att_global_id.asp" target="_blank">', '</a>' ),
-		],
-		[
-			'type' => 'textfield',
-			'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-			'param_name' => 'el_class',
-			'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
-		],
-	],
+	'params' => array_merge( $params, vc_config()->get_general_advanced_settings() ),
 ];

@@ -258,7 +258,19 @@ class Vc_License {
 		}
 
 		if ( ! $json['status'] ) {
-			$this->showError( esc_html__( 'Something went wrong. Please contact us for support.', 'js_composer' ) );
+			if ( isset( $json['message'] ) && is_string( $json['message'] ) && '' !== trim( $json['message'] ) ) {
+				$message = wp_kses( trim( $json['message'] ), [
+					'a' => [
+						'href' => [],
+						'target' => [],
+						'rel' => [],
+					],
+				] );
+			} else {
+				$message = esc_html__( 'Something went wrong. Please contact us for support.', 'js_composer' );
+			}
+
+			$this->showError( $message );
 
 			return false;
 		}

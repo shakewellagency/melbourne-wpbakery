@@ -195,6 +195,7 @@
 
 				// this.builder is equal to vc.ShortcodesBuilder constructor from frontend_editor/shortcodes_builder.js
 				this.builder.render( null, this.model );
+				this.focusCloseButton( this.$el );
 			},
 			createGridContainer: function ( options ) {
 				if ( !options ) {

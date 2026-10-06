@@ -15,7 +15,19 @@
 	}
 	?>
 </div>
-<textarea name="<?php echo esc_attr( $field_prefix ); ?>custom_css" class="wpb_code_editor custom_code" style="display:none"><?php echo esc_textarea( $value ); ?></textarea>
-<pre id="wpb_css_editor" class="wpb_content_element custom_code" data-ace-location="plugin-settings">
-	<?php echo esc_textarea( $value ); ?>
-</pre>
+<?php
+WPB_Form_Field_Textarea::render( [
+	'name'  => $field_prefix . 'custom_css',
+	'value' => $value,
+	'class' => 'wpb_code_editor custom_code',
+	'style' => 'display:none',
+] );
+WPB_Form_Field_Textarea_Ace::render([
+	'id' => 'wpb_css_editor',
+	'classes' => 'wpb_content_element',
+	'decoded_value' => $value,
+	'data_attributes' => [
+		'ace-location' => 'plugin-settings',
+	],
+]);
+

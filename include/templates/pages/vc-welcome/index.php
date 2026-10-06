@@ -1,19 +1,30 @@
 <?php
 /**
  * Welcome page template.
- *
- * @var Vc_Page $page
- * @var Vc_Page $active_page
- * @var array $pages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
+
+// Get welcome page tabs.
+$vc_page_welcome_tabs = apply_filters( 'vc_page_welcome_slugs_list', [
+	'vc-welcome' => esc_html__( 'What\'s New', 'js_composer' ),
+	'vc-faq' => esc_html__( 'FAQ', 'js_composer' ),
+	'vc-resources' => esc_html__( 'Resources', 'js_composer' ),
+] );
+$welcome_slug = key( $vc_page_welcome_tabs ) ?: 'vc-welcome';
+$active_welcome_tab = sanitize_key( vc_get_param( 'tab', $welcome_slug ) );
+
+// Validate that the requested tab exists in the allowed tabs list.
+if ( ! isset( $vc_page_welcome_tabs[ $active_welcome_tab ] ) ) {
+	$active_welcome_tab = $welcome_slug;
+}
+
 preg_match( '/^(\d+)(\.\d+)?/', WPB_VC_VERSION, $matches );
-$custom_tag = 'script'; // Update to wp_add_inline later.
+$custom_tag = 'script';
 ?>
-<div class="wrap vc-page-welcome about-wrap">
+<div class="vc-page-welcome about-wrap">
 	<h1><?php printf( esc_html__( 'Welcome to WPBakery Page Builder %s', 'js_composer' ), esc_html( isset( $matches[0] ) ? $matches[0] : WPB_VC_VERSION ) ); ?></h1>
 
 	<div class="about-text">
@@ -43,15 +54,26 @@ $custom_tag = 'script'; // Update to wp_add_inline later.
 				}
 			}( document, 'script', 'twitter-wjs' );</<?php echo esc_attr( $custom_tag ); ?>>
 	</p>
+
+	<!-- Welcome page inner tabs -->
+	<h2 class="nav-tab-wrapper">
+		<?php foreach ( $vc_page_welcome_tabs as $tab_slug => $title ) : ?>
+			<?php
+			// Inner tab URLs use page=vc-welcome (registered in settings system via getTabs())
+			// with tab= parameter to load the appropriate welcome tab content.
+			$url = 'admin.php?page=vc-welcome&tab=' . rawurlencode( $tab_slug );
+			?>
+			<a href="<?php echo esc_attr( is_network_admin() ? network_admin_url( $url ) : admin_url( $url ) ); ?>"
+					class="nav-tab<?php echo $active_welcome_tab === $tab_slug ? esc_attr( ' nav-tab-active' ) : ''; ?>">
+				<?php echo esc_html( $title ); ?>
+			</a>
+		<?php endforeach; ?>
+	</h2>
+
+	<!-- Welcome tab content -->
 	<?php
-	vc_include_template( '/pages/partials/_tabs.php', [
-		'slug' => $page->getSlug(),
-		'active_tab' => $active_page->getSlug(),
-		'tabs' => $pages,
-	] );
-	?>
-	<?php
-	// @codingStandardsIgnoreLine
-	print $active_page->render();
+	// Include the active welcome tab template.
+	$tab_template = 'pages/vc-welcome/' . $active_welcome_tab . '.php';
+	vc_include_template( $tab_template );
 	?>
 </div>

@@ -71,12 +71,16 @@ class WPBakeryShortCode_Vc_Single_Image extends WPBakeryShortCode {
 		];
 		$value = str_ireplace( $old_names, $new_names, $value );
 
-		$param_name = isset( $param['param_name'] ) ? $param['param_name'] : '';
-		$type = isset( $param['type'] ) ? $param['type'] : '';
-		$class = isset( $param['class'] ) ? $param['class'] : '';
+		$param_name = $param['param_name'] ?? '';
+		$type = $param['type'] ?? '';
+		$class = $param['class'] ?? '';
 
 		if ( 'attach_image' === $param['type'] && 'image' === $param_name ) {
-			$output .= '<input type="hidden" class="wpb_vc_param_value ' . $param_name . ' ' . $type . ' ' . $class . '" name="' . $param_name . '" value="' . $value . '" />';
+			$output .= WPB_Form_Field_Hidden::get([
+				'name' => $param_name,
+				'value' => $value,
+				'classes' => 'wpb_vc_param_value ' . $param_name . ' ' . $type . ' ' . $class,
+			]);
 			$element_icon = $this->settings( 'icon' );
 			$img = wpb_getImageBySize( [
 				'attach_id' => (int) preg_replace( '/[^\d]/', '', $value ),
@@ -151,5 +155,15 @@ class WPBakeryShortCode_Vc_Single_Image extends WPBakeryShortCode {
 	 */
 	protected function outputTitleTrue( $title ) {
 		return '<h4 class="wpb_element_title">' . $title . ' ' . $this->settings( 'logo' ) . '</h4>';
+	}
+
+	/**
+	 * Get CSS file names for vc_single_image shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_single_image', 'vc_zoom' ];
 	}
 }

@@ -44,6 +44,11 @@ class Vc_Grid_Item_Editor extends Vc_Backend_Editor {
 			$this,
 			'loadTemplate',
 		], 10, 2 );
+
+		add_action( 'wp_ajax_wpb_load_backend_editor_shortcode', [
+			$this,
+			'load_shortcode_css',
+		], 5 );
 	}
 
 	/**
@@ -193,10 +198,12 @@ class Vc_Grid_Item_Editor extends Vc_Backend_Editor {
 	 * @param null|int $post
 	 *
 	 * @throws Exception
+	 *
+	 * @return bool
 	 */
 	public function renderEditor( $post = null ) {
 		if ( ! vc_user_access()->part( 'grid_builder' )->can()->get() ) {
-			return;
+			return false;
 		}
 
 		require_once vc_path_dir( 'PARAMS_DIR', 'vc_grid_item/class-vc-grid-item.php' );
@@ -219,6 +226,8 @@ class Vc_Grid_Item_Editor extends Vc_Backend_Editor {
 			$this,
 			'accessCheckShortcodeAll',
 		], 10, 2 );
+
+		return true;
 	}
 
 	/**
@@ -367,5 +376,28 @@ class Vc_Grid_Item_Editor extends Vc_Backend_Editor {
 			'templatePreviewPath',
 		] );
 		wpbakery()->templatesPanelEditor()->renderTemplatePreview();
+	}
+
+	/**
+	 * Load CSS for specific shortcodes via AJAX.
+	 * Overrides parent method to map grid item shortcodes before processing.
+	 *
+	 * @since 9.0
+	 */
+	public function load_shortcode_css() {
+		$this->map_grid_item_shortcodes();
+		parent::load_shortcode_css();
+	}
+
+	/**
+	 * Map grid item shortcodes.
+	 * Grid items are only mapped in the Grid Builder context, so we need to map them manually for AJAX requests.
+	 *
+	 * @since 9.0
+	 */
+	protected function map_grid_item_shortcodes() {
+		require_once vc_path_dir( 'PARAMS_DIR', 'vc_grid_item/class-vc-grid-item.php' );
+		$grid_item = new Vc_Grid_Item();
+		$grid_item->mapShortcodes();
 	}
 }

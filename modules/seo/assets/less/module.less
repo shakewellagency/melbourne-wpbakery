@@ -1,10 +1,8 @@
+@import (reference) "../../../../assets/less/config/variables.less";
+
 #vc_ui-seo-social {
   .vc_column {
     margin-bottom: 15px;
-
-    .wpb-textinput {
-      width: 100%;
-    }
   }
 
   .wpb-social-net-preview {
@@ -68,12 +66,6 @@
     flex-direction: column;
   }
 
-  .wpb-social-attr-description {
-    padding-top: 5px;
-    color: #999999;
-    font-style: italic;
-  }
-
   .truncate {
     white-space: nowrap;
     overflow: hidden;
@@ -93,22 +85,14 @@
 }
 
 #vc_ui-seo-general {
-  input[type="radio"] {
-    width: auto
-  }
-
   .vc_column {
     margin-bottom: 15px;
-
-    .wpb-textinput {
-      width: 100%;
-    }
   }
 
   .vc-preview-radio {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 30px;
     margin-bottom: 15px;
   }
 
@@ -221,16 +205,99 @@
   flex-direction:column;
   justify-content: flex-start;
   align-items: flex-start;
+
+  .vc_ui-helper-preloader {
+    width: 100%;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// Match the padding used by edit forms.
+#vc_ui-panel-post-seo {
+  .vc_panel-tab {
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
+  .vc_ui-panel-content {
+    padding-top: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+.vc_ui-seo-results-section {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 15px;
+  border: 1px solid #BECBD1;
+  border-radius: 3px;
+}
+
+.vc_ui-seo-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  cursor: pointer;
+  user-select: none;
+
+  .vc_ui-seo-results-title {
+    color: @textGray;
+    font-family: @wpb_font-family-primary;
+    font-size: @wpb_font-size-sm;
+    font-weight: @wpb_font-weight;
+  }
+}
+
+.vc_ui-seo-results-toggle {
+  display: flex;
+  align-items: center;
+
+  &::after {
+    content: @vc-c-chevron-down;
+    .wpb-icon-font();
+    font-size: 8px;
+    color: @textGray;
+    transform: scaleY(-1);
+    transition: transform @wpb_transition_duration_slow ease;
+  }
+}
+
+.vc_ui-seo-results-body {
+  padding: 10px 15px;
+  border-top: 1px solid #BECBD1;
+}
+
+.vc_ui-seo-results-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li + li {
+    margin-top: 10px;
+  }
+}
+
+.vc_ui-seo-results-section--collapsed {
+  .vc_ui-seo-results-toggle::after {
+    transform: scaleY(1);
+  }
+
+  .vc_ui-seo-results-body {
+    display: none;
+  }
 }
 
 .vc_ui-seo-results-list-item {
   position: relative;
-  color: #999999;
-  font-style: italic;
   font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  line-height: 18px;
   padding: 0 0 0 16px;
 }
 
@@ -240,7 +307,7 @@
   width: 8px;
   height: 8px;
   position: absolute;
-  top: 6px;
+  top: 5px;
   left: 0;
   margin: auto;
 }

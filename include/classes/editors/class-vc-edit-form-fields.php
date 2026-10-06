@@ -49,13 +49,17 @@ class Vc_Edit_Form_Fields {
 	 *
 	 * @param string $tag - shortcode tag.
 	 * @param array $atts - list of attribute assign to the shortcode.
+	 * @param array $shortcode_atts - list current shortcode atts.
 	 * @throws \Exception
 	 * @since 4.4
 	 */
-	public function __construct( $tag, $atts ) {
+	public function __construct( $tag, $atts, $shortcode_atts = [] ) {
+		require_once vc_path_dir( 'MIGRATIONS_DIR', 'class-wpb-edit-form-attributes-migration.php' );
+		$atts_migration = new Wpb_Edit_Form_Attributes_Migration();
+		$atts_migration->init();
 		$this->tag = $tag;
-		$this->atts = apply_filters( 'vc_edit_form_fields_attributes_' . $this->tag, $atts );
 		$this->setSettings( WPBMap::getShortCode( $this->tag ) );
+		$this->atts = apply_filters( 'vc_edit_form_fields_attributes_' . $this->tag, $atts, $this->settings, $shortcode_atts );
 	}
 
 	/**
@@ -138,11 +142,12 @@ class Vc_Edit_Form_Fields {
 	/**
 	 * Enqueue js scripts for attributes types.
 	 *
-	 * @param array $params - since 8.7.
+	 * @param array|null $params - since 8.7.
 	 * @return string
 	 * @since 4.4
 	 */
 	public function enqueueScripts( $params = [] ) {
+		$params = is_array( $params ) ? $params : [];
 		$param_type_list = $this->get_param_types_list( $params );
 
 		$output = '';
@@ -168,6 +173,7 @@ class Vc_Edit_Form_Fields {
 	/**
 	 * Get list of unique parameter types from element setting.
 	 *
+	 * @since 8.7
 	 * @param array $settings
 	 * @return array
 	 */
@@ -193,38 +199,56 @@ class Vc_Edit_Form_Fields {
 	 * Render grouped fields.
 	 *
 	 * @param array $groups
-	 * @param array $groups_content
+	 * @param array $group_list
 	 *
 	 * @return string
 	 * @since 4.4
 	 */
-	protected function renderGroupedFields( $groups, $groups_content ) {
+	protected function renderGroupedFields( $groups, $group_list ) {
 		$output = '';
-		if ( count( $groups ) > 1 || ( count( $groups ) >= 1 && empty( $groups_content['_general'] ) ) ) {
+		if ( count( $groups ) > 1 || ( count( $groups ) >= 1 && empty( $group_list['_general'] ) ) ) {
 			$output .= '<div class="vc_panel-tabs" id="vc_edit-form-tabs">';
-			$output .= '<ul class="vc_general vc_ui-tabs-line" data-vc-ui-element="panel-tabs-controls">';
+			$output .= '<ul class="vc_general vc_ui-tabs-line" data-vc-ui-element="panel-tabs-controls" role="tablist" aria-label="' . esc_html__( 'Edit Element Tabs', 'js_composer' ) . '">';
 			$key = 0;
-			foreach ( $groups as $g ) {
-				$output .= '<li class="vc_edit-form-tab-control" data-tab-index="' . esc_attr( $key ) . '"><button data-vc-ui-element-target="#vc_edit-form-tab-' . ( $key++ ) . '" class="vc_ui-tabs-line-trigger" data-vc-ui-element="panel-tab-control">' . ( '_general' === $g ? esc_html__( 'General', 'js_composer' ) : $g ) . '</button></li>';
+			foreach ( $groups as $group_name ) {
+				$output .= '<li class="vc_edit-form-tab-control" data-tab-index="' . esc_attr( $key ) . '" role="presentation"><button data-vc-ui-element-target="#vc_edit-form-tab-' . ( $key++ ) . '" class="vc_ui-tabs-line-trigger" data-vc-ui-element="panel-tab-control" role="tab">' . ( '_general' === $group_name ? esc_html__( 'General', 'js_composer' ) : $group_name ) . '</button></li>';
 			}
-			$output .= '<li class="vc_ui-tabs-line-dropdown-toggle" data-vc-action="dropdown"
-							data-vc-content=".vc_ui-tabs-line-dropdown" data-vc-ui-element="panel-tabs-line-toggle">
-							<span class="vc_ui-tabs-line-trigger" data-vc-accordion
-									data-vc-container=".vc_ui-tabs-line-dropdown-toggle"
-									data-vc-target=".vc_ui-tabs-line-dropdown"> </span>
-							<ul class="vc_ui-tabs-line-dropdown" data-vc-ui-element="panel-tabs-line-dropdown">
-							</ul>
-					</ul>';
+			$output .= vc_get_template( 'editors/popups/partials/more-tabs-button.php' );
+			$output .= '</ul>';
 
 			$key = 0;
-			foreach ( $groups as $g ) {
+			foreach ( $groups as $group_name ) {
 				$output .= '<form id="vc_edit-form-tab-' . ( $key++ ) . '" class="vc_edit-form-tab vc_row vc_ui-flex-row" data-vc-ui-element="panel-edit-element-tab">';
-				$output .= $groups_content[ $g ];
+
+				$output .= $this->get_group_output( $group_list, $group_name );
 				$output .= '</form>';
 			}
 			$output .= '</div>';
-		} elseif ( ! empty( $groups_content['_general'] ) ) {
-			$output .= '<form class="vc_edit-form-tab vc_row vc_ui-flex-row vc_active" data-vc-ui-element="panel-edit-element-tab">' . $groups_content['_general'] . '</form>';
+		} elseif ( ! empty( $group_list['_general'] ) ) {
+			$output .= '<form class="vc_edit-form-tab vc_row vc_ui-flex-row vc_active" data-vc-ui-element="panel-edit-element-tab">' . $this->get_group_output( $group_list, '_general' ) . '</form>';
+		}
+
+		return $output;
+	}
+
+	/**
+	 * Get group output.
+	 *
+	 * @since 9.0
+	 * @param array $group_list
+	 * @param string $group_name
+	 * @return string
+	 */
+	public function get_group_output( $group_list, $group_name ) {
+		$output = '';
+		foreach ( $group_list[ $group_name ] as $param ) {
+			$name = isset( $param['param_name'] ) ? $param['param_name'] : null;
+			if ( is_null( $name ) ) {
+				continue;
+			}
+			$value = isset( $this->atts[ $name ] ) ? $this->atts[ $name ] : null;
+			$value = $this->parseShortcodeAttributeValue( $param, $value );
+			$output .= $this->renderField( $param, $value );
 		}
 
 		return $output;
@@ -236,10 +260,9 @@ class Vc_Edit_Form_Fields {
 	 * @since 4.4
 	 * vc_filter: vc_edit_form_class - filter to override editor_css_classes array
 	 */
-	public function render() { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
+	public function render() {
 		$this->loadDefaultParams();
 		$output = $el_position = '';
-		$groups_content = $groups = [];
 		$params = $this->setting( 'params' );
 		$editor_css_classes = apply_filters( 'vc_edit_form_class', [
 			'wpb_edit_form_elements',
@@ -263,32 +286,218 @@ class Vc_Edit_Form_Fields {
 		$output .= sprintf( '<' . $custom_tag . '>window.vc_presets_show=%s;</' . $custom_tag . '>', $show_presets ? 'true' : 'false' );
 		$output .= sprintf( '<' . $custom_tag . '>window.vc_settings_show=%s;</' . $custom_tag . '>', $show_presets || $show_settings ? 'true' : 'false' );
 
-		if ( ! empty( $deprecated ) ) {
+		if ( $deprecated ) {
 			$output .= '<div class="vc_row vc_ui-flex-row vc_shortcode-edit-form-deprecated-message"><div class="vc_col-sm-12 wpb_element_wrapper">' . vc_message_warning( sprintf( esc_html__( 'You are using outdated element, it is deprecated since version %s.', 'js_composer' ), $this->setting( 'deprecated' ) ) ) . '</div></div>';
 		}
 		$output .= '<div class="' . implode( ' ', $editor_css_classes ) . '" data-title="' . esc_attr__( 'Edit', 'js_composer' ) . ' ' . esc_attr( $this->setting( 'name' ) ) . '">';
-		if ( is_array( $params ) ) {
-			foreach ( $params as $param ) {
-				$name = isset( $param['param_name'] ) ? $param['param_name'] : null;
-				if ( ! is_null( $name ) ) {
-					$value = isset( $this->atts[ $name ] ) ? $this->atts[ $name ] : null;
-					$value = $this->parseShortcodeAttributeValue( $param, $value );
-					$group = isset( $param['group'] ) && '' !== $param['group'] ? $param['group'] : '_general';
-					if ( ! isset( $groups_content[ $group ] ) ) {
-						$groups[] = $group;
-						$groups_content[ $group ] = '';
-					}
-					$groups_content[ $group ] .= $this->renderField( $param, $value );
-				}
-			}
-		}
-		$output .= $this->renderGroupedFields( $groups, $groups_content );
+		$group_list = $this->get_group_param_list( $params );
+		$output .= $this->renderGroupedFields( array_keys( $group_list ), $group_list );
 		$output .= '</div>';
 		$output .= $this->enqueueScripts( $params );
 
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $output;
 		do_action( 'vc_edit_form_fields_after_render' );
+	}
+
+	/**
+	 * Get group param list
+	 *
+	 * @since 9.0
+	 * @param mixed $params
+	 * @return array
+	 */
+	public function get_group_param_list( $params ) {
+		$list = [];
+
+		if ( ! is_array( $params ) ) {
+			return $list;
+		}
+
+		foreach ( $params as $param ) {
+			$group = isset( $param['group'] ) && '' !== $param['group'] ? $param['group'] : '_general';
+			$list[ $group ][] = $param;
+		}
+
+		return $this->divide_grouped_params_to_sections( $list );
+	}
+
+	/**
+	 * We divide here grouped params to section according to 'section' param in each param settings.
+	 *
+	 * @since 9.0
+	 * @param array $grouped_params
+	 * @return array
+	 */
+	public function divide_grouped_params_to_sections( $grouped_params ) {
+		foreach ( $grouped_params as $group_name => $params ) {
+			$params = $this->divide_params_to_sections_in_group( $params );
+			$params  = $this->sort_sections_in_group( $params );
+			$params = $this->add_delimiter_section_params( $params );
+			$params = $this->merge_sections_back_to_params( $params );
+			$grouped_params[ $group_name ] = $params;
+		}
+
+		return $grouped_params;
+	}
+
+	/**
+	 * Divide params to sections in group.
+	 *
+	 * @since 9.0
+	 * @param array $params
+	 * @return array
+	 */
+	public function divide_params_to_sections_in_group( $params ) {
+		$grouped_sections_params = [];
+		$params_without_section = [];
+		foreach ( $params as $single_param ) {
+			if ( empty( $single_param['section'] ) || ! is_string( $single_param['section'] ) ) {
+				$params_without_section[] = $single_param;
+				continue;
+			}
+
+			$grouped_sections_params[ $single_param['section'] ][] = $single_param;
+		}
+
+		// if we gave at least one section in group all params without section should go to the general section.
+		if ( $grouped_sections_params && $params_without_section ) {
+			$general_section_params = $this->add_general_section_to_params( $params_without_section );
+			$grouped_sections_params[ vc_config()->get_general_section_slug() ] = $general_section_params;
+		} else {
+			$grouped_sections_params = array_merge( $grouped_sections_params, $params_without_section );
+		}
+
+		return $grouped_sections_params;
+	}
+
+	/**
+	 * Add params without sections to the general section.
+	 *
+	 * @since 9.0
+	 * @param array $params
+	 *
+	 * @return array
+	 */
+	public function add_general_section_to_params( $params ) {
+
+		foreach ( $params as $key => $single_param ) {
+			$params[ $key ]['section'] = vc_config()->get_general_section_slug();
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Merge sections back to params.
+	 * We divided params to section in divide_params_to_sections_in_group right now we need merge them back.
+	 *
+	 * @since 9.0
+	 * @param array $params
+	 * @return array
+	 */
+	public function merge_sections_back_to_params( $params ) {
+		$result = [];
+		foreach ( $params as $section_name => $section_data ) {
+			if ( is_string( $section_name ) ) {
+				if ( ! is_array( $section_data ) ) {
+					continue;
+				}
+
+				foreach ( $section_data as $section_param ) {
+					$result[] = $section_param;
+				}
+			} else {
+				$result[] = $section_data;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Sort sections in group according to 'sections' setting in shortcode settings.
+	 *
+	 * @since 9.0
+	 * @param array $params
+	 * @return array
+	 */
+	public function sort_sections_in_group( $params ) {
+		$how_sort_sections = $this->setting( 'sections' );
+		if ( ! is_array( $how_sort_sections ) || [] === $how_sort_sections ) {
+			return $params;
+		}
+
+		foreach ( array_reverse( $how_sort_sections ) as $section_slug ) {
+			if ( empty( $params[ $section_slug ] ) ) {
+				continue;
+			}
+
+			$section_data = $params[ $section_slug ];
+			unset( $params[ $section_slug ] );
+			$params = array_merge( [ $section_slug => $section_data ], $params );
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Add delimiter to last param in each section.
+	 *
+	 * @since 9.0
+	 * @param array $params
+	 * @return array
+	 */
+	public function add_delimiter_section_params( $params ) {
+		foreach ( $params as $section_slug => $section_data ) {
+			// if not a string than it's not a section.
+			if ( ! is_string( $section_slug ) ) {
+				continue;
+			}
+
+			$last_param_key = array_key_last( $section_data );
+			$first_param_key = array_key_first( $section_data );
+
+			if ( $this->is_exceptional_section_case( $section_data ) ) {
+				continue;
+			}
+
+			$params[ $section_slug ][ $first_param_key ]['wpb_param_section_start'] = true;
+			$params[ $section_slug ][ $last_param_key ]['wpb_param_section_end'] = true;
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Check some edge cases when we do not process the section.
+	 *
+	 * @since 9.0
+	 * @param array $section_data
+	 * @return bool
+	 */
+	public function is_exceptional_section_case( $section_data ) {
+		if ( $this->is_section_has_only_hidden_params( $section_data ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if section has only hidden param types.
+	 *
+	 * @since 9.0
+	 * @param array $section_data
+	 * @return bool
+	 */
+	public function is_section_has_only_hidden_params( $section_data ) {
+		foreach ( $section_data as $param ) {
+			if ( isset( $param['type'] ) && 'hidden' !== $param['type'] ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -300,28 +509,16 @@ class Vc_Edit_Form_Fields {
 	 *     param attributes vc_filter: vc_single_param_edit_holder_output - hook to edit output of this method
 	 *
 	 * @param array $param
-	 *
+	 * @param string $param_id since 9.0.
 	 * @return mixed
 	 * @since 4.4
 	 */
-	public function handleHeading( $param ) {
-		$heading = '';
-		if ( isset( $param['heading'] ) ) {
-			$heading .= '<div class="wpb-param-heading"><div class="wpb_element_label">' . $param['heading'] . '</div>';
-			$heading_open = true;
-		} else {
-			$heading_open = false;
-		}
+	public function handleHeading( $param, $param_id = '' ) {
 
-		if ( isset( $param['description'] ) ) {
-			$heading .= vc_get_template( 'editors/partials/param-info.tpl.php', [ 'description' => $param['description'] ] );
-		}
-
-		if ( $heading_open ) {
-			$heading .= '</div>'; // Close the heading div if it was opened.
-		}
-
-		return $heading;
+		return vc_get_template('editors/partials/param-heading.tpl.php', [
+			'param'    => $param,
+			'param_id' => $param_id,
+		] );
 	}
 
 	/**
@@ -344,17 +541,29 @@ class Vc_Edit_Form_Fields {
 			$param['vc_single_param_edit_holder_class'][] = $param['param_holder_class'];
 		}
 
+		$output = '';
+		$param_id = uniqid();
 		$param = apply_filters( 'vc_single_param_edit', $param, $value );
-		$output = '<div class="' . implode( ' ', $param['vc_single_param_edit_holder_class'] ) . '" data-vc-ui-element="panel-shortcode-param" data-vc-shortcode-param-name="' . esc_attr( $param['param_name'] ) . '" data-param_type="' . esc_attr( $param['type'] ) . '" data-param_settings="' . htmlentities( wp_json_encode( $param ) ) . '">';
-		$output .= $this->handleHeading( $param );
+		$output .= '<div class="' . implode( ' ', $param['vc_single_param_edit_holder_class'] ) . '" data-vc-ui-element="panel-shortcode-param" data-vc-shortcode-param-name="' . esc_attr( $param['param_name'] ) . '" data-param_type="' . esc_attr( $param['type'] ) . '" data-param_settings="' . htmlentities( wp_json_encode( $param ) ) . '">';
+		$output .= $this->handleHeading( $param, $param_id );
+
 		$output .= '<div class="edit_form_line">';
 		$value = apply_filters( 'vc_form_fields_render_field_' . $this->setting( 'base' ) . '_' . $param['param_name'] . '_param_value', $value, $param, $this->settings, $this->atts );
 		$param = apply_filters( 'vc_form_fields_render_field_' . $this->setting( 'base' ) . '_' . $param['param_name'] . '_param', $param, $value, $this->settings, $this->atts );
 		$output = apply_filters( 'vc_edit_form_fields_render_field_' . $param['type'] . '_before', $output );
-		$output .= vc_do_shortcode_param_settings_field( $param['type'], $param, $value, $this->setting( 'base' ) );
+
+		if ( ! empty( $param['wpb_param_section_start'] ) ) {
+			$output = '<div class="wpb-modal-section">' . $output;
+		}
+
+		$output .= vc_do_shortcode_param_settings_field( $param['type'], $param, $value, $this->setting( 'base' ), $param_id );
 		$output_after = '';
-		$output_after .= '</div></div>';
+		$output_after .= '</div>'; // .edit_form_line
+		$output_after .= '</div>'; // .vc_shortcode-param
 		$output .= apply_filters( 'vc_edit_form_fields_render_field_' . $param['type'] . '_after', $output_after );
+		if ( ! empty( $param['wpb_param_section_end'] ) ) {
+			$output .= '</div>';
+		}
 
 		return apply_filters( 'vc_single_param_edit_holder_output', $output, $param, $value, $this->settings, $this->atts );
 	}
@@ -373,9 +582,8 @@ class Vc_Edit_Form_Fields {
 		if ( empty( $vc_params_list ) ) {
 			return false;
 		}
-		$script_url = vc_asset_url( 'js/dist/edit-form.min.js' );
 		foreach ( $vc_params_list as $param ) {
-			vc_add_shortcode_param( $param, 'vc_' . $param . '_form_field', $script_url );
+			vc_add_shortcode_param( $param, 'vc_' . $param . '_form_field', null );
 		}
 		do_action( 'vc_load_default_params' );
 

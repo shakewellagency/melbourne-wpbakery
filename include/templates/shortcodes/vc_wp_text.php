@@ -14,10 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $el_class
- * @var $el_id
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Wp_Text $this
  */
@@ -29,7 +29,7 @@ extract( $atts );
 
 $el_class = $this->getExtraClass( $el_class );
 $wrapper_attributes = [];
-if ( ! empty( $el_id ) ) {
+if ( $el_id ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';
 }
 $output = '<div ' . implode( ' ', $wrapper_attributes ) . ' class="vc_wp_text wpb_content_element' . esc_attr( $el_class ) . '">';

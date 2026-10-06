@@ -17,11 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function vc_autocomplete_taxonomies_field_render( $term ) {
 	$vc_taxonomies_types = vc_taxonomies_types();
-	// phpcs:ignore
-	$terms = get_terms( array_keys( $vc_taxonomies_types ), array(
+	// phpcs:ignore WordPress.WP.DeprecatedParameters.Get_termsParam2Found
+	$terms = get_terms( array_keys( $vc_taxonomies_types ), [
 		'include' => [ $term['value'] ],
 		'hide_empty' => false,
-	) );
+	] );
 	$data = false;
 	if ( is_array( $terms ) && 1 === count( $terms ) ) {
 		$term = $terms[0];
@@ -47,16 +47,29 @@ function vc_autocomplete_taxonomies_field_search( $search_string ) {
 	if ( empty( $vc_taxonomies_types ) ) {
 		return [];
 	}
+
 	// phpcs:ignore
 	$vc_taxonomies = get_terms( $vc_taxonomies_types, array(
 		'hide_empty' => false,
 		'search' => $search_string,
 	) );
+
 	if ( is_array( $vc_taxonomies ) && ! empty( $vc_taxonomies ) ) {
+		$vc_taxonomies = wpb_sort_terms_by_relevance( $vc_taxonomies, $search_string );
+
+		$counts = [];
 		foreach ( $vc_taxonomies as $t ) {
-			if ( is_object( $t ) ) {
-				$data[] = vc_get_term_object( $t );
+			if ( ! is_object( $t ) ) {
+				continue;
 			}
+			if ( ! isset( $counts[ $t->taxonomy ] ) ) {
+				$counts[ $t->taxonomy ] = 0;
+			}
+			if ( $counts[ $t->taxonomy ] >= 50 ) {
+				continue;
+			}
+			$data[] = vc_get_term_object( $t );
+			$counts[ $t->taxonomy ]++;
 		}
 	}
 
@@ -144,7 +157,7 @@ function vc_include_field_render( $value ) {
 	$post = get_post( $value['value'] );
 
 	return is_null( $post ) ? false : [
-		'label' => $post->post_title,
+		'label' => $post->post_title ? $post->post_title : '#' . $post->ID,
 		'value' => $post->ID,
 		'group' => $post->post_type,
 	];

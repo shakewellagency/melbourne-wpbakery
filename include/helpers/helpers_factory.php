@@ -43,6 +43,17 @@ if ( ! function_exists( 'vc_mapper' ) ) :
 		return vc_manager()->mapper();
 	}
 endif;
+if ( ! function_exists( 'wpb_map_integrator' ) ) :
+	/**
+	 * Shorthand for WpbMapShortcodeIntegrator.
+	 *
+	 * @return WpbMapShortcodeIntegrator
+	 * @since 9.0
+	 */
+	function wpb_map_integrator() {
+		return vc_manager()->map_integrator();
+	}
+endif;
 if ( ! function_exists( 'vc_settings' ) ) :
 	/**
 	 * Shorthand for WPBakery settings.
@@ -203,6 +214,17 @@ if ( ! function_exists( 'vc_mode' ) ) :
 	 */
 	function vc_mode() {
 		return vc_manager()->mode();
+	}
+endif;
+if ( ! function_exists( 'vc_config' ) ) :
+	/**
+	 * Shorthand for getting to the plugin configuration library.
+	 *
+	 * @since 9.0
+	 * @return Wpb_Config_Lib
+	 */
+	function vc_config() {
+		return vc_manager()->config();
 	}
 endif;
 if ( ! function_exists( 'vc_is_frontend_editor' ) ) :

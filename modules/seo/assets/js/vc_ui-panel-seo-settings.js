@@ -25,9 +25,11 @@ if ( !window.vc ) {
 			events: {
 				'click [data-vc-ui-element="button-close"]': 'hide',
 				'touchstart [data-vc-ui-element="button-close"]': 'hide',
+				'keydown [data-vc-ui-element="button-close"]': 'keydownHide',
 				'click [data-vc-ui-element="panel-tab-control"]': 'changeTab',
 				'click [data-vc-ui-element="button-save"]': 'save',
-				'click [data-vc-ui-element="button-minimize"]': 'toggleOpacity',
+				'keydown [data-vc-ui-element="button-save"]': 'keydownSave',
+				'click [data-vc-ui-element="button-panel-minimize"]': 'toggleOpacity',
 				'change #vc_ui-seo-social .gallery_widget_attached_images_ids': 'updateImagePreview',
 				'input #social-title-x, #social-title-facebook': 'updateTitlePreview',
 				'input #social-description-x, #social-description-facebook': 'updateDescriptionPreview',
@@ -65,6 +67,7 @@ if ( !window.vc ) {
 				if ( $tabs.length ) {
 					this.$tabs = $tabs;
 				}
+				this.focusCloseButton( this.$el );
 			},
 			hide: function ( e ) {
 				if ( this.isSeoSettingsChanged() ) {
@@ -117,19 +120,31 @@ if ( !window.vc ) {
 				this.$tabs.filter( '[data-tab-index="' + activeIndex + '"]' ).addClass( 'vc_active' );
 			},
 			updateImagePreview: function ( e ) {
-				var $control = $( e.currentTarget );
-				var wrapper = $control.closest( '.edit_form_line' );
-				var src = wrapper.find( '.inner img' ).attr( 'src' );
-				var socialNetSlug = wrapper.attr( 'data-social-net-preview-slug' );
+				const $control = $( e.currentTarget );
+				const wrapper = $control.closest( '.edit_form_line' );
+				const $imagePreview = wrapper.find( '.gallery_widget_attached_image_preview' );
+				let src = $imagePreview.length ? $imagePreview.css( 'background-image' ) : '';
+				src = src ? src.replace( /^url\(['"]?/, '' ).replace( /['"]?\)$/, '' ) : '';
+				const socialNetSlug = wrapper.attr( 'data-social-net-preview-slug' );
 
 				if ( socialNetSlug && src ) {
-					src = src.replace( '-150x150', '' );
-					var preview = $( '#' + socialNetSlug );
-					var image = preview.find( 'img' );
-					image.attr( 'src', src );
-					image.show();
-					preview.find( '.wpb-social-placeholder-image' ).hide();
+					this.showSocialImagePreview( socialNetSlug, src );
+				} else if ( socialNetSlug && !src ) {
+					this.showSocialImagePlaceholder( socialNetSlug );
 				}
+			},
+			showSocialImagePreview ( socialNetSlug, src ) {
+				src = src.replace( '-150x150', '' );
+				const preview = $( `#${socialNetSlug}` );
+				const image = preview.find( 'img' );
+				image.attr( 'src', src );
+				image.show();
+				preview.find( '.wpb-social-placeholder-image' ).hide();
+			},
+			showSocialImagePlaceholder ( socialNetSlug ) {
+				const $seoPreview = $( `#${ socialNetSlug }` );
+				$seoPreview.find( '.wpb-social-placeholder-image' ).show();
+				$seoPreview.find( 'img' ).attr( 'src', '' ).hide();
 			},
 			updateTitlePreview: function ( e ) {
 				var $control = $( e.currentTarget );
@@ -141,7 +156,6 @@ if ( !window.vc ) {
 				var wrapper = $control.closest( '.vc_seo-social-block' );
 				var value = $control.val();
 				wrapper.find( '.wpb-social-net-preview .vc_social-description' ).text( value );
-				wrapper.find( '.vc_social-description-counter' ).text( value.length );
 			},
 			focusTarget: function ( e ) {
 				var target = $( e.currentTarget ).data( 'focus' );

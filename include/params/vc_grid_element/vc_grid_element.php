@@ -377,7 +377,16 @@ class Vc_Grid_Element {
 function vc_vc_grid_element_form_field( $settings, $value ) {
 	$grid_element = new Vc_Grid_Element();
 
-	return '<div data-vc-grid-element="container" data-vc-grid-tags-list="' . esc_attr( wp_json_encode( $grid_element->shortcodes() ) ) . '"><input data-vc-grid-element="value" type="hidden" name="' . $settings['param_name'] . '" class="wpb_vc_param_value wpb-textinput ' . $settings['param_name'] . ' ' . $settings['type'] . '_field" value="' . esc_attr( $value ) . '">' . $grid_element->renderParam() . '</div>';
+	$output = '<div data-vc-grid-element="container" data-vc-grid-tags-list="' . esc_attr( wp_json_encode( $grid_element->shortcodes() ) ) . '">';
+	$output .= WPB_Form_Field_Hidden::get([
+		'name' => $settings['param_name'],
+		'classes' => 'wpb_vc_param_value ' . $settings['param_name'] . ' ' . $settings['type'] . '_field',
+		'value' => $value,
+		'data_attributes' => [ 'vc-grid-element' => 'value' ],
+	]);
+	$output .= $grid_element->renderParam() . '</div>';
+
+	return $output;
 }
 
 /**

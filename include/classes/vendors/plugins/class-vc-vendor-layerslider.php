@@ -174,13 +174,10 @@ class Vc_Vendor_Layerslider {
 					'save_always' => true,
 					'description' => esc_html__( 'Select your LayerSlider.', 'js_composer' ),
 				],
-				[
-					'type' => 'textfield',
-					'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-					'param_name' => 'el_class',
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
-				],
+				vc_config()->get_element_id_params(),
+				vc_config()->get_extra_class_params(),
 			],
+			'sections' => vc_config()->get_advanced_sections(),
 		];
 	}
 }

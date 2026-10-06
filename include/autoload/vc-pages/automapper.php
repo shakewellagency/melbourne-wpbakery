@@ -3,7 +3,7 @@
  * Autoload lib related to our plugin automapper functionality.
  *
  * @note we require our autoload files everytime and everywhere after plugin load.
- * @depreacted 7.7
+ * @deprecated 7.7
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,7 +15,7 @@ if ( ! function_exists( 'vc_atm_build_categories_array' ) ) {
 	/**
 	 * Build categories array from string.
 	 *
-	 * @depreacted 7.7
+	 * @deprecated 7.7
 	 * @param string $category
 	 *
 	 * @return array
@@ -32,7 +32,7 @@ if ( ! function_exists( 'vc_atm_build_params_array' ) ) {
 	/**
 	 * Build params array from string.
 	 *
-	 * @depreacted 7.7
+	 * @deprecated 7.7
 	 * @param array $init
 	 *
 	 * @return array

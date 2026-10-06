@@ -53,6 +53,7 @@ class Vc_Post_Settings {
 	public function renderUITemplate() {
 		vc_include_template( 'editors/popups/vc_ui-panel-post-settings.tpl.php',
 		[
+			'id' => 'post-settings',
 			'controls' => $this->getControls(),
 			'box' => $this,
 			'page_settings_data' => [
@@ -193,8 +194,8 @@ class Vc_Post_Settings {
 			if ( 'draft' === $post->post_status || 'auto-draft' === $post->post_status ) {
 				$controls[] = [
 					'name'        => 'save-draft',
-					'label'       => esc_html__( 'Save Draft', 'js_composer' ),
-					'title'       => esc_html( wpb_get_title_with_shortcut( 'Save Draft' ) ),
+					'label'       => esc_html__( 'Save draft', 'js_composer' ),
+					'title'       => esc_html( wpb_get_title_with_shortcut( 'Save draft' ) ),
 					'css_classes' => 'vc_ui-button-fw',
 					'style'       => 'action',
 				];

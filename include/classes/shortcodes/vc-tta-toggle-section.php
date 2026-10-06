@@ -46,4 +46,14 @@ class WPBakeryShortCode_Vc_Tta_Toggle_Section extends WPBakeryShortCode_Vc_Tta_S
 	public function getFileName() {
 		return 'vc_tta_toggle_section';
 	}
+
+	/**
+	 * Get CSS file names for vc_tta_toggle_section shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
+	}
 }

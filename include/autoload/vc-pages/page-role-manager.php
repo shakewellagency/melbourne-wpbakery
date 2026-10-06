@@ -87,7 +87,7 @@ function wpb_unfiltered_html_state( $state, $role ) {
 			return true;
 		}
 
-		return isset( $role, $role->name ) && $role->has_cap( 'unfiltered_html' );
+		return isset( $role->name ) && $role->has_cap( 'unfiltered_html' );
 	}
 
 	return $state;
@@ -107,7 +107,7 @@ function wpb_editor_access( $state, $role ) {
 			return true;
 		}
 
-		return isset( $role, $role->name ) && in_array( $role->name, [
+		return isset( $role->name ) && in_array( $role->name, [
 			'administrator',
 			'editor',
 			'author',

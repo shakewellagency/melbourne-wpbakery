@@ -47,14 +47,14 @@ if ( ! function_exists( 'vc_auto_save_disable_render_callback' ) ) {
 	 */
 	function vc_auto_save_disable_render_callback() {
 		$checked = get_option( 'wpb_js_auto_save', false );
-		?>
-		<label>
-			<input type="checkbox"<?php echo esc_attr( $checked ) ? ' checked' : ''; ?> value="1"
-					id="<?php echo esc_attr( 'wpb_js_auto_save' ); ?>"
-					name="<?php echo esc_attr( 'wpb_js_auto_save' ); ?>">
-			<?php esc_html_e( 'Enable', 'js_composer' ); ?>
-		</label>
-		<?php
+
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => 'wpb_js_auto_save',
+			'name'    => 'wpb_js_auto_save',
+			'value'   => '1',
+			'checked' => $checked,
+			'label'   => esc_html__( 'Enable', 'js_composer' ),
+		] );
 	}
 }
 

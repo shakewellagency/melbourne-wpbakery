@@ -5,7 +5,7 @@ jQuery( document ).ready( function ( $ ) {
 	var pickrOptions = {
 		disabled: !isOptionsEnabled
 	};
-	vc.initColorPicker( null, pickrOptions, null, pickers );
+	vc.formComponents.colorPicker.init( null, pickrOptions, null, pickers );
 
 	$( '#vc_settings-color-restore-default' ).on( 'click', function ( e ) {
 		e.preventDefault();
@@ -28,22 +28,6 @@ jQuery( document ).ready( function ( $ ) {
 		}
 	});
 
-	function showMessageMore ( text, typeClass, timeout, remove ) {
-		if ( remove ) {
-			$( '.vc_atm-message' ).remove();
-		}
-		var $message = $( '<div class="vc_atm-message ' + ( typeClass ? typeClass : '' ) + '" style="display: none;"><p></p></div>' );
-		$message.find( 'p' ).text( text );
-		if ( !_.isUndefined( timeout ) ) {
-			window.setTimeout( function () {
-				$message.fadeOut( 500, function () {
-					$( this ).remove();
-				});
-			}, timeout );
-		}
-		return $message;
-	}
-
 	var lessBuilding = false;
 	$( '#vc_settings-color' ).on( 'submit', function ( e ) {
 		e.preventDefault();
@@ -56,14 +40,13 @@ jQuery( document ).ready( function ( $ ) {
 		$submitButton = $( '#submit_btn' );
 		$designCheckBox = $( '#wpb_js_use_custom' );
 		if ( $designCheckBox.prop( 'checked' ) && 'restore_color' !== $( '#vc_settings-color-action' ).val() ) {
-			var modifyVars, variablesDataLinker, $spinner;
-
 			lessBuilding = true;
-			modifyVars = $( form ).serializeArray();
-			variablesDataLinker = $submitButton.data( 'vc-less-variables' );
-			$spinner = $( '<span class="vc_settings-spinner vc_ui-wp-spinner"></span>' );
-			$submitButton.val( window.i18nLocaleSettings.saving );
-			$spinner.insertBefore( $submitButton ).show();
+			const modifyVars = $( form ).serializeArray();
+			const variablesDataLinker = $submitButton.data( 'vc-less-variables' );
+			const $spinner = $submitButton.find( '.vc_settings-save-spinner' );
+			const $label = $submitButton.find( '.vc_settings-save-label' );
+			$label.text( window.i18nLocaleSettings.loading );
+			$spinner.show();
 
 			_.delay( function () {
 				vc.less.build({
@@ -80,22 +63,16 @@ jQuery( document ).ready( function ( $ ) {
 							url: $form.attr( 'action' ),
 							data: $form.eq( 0 ).serializeArray(),
 							success: function () {
-								showMessageMore( window.i18nLocaleSettings.saved,
-									'updated',
-									5000,
-									true ).insertBefore( $submitButton.parent() ).fadeIn( 500 );
-								$submitButton.val( window.i18nLocaleSettings.save );
+								window.wpbNotifications.show( window.i18nLocaleSettings.saved, { timeout: 5000 });
+								$label.text( window.i18nLocaleSettings.save );
 								lessBuilding = false;
-								$spinner.remove();
+								$spinner.hide();
 							},
 							error: function () {
-								showMessageMore( window.i18nLocaleSettings.form_save_error,
-									'error',
-									undefined,
-									true ).insertBefore( $submitButton.parent() ).fadeIn( 500 );
-								$submitButton.val( window.i18nLocaleSettings.save );
+								window.wpbNotifications.show( window.i18nLocaleSettings.form_save_error, { type: 'error' });
+								$label.text( window.i18nLocaleSettings.save );
 								lessBuilding = false;
-								$spinner.remove();
+								$spinner.hide();
 							}
 						});
 
@@ -103,13 +80,10 @@ jQuery( document ).ready( function ( $ ) {
 						if ( window.console && window.console.warn ) {
 							window.console.warn( 'build error', error );
 						}
-						showMessageMore( window.i18nLocaleSettings.save_error + '. ' + error,
-							'error',
-							undefined,
-							true ).insertBefore( $submitButton.parent() ).fadeIn( 500 );
-						$submitButton.val( window.i18nLocaleSettings.save );
+						window.wpbNotifications.show( `${ window.i18nLocaleSettings.save_error }. ${ error }`, { type: 'error' });
+						$label.text( window.i18nLocaleSettings.save );
 						lessBuilding = false;
-						$spinner.remove();
+						$spinner.hide();
 					}
 				});
 			}, 100 );

@@ -2,7 +2,7 @@
 /**
  * Get navbar template button.
  *
- * @var $_this Vc_Navbar
+ * @var string $title
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <li>
-	<a href="javascript:;" class="vc_icon-btn vc_templates-button"  id="vc_templates-editor-button" title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Templates' ) ); ?>">
-		<i class="vc-composer-icon vc-c-icon-add_template"></i>
+	<a href="javascript:;" class="vc_icon-btn vc_templates-button" id="vc_templates-editor-button" tabindex="3" role="button" aria-haspopup="dialog" aria-label="<?php echo esc_attr( $title ); ?>" title="<?php echo esc_attr( $title ); ?>">
+		<?php vc_include_template( 'icons/layers-ico.tpl.php' ); ?>
 	</a>
 </li>

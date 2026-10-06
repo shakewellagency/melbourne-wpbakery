@@ -39,6 +39,191 @@ class VcSharedLibrary {
 	];
 
 	/**
+	 * Button modern/classic/flat style color map: slug => [ background, text, hover-background, hover-text ].
+	 *
+	 * @var array
+	 */
+	private static $btn_solid_colors = [
+		'blue'        => [ '#5472D2', '#fff', '#3c5ecc', '#f7f7f7' ],
+		'turquoise'   => [ '#00C1CF', '#fff', '#00a4b0', '#f7f7f7' ],
+		'pink'        => [ '#FE6C61', '#fff', '#fe5043', '#f7f7f7' ],
+		'violet'      => [ '#8D6DC4', '#fff', '#7c57bb', '#f7f7f7' ],
+		'peacoc'      => [ '#4CADC9', '#fff', '#39a0bd', '#f7f7f7' ],
+		'chino'       => [ '#CEC2AB', '#fff', '#c3b498', '#f7f7f7' ],
+		'mulled-wine' => [ '#50485B', '#fff', '#413a4a', '#f7f7f7' ],
+		'vista-blue'  => [ '#75D69C', '#fff', '#5dcf8b', '#f7f7f7' ],
+		'black'       => [ '#2A2A2A', '#fff', '#1b1b1b', '#f7f7f7' ],
+		'grey'        => [ '#EBEBEB', '#666', '#dcdcdc', '#5e5e5e' ],
+		'orange'      => [ '#F7BE68', '#fff', '#f5b14b', '#f7f7f7' ],
+		'sky'         => [ '#5AA1E3', '#fff', '#4092df', '#f7f7f7' ],
+		'green'       => [ '#6DAB3C', '#fff', '#5f9434', '#f7f7f7' ],
+		'juicy-pink'  => [ '#F4524D', '#fff', '#f23630', '#f7f7f7' ],
+		'sandy-brown' => [ '#F79468', '#fff', '#f57f4b', '#f7f7f7' ],
+		'purple'      => [ '#B97EBB', '#fff', '#ae6ab0', '#f7f7f7' ],
+		'white'       => [ '#FFFFFF', '#666', '#f0f0f0', '#5e5e5e' ],
+		// Classic colors (Bootstrap-2 derived WPBakery defaults from variables_common.less).
+		'default'     => [ '#f7f7f7', '#333', '#e8e8e8', '#2b2b2b' ],
+		'primary'     => [ '#0088cc', '#fff', '#0074ad', '#f7f7f7' ],
+		'info'        => [ '#58B9DA', '#fff', '#3fafd4', '#f7f7f7' ],
+		'success'     => [ '#6AB165', '#fff', '#59a453', '#f7f7f7' ],
+		'warning'     => [ '#FF9900', '#fff', '#e08700', '#f7f7f7' ],
+		'danger'      => [ '#FF675B', '#fff', '#ff4b3c', '#f7f7f7' ],
+		'inverse'     => [ '#555555', '#fff', '#464646', '#f7f7f7' ],
+	];
+
+	/**
+	 * Button outline style color map: slug => [ text, border, hover-text ].
+	 *
+	 * @var array
+	 */
+	private static $btn_outline_colors = [
+		'blue'        => [ '#5472D2', '#5472D2', '#fff' ],
+		'turquoise'   => [ '#00C1CF', '#00C1CF', '#fff' ],
+		'pink'        => [ '#FE6C61', '#FE6C61', '#fff' ],
+		'violet'      => [ '#8D6DC4', '#8D6DC4', '#fff' ],
+		'peacoc'      => [ '#4CADC9', '#4CADC9', '#fff' ],
+		'chino'       => [ '#CEC2AB', '#CEC2AB', '#fff' ],
+		'mulled-wine' => [ '#50485B', '#50485B', '#fff' ],
+		'vista-blue'  => [ '#75D69C', '#75D69C', '#fff' ],
+		'black'       => [ '#2A2A2A', '#2A2A2A', '#fff' ],
+		'grey'        => [ '#EBEBEB', '#EBEBEB', '#666' ],
+		'orange'      => [ '#F7BE68', '#F7BE68', '#fff' ],
+		'sky'         => [ '#5AA1E3', '#5AA1E3', '#fff' ],
+		'green'       => [ '#6DAB3C', '#6DAB3C', '#fff' ],
+		'juicy-pink'  => [ '#F4524D', '#F4524D', '#fff' ],
+		'sandy-brown' => [ '#F79468', '#F79468', '#fff' ],
+		'purple'      => [ '#B97EBB', '#B97EBB', '#fff' ],
+		'white'       => [ '#FFFFFF', '#FFFFFF', '#666' ],
+		'default'     => [ '#f7f7f7', '#f7f7f7', '#333' ],
+		'primary'     => [ '#0088cc', '#0088cc', '#fff' ],
+		'info'        => [ '#58B9DA', '#58B9DA', '#fff' ],
+		'success'     => [ '#6AB165', '#6AB165', '#fff' ],
+		'warning'     => [ '#FF9900', '#FF9900', '#fff' ],
+		'danger'      => [ '#FF675B', '#FF675B', '#fff' ],
+		'inverse'     => [ '#555555', '#555555', '#fff' ],
+	];
+
+	/**
+	 * Button 3d style color map: slug => [ background, text, shadow ].
+	 *
+	 * Shadow colors are darken(@background, 11%) values taken from the compiled CSS.
+	 *
+	 * @var array
+	 */
+	private static $btn_3d_colors = [
+		'blue'        => [ '#5472D2', '#fff', '#3253bc' ],
+		'turquoise'   => [ '#00C1CF', '#fff', '#008d97' ],
+		'pink'        => [ '#FE6C61', '#fff', '#fe3829' ],
+		'violet'      => [ '#8D6DC4', '#fff', '#6e48b1' ],
+		'peacoc'      => [ '#4CADC9', '#fff', '#338faa' ],
+		'chino'       => [ '#CEC2AB', '#fff', '#b9a888' ],
+		'mulled-wine' => [ '#50485B', '#fff', '#342f3c' ],
+		'vista-blue'  => [ '#75D69C', '#fff', '#4ac97d' ],
+		'black'       => [ '#2A2A2A', '#fff', '#0e0e0e' ],
+		'grey'        => [ '#EBEBEB', '#666', '#cfcfcf' ],
+		'orange'      => [ '#F7BE68', '#fff', '#f4a733' ],
+		'sky'         => [ '#5AA1E3', '#fff', '#2a86db' ],
+		'green'       => [ '#6DAB3C', '#fff', '#53812d' ],
+		'juicy-pink'  => [ '#F4524D', '#fff', '#f11f18' ],
+		'sandy-brown' => [ '#F79468', '#fff', '#f46e33' ],
+		'purple'      => [ '#B97EBB', '#fff', '#a559a8' ],
+		'white'       => [ '#FFFFFF', '#666', '#e3e3e3' ],
+		'default'     => [ '#f7f7f7', '#333', '#dbdbdb' ],
+		'primary'     => [ '#0088cc', '#fff', '#006394' ],
+		'info'        => [ '#58B9DA', '#fff', '#2da4cd' ],
+		'success'     => [ '#6AB165', '#fff', '#4f934b' ],
+		'warning'     => [ '#FF9900', '#fff', '#c77700' ],
+		'danger'      => [ '#FF675B', '#fff', '#ff3323' ],
+		'inverse'     => [ '#555555', '#fff', '#393939' ],
+	];
+
+	/**
+	 * CTA style color map: dashed-slug => [ text, background, heading, shadow ].
+	 *
+	 * Text/background/heading: @vc_cta3-color-{slug}-text, @vc_cta3-color-{slug}, @vc_cta3-color-{slug}-headings.
+	 * Shadow: darken(@vc_cta3-color-{slug}, 11%) — used for 3d box-shadow.
+	 *
+	 * @var array
+	 */
+	private static $cta_colors = [
+		'classic'     => [ '#9d9d9e', '#f0f0f0', '#666', '#d4d4d4' ],
+		'blue'        => [ '#c9d2f0', '#5472d2', '#fff', '#3253bc' ],
+		'turquoise'   => [ '#d3f5f1', '#00c1cf', '#fff', '#008d97' ],
+		'pink'        => [ '#fcdbd7', '#fe6c61', '#fff', '#fe3829' ],
+		'violet'      => [ '#e1d5f5', '#8d6dc4', '#fff', '#6e48b1' ],
+		'peacoc'      => [ '#d0edf5', '#4cadc9', '#fff', '#338faa' ],
+		'chino'       => [ '#f7f3eb', '#cec2ab', '#fff', '#b9a888' ],
+		'mulled-wine' => [ '#e2ddeb', '#50485b', '#fff', '#342f3c' ],
+		'vista-blue'  => [ '#e1f5e9', '#75d69c', '#fff', '#4ac97d' ],
+		'black'       => [ '#d9d9d9', '#2a2a2a', '#fff', '#0e0e0e' ],
+		'grey'        => [ '#9d9d9e', '#ebebeb', '#666', '#cfcfcf' ],
+		'orange'      => [ '#faf0e1', '#f7be68', '#fff', '#f4a733' ],
+		'sky'         => [ '#dce9f5', '#5aa1e3', '#fff', '#2a86db' ],
+		'green'       => [ '#e5f2da', '#6dab3c', '#fff', '#53812d' ],
+		'juicy-pink'  => [ '#fce2e1', '#f4524d', '#fff', '#f11f18' ],
+		'sandy-brown' => [ '#f7e1d7', '#f79468', '#fff', '#f46e33' ],
+		'purple'      => [ '#f4dff5', '#b97ebb', '#fff', '#a559a8' ],
+		'white'       => [ '#9d9d9e', '#ffffff', '#666', '#e3e3e3' ],
+	];
+
+	/**
+	 * Hex color values keyed by dashed color slugs.
+	 *
+	 * @var array
+	 */
+	private static $dashed_color_hash = [
+		'blue'        => '#5472d2',
+		'turquoise'   => '#00c1cf',
+		'pink'        => '#fe6c61',
+		'violet'      => '#8d6dc4',
+		'peacoc'      => '#4cadc9',
+		'chino'       => '#cec2ab',
+		'mulled-wine' => '#50485b',
+		'vista-blue'  => '#75d69c',
+		'orange'      => '#f7be68',
+		'sky'         => '#5aa1e3',
+		'green'       => '#6dab3c',
+		'juicy-pink'  => '#f4524d',
+		'sandy-brown' => '#f79468',
+		'purple'      => '#b97ebb',
+		'black'       => '#2a2a2a',
+		'grey'        => '#ebebeb',
+		'white'       => '#ffffff',
+		'default'     => '#f7f7f7',
+		'primary'     => '#0088cc',
+		'info'        => '#58b9da',
+		'success'     => '#6ab165',
+		'warning'     => '#ff9900',
+		'danger'      => '#ff675b',
+		'inverse'     => '#555555',
+	];
+
+	/**
+	 * Hex color values keyed by shared color slugs (underscore variants).
+	 *
+	 * @var array
+	 */
+	private static $colors_hash = [
+		'blue' => '#5472D2',
+		'turquoise' => '#00C1CF',
+		'pink' => '#FE6C61',
+		'violet' => '#8D6DC4',
+		'peacoc' => '#4CADC9',
+		'chino' => '#CEC2AB',
+		'mulled_wine' => '#50485B',
+		'vista_blue' => '#75D69C',
+		'black' => '#2A2A2A',
+		'grey' => '#EBEBEB',
+		'orange' => '#F7BE68',
+		'sky' => '#5AA1E3',
+		'green' => '#6DAB3C',
+		'juicy_pink' => '#F4524D',
+		'sandy_brown' => '#F79468',
+		'purple' => '#B97EBB',
+		'white' => '#FFFFFF',
+	];
+
+	/**
 	 * Available icon options.
 	 *
 	 * @var array
@@ -73,6 +258,28 @@ class VcSharedLibrary {
 		'Outlined' => 'outlined',
 		'3D' => '3d',
 		'Square Outlined' => 'square_outlined',
+	];
+
+	/**
+	 * Settings navigation icons.
+	 * Maps page slugs to their icon template paths.
+	 *
+	 * @var array
+	 */
+	public static $settings_nav_icons = [
+		'vc-general' => '/icons/settings-ico.tpl.php',
+		'vc-modules' => '/icons/settings-ico.tpl.php',
+		'vc-updater' => '/icons/license-ico.tpl.php',
+		'vc-color' => '/icons/design-settings-ico.tpl.php',
+		'vc-color-picker' => '/icons/design-settings-ico.tpl.php',
+		'vc-roles' => '/icons/role-manager-ico.tpl.php',
+		'vc-custom_css' => '/icons/custom-code-ico.tpl.php',
+		'vc-custom_js' => '/icons/custom-code-ico.tpl.php',
+		'vc-ai' => '/icons/wpb-ai-ico.tpl.php',
+		'vc-automapper' => '/icons/shortcode-mapper-ico.tpl.php',
+		'vc-typography' => '/icons/typography-ico.tpl.php',
+		'templatera' => '/icons/global-templates-ico.tpl.php',
+		'vc-welcome' => '/icons/wpbakery-ico.tpl.php',
 	];
 
 	/**
@@ -225,6 +432,13 @@ class VcSharedLibrary {
 	];
 
 	/**
+	 * Default CSS units for UI pickers (number/linked_fields params).
+	 *
+	 * @var array
+	 */
+	private static $default_units = [ 'px', 'em', 'rem', 'vw', 'vh', '%' ];
+
+	/**
 	 * Available circle box styles.
 	 *
 	 * @var array
@@ -247,6 +461,61 @@ class VcSharedLibrary {
 	}
 
 	/**
+	 * Get available colors hash.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public static function getColorsHash() {
+		return self::$colors_hash;
+	}
+
+	/**
+	 * Get hex color values keyed by dashed slugs.
+	 *
+	 * @return array
+	 */
+	public static function getDashedColorHash() {
+		return self::$dashed_color_hash;
+	}
+
+	/**
+	 * Get CTA flat style color map.
+	 *
+	 * @return array
+	 */
+	public static function getCTAColors() {
+		return self::$cta_colors;
+	}
+
+	/**
+	 * Get button solid style color map (modern, classic, flat).
+	 *
+	 * @return array
+	 */
+	public static function getBtnSolidColors() {
+		return self::$btn_solid_colors;
+	}
+
+	/**
+	 * Get button outline style color map.
+	 *
+	 * @return array
+	 */
+	public static function getBtnOutlineColors() {
+		return self::$btn_outline_colors;
+	}
+
+	/**
+	 * Get button 3d style color map.
+	 *
+	 * @return array
+	 */
+	public static function getBtn3dColors() {
+		return self::$btn_3d_colors;
+	}
+
+	/**
 	 * Get available icons.
 	 *
 	 * @return array
@@ -262,6 +531,26 @@ class VcSharedLibrary {
 	 */
 	public static function getSizes() {
 		return self::$sizes;
+	}
+
+	/**
+	 * Get settings navigation icons.
+	 *
+	 * @return array
+	 */
+	public static function getSettingsNavIcons() {
+		return self::$settings_nav_icons;
+	}
+
+	/**
+	 * Get icon template path for a specific settings page.
+	 *
+	 * @param string $page_slug Page slug (e.g., 'vc-general', 'vc-design', etc.).
+	 *
+	 * @return string|null Icon template path or null if not found.
+	 */
+	public static function getSettingsNavIcon( $page_slug ) {
+		return self::$settings_nav_icons[ $page_slug ] ?? null;
 	}
 
 	/**
@@ -575,7 +864,7 @@ class VcSharedLibrary {
 			__( 'Add new element', 'js_composer' ) => 'Shift+A',
 			__( 'Close', 'js_composer' ) => 'ESC',
 			__( 'Preview', 'js_composer' ) => '%s+Shift+P',
-			__( 'Save Draft', 'js_composer' ) => '%s+Shift+S',
+			__( 'Save draft', 'js_composer' ) => '%s+Shift+S',
 			__( 'Save changes', 'js_composer' ) => '%s+Shift+S',
 			__( 'Save as Pending', 'js_composer' ) => '%s+Shift+S',
 			__( 'Submit for Review', 'js_composer' ) => '%s+Shift+S',
@@ -584,7 +873,80 @@ class VcSharedLibrary {
 			__( 'WPBakery SEO', 'js_composer' ) => 'Shift+I',
 			__( 'Exit WPBakery Page Builder edit mode', 'js_composer' ) => '%s+Shift+V',
 			__( 'Custom CSS/JS', 'js_composer' ) => 'Shift+C',
-			__( 'Page settings', 'js_composer' ) => 'Shift+S',
+			/* translators: %s: post type noun, e.g. "Post" or "Page". */
+			sprintf( __( '%s settings', 'js_composer' ), wpb_get_post_type_noun() ) => 'Shift+S',
+		];
+	}
+
+	/**
+	 * Get configuration for responsive controls.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public static function get_screen_sizes() {
+		return [
+			[
+				'title' => esc_html__( 'Desktop', 'js_composer' ),
+				'size' => '100%',
+				'key' => 'default',
+				'active' => true,
+			],
+			[
+				'title' => esc_html__( 'Tablet landscape mode', 'js_composer' ),
+				'size' => '1024px',
+				'key' => 'landscape-tablets',
+			],
+			[
+				'title' => esc_html__( 'Tablet portrait mode', 'js_composer' ),
+				'size' => '768px',
+				'key' => 'portrait-tablets',
+			],
+			[
+				'title' => esc_html__( 'Smartphone landscape mode', 'js_composer' ),
+				'size' => '640px',
+				'key' => 'landscape-smartphones',
+			],
+			[
+				'title' => esc_html__( 'Smartphone portrait mode', 'js_composer' ),
+				'size' => '480px',
+				'key' => 'portrait-smartphones',
+			],
+		];
+	}
+
+	/**
+	 * Get default CSS units for UI pickers.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public static function getDefaultUnits() {
+		return self::$default_units;
+	}
+
+	/**
+	 * Get CSS supported units.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public static function get_css_units() {
+		return [
+			'px',
+			'%',
+			'in',
+			'cm',
+			'mm',
+			'em',
+			'rem',
+			'ex',
+			'pt',
+			'pc',
+			'vw',
+			'vh',
+			'vmin',
+			'vmax',
 		];
 	}
 }

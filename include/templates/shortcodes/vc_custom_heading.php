@@ -7,20 +7,7 @@
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  *
  * Shortcode attributes
- * @var $atts
- * @var $source
- * @var $text
- * @var $link
- * @var $google_fonts
- * @var $font_container
- * @var $el_class
- * @var $el_id
- * @var $css
- * @var $css_animation
- * @var $font_container_data - returned from $this->getAttributes
- * @var $google_fonts_data - returned from $this->getAttributes
- * @var $css_class
- * Shortcode class
+ * @var array $atts
  * @var WPBakeryShortCode_Vc_Custom_heading $this
  */
 
@@ -35,8 +22,26 @@ extract( $this->getAttributes( $atts ) );
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 extract( $this->getStyles( $element_class . ' ' . $el_class . $this->getCSSAnimation( $css_animation ), $css, $google_fonts_data, $font_container_data, $atts ) );
+
+/**
+ * Extracted variables.
+ *
+ * @var string $css_class
+ * @var string $source
+ * @var string $text
+ * @var string $link
+ * @var string $google_fonts
+ * @var string $font_container
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $css
+ * @var string $css_animation
+ * @var array $font_container_data - returned from $this->getAttributes
+ * @var array $google_fonts_data - returned from $this->getAttributes
+ */
 
 $this->enqueue_element_font_styles( $google_fonts_data, $atts );
 

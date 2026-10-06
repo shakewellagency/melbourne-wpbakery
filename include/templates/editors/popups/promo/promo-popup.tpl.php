@@ -8,13 +8,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 
-<div class="vc_modal modal-backdrop vc_modal-popup-container vc_active" id="vc_ui-helper-promo-popup">
+<div class="vc_modal modal-backdrop vc_modal-popup-container vc_active" id="vc_ui-helper-promo-popup" role="dialog" aria-modal="true" aria-labelledby="promo-popup-title">
 	<div class="vc_ui-font-open-sans vc_media-xs vc_modal-popup-content" >
 		<div class="vc_ui-panel-window-inner">
 			<?php
 			vc_include_template('editors/popups/vc_ui-header.tpl.php', [
+				'id' => 'promo-popup',
 				'title' => esc_html__( 'What\'s new in WPBakery', 'js_composer' ),
-				'controls' => [ 'close' ],
+				'controls' => [
+					'close' => [
+						'title' => esc_html__( 'Close', 'js_composer' ),
+					],
+				],
 				'header_css_class' => 'vc_ui-post-settings-header-container',
 				'header_tabs_template' => '',
 			]);

@@ -189,14 +189,151 @@ class WPBMap {
 			}
 		}
 
-		return (bool) isset( self::$sc[ $tag ] );
+		return isset( self::$sc[ $tag ] );
+	}
+
+	/**
+	 * Get deprecated parameters and their removal versions.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	public static function get_deprecated_param_types() {
+		return [
+			'loop' => '9.2',
+			'params_preset' => '9.2',
+		];
+	}
+
+	/**
+	 * Get list deprecated params for specific param types.
+	 *
+	 * @return array
+	 * @since 9.0
+	 */
+	public static function get_deprecated_params_keys() {
+		return [
+			'default_colorpicker_color' => [
+				'param_type' => 'colorpicker',
+				'alternative' => 'settings["default_colorpicker_color"]',
+			],
+			'placeholder' => [
+				'param_type' => 'textfield',
+				'alternative' => 'settings["placeholder"]',
+			],
+			'mode' => [
+				'param_type' => 'textarea_ace',
+				'alternative' => 'settings["mode"]',
+			],
+		];
+	}
+
+	/**
+	 * Check for deprecated parameters and trigger warnings.
+	 *
+	 * @param string $tag Shortcode tag.
+	 * @param array $attributes Shortcode attributes.
+	 *
+	 * @return void
+	 */
+	protected static function checkDeprecatedParams( $tag, $attributes ) {
+		if ( ! isset( $attributes['params'] ) || ! is_array( $attributes['params'] ) ) {
+			return;
+		}
+
+		$deprecated_param_types = self::get_deprecated_param_types();
+		$deprecated_params_keys = self::get_deprecated_params_keys();
+
+		$deprecated_warnings = [];
+
+		foreach ( $attributes['params'] as $param ) {
+			$deprecated_warnings = self::get_param_type_deprecated_warning( $param['type'], $tag, $deprecated_param_types, $deprecated_warnings );
+			$deprecated_warnings = self::get_param_key_deprecated_warning( $param, $tag, $deprecated_params_keys, $deprecated_warnings );
+		}
+
+		foreach ( $deprecated_warnings as $message ) {
+			if ( function_exists( 'wp_trigger_error' ) ) {
+				wp_trigger_error( '', $message, E_USER_DEPRECATED );
+			}
+		}
+	}
+
+	/**
+	 * Get warning for a specific param type deprecation in specific element.
+	 *
+	 * @param string $param_type
+	 * @param string $tag
+	 * @param array $deprecated_param_types
+	 * @param array $deprecated_warnings
+	 * @return array
+	 * @since 9.0
+	 */
+	public static function get_param_type_deprecated_warning( $param_type, $tag, $deprecated_param_types, $deprecated_warnings ) {
+		if ( ! isset( $deprecated_param_types[ $param_type ] ) ) {
+			return $deprecated_warnings;
+		}
+
+		$version = $deprecated_param_types[ $param_type ];
+
+		$message = sprintf(
+			/* translators: 1: parameter name, 2: shortcode name, 3: version number */
+			esc_html__( 'The "%1$s" parameter type for %2$s shortcode is deprecated and will be removed in version %3$s.', 'js_composer' ),
+			$param_type,
+			$tag,
+			$version
+		);
+
+		if ( ! in_array( $message, $deprecated_warnings ) ) {
+			$deprecated_warnings[] = $message;
+		}
+
+		return $deprecated_warnings;
+	}
+
+	/**
+	 * Get warning for a specific param key deprecation in specific param type for a specific element.
+	 *
+	 * @param array $param
+	 * @param string $tag
+	 * @param array $deprecated_params_keys
+	 * @param array $deprecated_warnings
+	 * @return array
+	 * @since 9.0
+	 */
+	public static function get_param_key_deprecated_warning( $param, $tag, $deprecated_params_keys, $deprecated_warnings ) {
+		foreach ( $param as $attr_key => $attr_value ) {
+			if ( ! isset( $param['type'] ) ) {
+				continue;
+			}
+
+			if ( ! array_key_exists( $attr_key, $deprecated_params_keys ) ) {
+				continue;
+			}
+
+			if ( $param['type'] !== $deprecated_params_keys[ $attr_key ]['param_type'] ) {
+				continue;
+			}
+
+			$message = sprintf(
+				/* translators: 1: attribute name, 2: parameter type, 3: element tag, 4: alternative */
+				esc_html__( 'The attribute "%1$s" for "%2$s" of %3$s shortcode is deprecated, use %4$s instead.', 'js_composer' ),
+				$attr_key,
+				$param['type'],
+				$tag,
+				$deprecated_params_keys[ $attr_key ]['alternative']
+			);
+
+			if ( ! in_array( $message, $deprecated_warnings ) ) {
+				$deprecated_warnings[] = $message;
+			}
+		}
+
+		return $deprecated_warnings;
 	}
 
 	/**
 	 * Map shortcode to VC.
 	 *
-	 * This method maps shortcode to VC.
-	 * You need to shortcode's tag and settings to map correctly.
 	 * Default shortcodes are mapped in config/map.php file.
 	 * The best way is to call this method with "init" action callback function of WP.
 	 *
@@ -239,6 +376,8 @@ class WPBMap {
 		} elseif ( empty( $attributes['base'] ) ) {
 			throw new Exception( sprintf( esc_html__( 'Wrong base for shortcode:%s. Base required', 'js_composer' ), esc_html( $tag ) ) );
 		} else {
+			self::checkDeprecatedParams( $tag, $attributes );
+
 			if ( self::getScope() !== 'default' ) {
 				if ( ! isset( self::$scopes[ self::getScope() ] ) ) {
 					self::$scopes[ self::getScope() ] = [];
@@ -594,7 +733,7 @@ class WPBMap {
 	 * @return bool| array
 	 * @throws \Exception
 	 */
-	public static function getParam( $tag, $param_name ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh
+	public static function getParam( $tag, $param_name ) {
 		$currentScope = self::getScope();
 		$element = false;
 		if ( 'default' !== $currentScope ) {
@@ -618,13 +757,53 @@ class WPBMap {
 			return false;
 		}
 
-		foreach ( $element['params'] as $index => $param ) {
-			if ( $param['param_name'] === $param_name ) {
-				return $element['params'][ $index ];
+		return self::find_param_in_element_params( $element['params'], $param_name, $tag );
+	}
+
+	/**
+	 * Find particular param in element params.
+	 *
+	 * @param array $params
+	 * @param string $param_name
+	 * @param string $tag
+	 * @return false|array
+	 * @since 9.0
+	 */
+	public static function find_param_in_element_params( $params, $param_name, $tag ) {
+		foreach ( $params as $index => $param ) {
+			if ( $param['param_name'] !== $param_name ) {
+				continue;
 			}
+
+			self::check_deprecated_param( $params[ $index ], $tag );
+
+			return $params[ $index ];
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check if params is deprecated and output notice in true case.
+	 *
+	 * @param array $param
+	 * @param string $tag
+	 * @since 9.0
+	 */
+	public static function check_deprecated_param( $param, $tag ) {
+		if ( ! isset( $param['deprecated'] ) ) {
+			return;
+		}
+
+		_doing_it_wrong(
+			'getParam',
+			sprintf(
+				'The wpbakery element "%s" param "%s" is deprecated, return only empty value and will be removed later.',
+				esc_html( $tag ),
+				esc_html( $param['param_name'] )
+			),
+			esc_html( $param['deprecated'] )
+		);
 	}
 
 	/**
@@ -962,6 +1141,8 @@ class WPBMap {
 				}
 				self::$scopes[ $currentScope ][ $tag ]['base'] = $tag;
 				self::$init_elements_scoped[ $currentScope ][ $tag ] = true;
+				self::checkDeprecatedParams( $tag, self::$scopes[ $currentScope ][ $tag ] );
+
 				vc_mapper()->callElementActivities( $tag );
 
 				return self::$scopes[ $currentScope ][ $tag ];
@@ -982,6 +1163,8 @@ class WPBMap {
 		self::$sc[ $tag ] = apply_filters( 'vc_element_settings_filter', self::$sc[ $tag ], $tag );
 		self::$sc[ $tag ]['base'] = $tag;
 		self::$init_elements[ $tag ] = true;
+		self::checkDeprecatedParams( $tag, self::$sc[ $tag ] );
+
 		vc_mapper()->callElementActivities( $tag );
 
 		return self::$sc[ $tag ];

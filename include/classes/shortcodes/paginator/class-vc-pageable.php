@@ -56,29 +56,30 @@ class WPBakeryShortCode_Vc_Pageable extends WPBakeryShortCode {
 	 * @return string
 	 */
 	protected function contentLoadMore( $grid_style, $settings, $content ) {
-		if ( ! isset( $settings['btn_data'] ) && isset( $settings['button_style'] ) && isset( $settings['button_size'] ) && isset( $settings['button_color'] ) ) {
-			// BC: for those who override.
-			$output = sprintf( '<div class="vc_pageable-slide-wrapper vc_clearfix" data-vc-grid-content="true">%s</div><div class="vc_pageable-load-more-btn" data-vc-grid-load-more-btn="true">%s</div>', $content, do_shortcode( '[vc_button2 size="' . $settings['button_size'] . '" title="' . esc_attr__( 'Load more', 'js_composer' ) . '" style="' . $settings['button_style'] . '" color="' . $settings['button_color'] . '" el_class="vc_grid-btn-load_more"]' ) );
-
-			return $output;
-		} elseif ( isset( $settings['btn_data'] ) ) {
+		$output = '';
+		if ( isset( $settings['btn_data'] ) ) {
 			$data = $settings['btn_data'];
 			$data['el_class'] = 'vc_grid-btn-load_more';
-			$data['link'] = 'load-more-grid';
+			$data['link'] = '';
 			$button3 = new WPBakeryShortCode_Vc_Btn( [ 'base' => 'vc_btn' ] );
 
-			$output = sprintf( '<div class="vc_pageable-slide-wrapper vc_clearfix" data-vc-grid-content="true">%s</div><div class="vc_pageable-load-more-btn" data-vc-grid-load-more-btn="true">%s</div>', $content, apply_filters( 'vc_gitem_template_attribute_vc_btn', '', [
-				'post' => new stdClass(),
-				'data' => str_replace( [
-					'{{ vc_btn:',
-					'}}',
-				], '', $button3->output( $data ) ),
-			] ) );
+			// Reset scope so output() uses the standard shortcode template
+			// instead of the grid placeholder (params/vc_grid_item/shortcodes/vc_btn.php).
+			$current_scope = WPBMap::getScope();
+			WPBMap::setScope( '' );
+			$button_html = $button3->output( $data );
+			WPBMap::setScope( $current_scope );
+
+			$output = sprintf(
+				'<div class="vc_pageable-slide-wrapper vc_clearfix" data-vc-grid-content="true">%s</div><div class="vc_pageable-load-more-btn" data-vc-grid-load-more-btn="true">%s</div>',
+				$content,
+				$button_html
+			);
 
 			return $output;
 		}
 
-		return '';
+		return $output;
 	}
 
 	/**

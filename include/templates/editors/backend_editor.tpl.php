@@ -52,13 +52,15 @@ $first_tag = 'style';
 		}
 	</style>
 	<div class="metabox-composer-content">
-		<div id="wpbakery_content" class="wpb_main_sortable main_wrapper"></div>
-		<?php
-		vc_include_template(
-			'editors/partials/vc_welcome_block.tpl.php',
-			[ 'editor' => 'backend' ]
-		);
-		?>
+		<div id="vc_content-wrapper">
+			<div id="wpbakery_content" class="wpb_main_sortable main_wrapper"></div>
+			<?php
+			vc_include_template(
+					'editors/partials/vc_welcome_block.tpl.php',
+					[ 'editor' => 'backend' ]
+			);
+			?>
+		</div>
 	</div>
 
 <?php

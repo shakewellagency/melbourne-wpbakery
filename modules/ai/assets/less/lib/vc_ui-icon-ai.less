@@ -11,7 +11,7 @@
 .vc_ui-icon-ai {
   position: absolute;
   top: -25px;
-  right: 0;
+  right: -2px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -19,9 +19,22 @@
   font-size: 19px;
   cursor: pointer;
   transition: 0.2s color ease-in-out;
+  padding: 0;
+  background-color: transparent;
+  border-color: transparent;
 
+  &:focus,
+  &:focus-visible,
+  &:focus-within,
   &:hover {
-    color: #0772CE;
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    color: @wpb-icon-hover-color;
+  }
+
+  &::-moz-focus-inner {
+    border: 0;
   }
 
   span {
@@ -37,6 +50,10 @@
   .vc_ui-icon-ai {
     position: relative;
     top: 0;
+
+    span.sr-only {
+      display: none;
+    }
   }
 }
 

@@ -129,41 +129,33 @@ class Vc_ParamGroup {
 	/**
 	 * Renders the HTML output.
 	 *
-	 * @return mixed|string
 	 * @since 4.4
+	 * @param string $param_id @since 9.0.
+	 * @return mixed|string
 	 */
-	public function render() { // phpcs:ignore:CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
+	public function render( $param_id = '' ) {
 		$output = '';
 		$edit_form = new Vc_ParamGroup_Edit_Form_Fields( $this->settings );
 
 		$settings = $this->settings;
 		$output .= '<ul class="vc_param_group-list vc_settings" data-settings="' . htmlentities( wp_json_encode( $settings ), ENT_QUOTES, 'utf-8' ) . '">';
 
-		$template = vc_include_template( 'params/param_group/content.tpl.php' );
-
-		// Parsing values.
-		if ( ! empty( $this->value ) ) {
-			foreach ( $this->value as $values ) {
-				$output .= $template;
-				$value_block = "<div class='vc_param_group-wrapper vc_clearfix'>";
-				$data = $values;
-				foreach ( $this->settings['params'] as $param ) {
-					$param_value = isset( $data[ $param['param_name'] ] ) ? $data[ $param['param_name'] ] : ( isset( $param['value'] ) ? $param['value'] : null );
-					$param['param_name'] = $this->settings['param_name'] . '_' . $param['param_name'];
-					$value = $edit_form->getParamGroupAttributeValue( $param, $param_value );
-					$value_block .= $edit_form->renderField( $param, $value );
-				}
-				$value_block .= '</div>';
-				$output = str_replace( '%content%', $value_block, $output );
-			}
+		if ( empty( $this->value ) ) {
+			$output .= vc_include_template(
+				'params/param_group/content.tpl.php',
+				[
+					'item_id' => 'wpb_item_' . $param_id . '_0',
+					'number'  => 1,
+				]
+			);
 		} else {
-			$output .= $template;
-
+			$output = $this->parsing_values( $param_id, $edit_form, $output );
 		}
 
 		// Empty fields wrapper and Add new fields wrapper.
 		$content = "<div class='vc_param_group-wrapper vc_clearfix'>";
-		foreach ( $this->settings['params'] as $param ) {
+		$param_list = isset( $this->settings['params'] ) ? $this->settings['params'] : [];
+		foreach ( $param_list as $param ) {
 			$param['param_name'] = $this->settings['param_name'] . '_' . $param['param_name'];
 			$value = $edit_form->getParamGroupAttributeValue( $param );
 			$content .= $edit_form->renderField( $param, $value );
@@ -172,14 +164,53 @@ class Vc_ParamGroup {
 		$output = str_replace( '%content%', $content, $output );
 
 		// And button on bottom.
-		$output .= '<li class="wpb_column_container vc_container_for_children vc_param_group-add_content vc_empty-container"></li></ul>';
+		$output .= '<li class="wpb_column_container vc_container_for_children vc_param_group-add_content vc_empty-container" role="button" tabindex="0" aria-label="' . esc_attr__( 'Add new', 'js_composer' ) . '"></li></ul>';
 
 		$add_template = vc_include_template( 'params/param_group/add.tpl.php' );
 		$add_template = str_replace( '%content%', $content, $add_template );
 
 		$custom_tag = 'script';
 		$output .= '<' . $custom_tag . ' type="text/html" class="vc_param_group-template">' . wp_json_encode( $add_template ) . '</' . $custom_tag . '>';
-		$output .= '<input name="' . $this->settings['param_name'] . '" class="wpb_vc_param_value  ' . $this->settings['param_name'] . ' ' . $this->settings['type'] . '_field" type="hidden" value="' . $this->unparsed_value . '" />';
+		$output .= WPB_Form_Field_Hidden::get([
+			'name' => $this->settings['param_name'],
+			'classes' => wpbakery()->editForm()->get_value_control_classes( $settings['param_name'], $settings['type'] . 'field' ),
+			'value' => $this->unparsed_value,
+			'is_value_escape' => false,
+		]);
+
+		return $output; // nosemgrep - we already escaped everything on this step.
+	}
+
+	/**
+	 * Parsing values.
+	 *
+	 * @since 9.0
+	 * @param string $param_id @since 9.0.
+	 * @param Vc_ParamGroup_Edit_Form_Fields $edit_form
+	 * @param string $output
+	 * @return string
+	 */
+	protected function parsing_values( $param_id, $edit_form, $output ) {
+		foreach ( $this->value as $value_index => $values ) {
+			$template = vc_include_template(
+				'params/param_group/content.tpl.php',
+				[
+					'item_id' => 'wpb_item_' . $param_id . '_' . $value_index,
+					'number'  => $value_index + 1,
+				]
+			);
+			$output .= $template;
+			$value_block = "<div class='vc_param_group-wrapper vc_clearfix'>";
+			$data        = $values;
+			foreach ( $this->settings['params'] as $param ) {
+				$param_value        = isset( $data[ $param['param_name'] ] ) ? $data[ $param['param_name'] ] : ( isset( $param['value'] ) ? $param['value'] : null );
+				$param['param_name'] = $this->settings['param_name'] . '_' . $param['param_name'];
+				$value              = $edit_form->getParamGroupAttributeValue( $param, $param_value );
+				$value_block       .= $edit_form->renderField( $param, $value );
+			}
+			$value_block .= '</div>';
+			$output       = str_replace( '%content%', $value_block, $output );
+		}
 
 		return $output;
 	}
@@ -192,18 +223,19 @@ class Vc_ParamGroup {
  * @param array $param_settings
  * @param string|null $param_value
  * @param string $tag
+ * @param string $param_id since 9.0.
  *
  * @return mixed rendered template for params in edit form
  * @since 4.4
  *
  * vc_filter: vc_param_group_render_filter
  */
-function vc_param_group_form_field( $param_settings, $param_value, $tag ) {
+function vc_param_group_form_field( $param_settings, $param_value, $tag, $param_id ) {
 
 	$param_value = (string) $param_value;
 	$param_group = new Vc_ParamGroup( $param_settings, $param_value, $tag );
 
-	return apply_filters( 'vc_param_group_render_filter', $param_group->render() );
+	return apply_filters( 'vc_param_group_render_filter', $param_group->render( $param_id ) );
 }
 
 add_action( 'wp_ajax_vc_param_group_clone', 'vc_param_group_clone' );
@@ -238,7 +270,13 @@ function vc_param_group_clone_by_data( $tag, $params, $data ) {
 	$edit_form = new Vc_ParamGroup_Edit_Form_Fields( $params );
 	$edit_form->loadDefaultParams();
 
-	$template = vc_include_template( 'params/param_group/content.tpl.php' );
+	$template = vc_include_template(
+		'params/param_group/content.tpl.php',
+		[
+			'item_id' => '',
+			'number'  => '',
+		]
+	);
 	$output .= $template;
 	$value_block = "<div class='vc_param_group-wrapper vc_clearfix'>";
 

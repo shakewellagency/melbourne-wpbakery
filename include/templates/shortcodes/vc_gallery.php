@@ -1,44 +1,45 @@
 <?php
 /**
- * The template for displaying [vc_gallery] shortcode of 'Image Gallery' element.
+ * The template for displaying [vc_gallery] shortcode of 'Image gallery' element.
  *
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_gallery.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
+ * @var WPBakeryShortCode_Vc_gallery $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-/**
- * Shortcode attributes
- *
- * @var $atts
- * @var $title
- * @var $source
- * @var $type
- * @var $onclick
- * @var $custom_links
- * @var $custom_links_target
- * @var $img_size
- * @var $external_img_size
- * @var $images
- * @var $custom_srcs
- * @var $el_class
- * @var $el_id
- * @var $interval
- * @var $css
- * @var $css_animation
- * Shortcode class
- * @var WPBakeryShortCode_Vc_gallery $this
- */
 $thumbnail = '';
 $title = $source = $type = $onclick = $custom_links = $custom_links_target = $img_size = $external_img_size = $images = $custom_srcs = $el_class = $el_id = $interval = $css = $css_animation = '';
 $large_img_src = '';
 
 $attributes = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $attributes );
+
+/**
+ * Shortcode attributes
+ *
+ * @var string $title
+ * @var string $source
+ * @var string $type
+ * @var string $onclick
+ * @var string $custom_links
+ * @var string|null $custom_links_target
+ * @var string $img_size
+ * @var string $external_img_size
+ * @var string $images
+ * @var string $custom_srcs
+ * @var string $el_class
+ * @var string|null $el_id
+ * @var string $interval
+ * @var string $css
+ * @var string $css_animation
+ */
 
 $default_src = vc_asset_url( 'vc/no_image.png' );
 
@@ -97,25 +98,15 @@ if ( '' === $images ) {
 	$images = '-1,-2,-3';
 }
 
-$pretty_rel_random = ' data-lightbox="lightbox[rel-' . get_the_ID() . '-' . wp_rand() . ']"';
-
 if ( 'custom_link' === $onclick ) {
 	$custom_links = vc_value_from_safe( $custom_links );
 	$custom_links = explode( ',', $custom_links );
 }
 
-switch ( $source ) {
-	case 'media_library':
-		$images = explode( ',', $images );
-		break;
+$pretty_rel_random = 'lightbox[rel-' . get_the_ID() . '-' . wp_rand() . ']';
+$image_data = json_decode( $images, true );
 
-	case 'external_link':
-		$images = vc_value_from_safe( $custom_srcs );
-		$images = explode( ',', $images );
-
-		break;
-}
-foreach ( $images as $i => $image ) {
+foreach ( $this->get_images_list( $images, $source, $custom_srcs ) as $i => $image ) {
 	switch ( $source ) {
 		case 'media_library':
 			if ( $image > 0 ) {
@@ -149,34 +140,67 @@ foreach ( $images as $i => $image ) {
 			break;
 	}
 
-	$link_start = $link_end = '';
+	$link_html = '';
 
 	switch ( $onclick ) {
 		case 'img_link_large':
-			$link_start = '<a href="' . esc_url( $large_img_src ) . '" target="' . esc_attr( $custom_links_target ) . '">';
-			$link_end = '</a>';
+			$link_html = vc_get_template( 'partials/element-link.php', [
+				'text' => $thumbnail,
+				'wpb_link' => [
+					'url' => $large_img_src,
+					'target' => $custom_links_target,
+				],
+			] );
 			break;
 
 		case 'link_image':
-			$link_start = '<a class="" href="' . esc_url( $large_img_src ) . '"' . $pretty_rel_random . '>';
-			$link_end = '</a>';
+			$link_html = vc_get_template( 'partials/element-link.php', [
+				'text' => $thumbnail,
+				'a_attrs' => [ 'data-lightbox' => $pretty_rel_random ],
+				'wpb_link' => [
+					'url' => $large_img_src,
+					'target' => $custom_links_target,
+				],
+			] );
 			break;
 
 		case 'custom_link':
-			if ( ! empty( $custom_links[ $i ] ) ) {
-				$link_start = '<a href="' . esc_url( $custom_links[ $i ] ) . '"' . ( ! empty( $custom_links_target ) ? ' target="' . esc_attr( $custom_links_target ) . '"' : '' ) . '>';
-				$link_end = '</a>';
+			if ( 'media_library' === $source && is_array( $image_data ) ) {
+				$wpb_link = $image_data[ $image ] ?? [];
+				$wpb_link['title'] = get_the_title( $image );
+
+				$link_html = vc_get_template( 'partials/element-link.php', [
+					'text' => $thumbnail,
+					'wpb_link' => $wpb_link,
+				] );
+			} else {
+				if ( ! empty( $custom_links[ $i ] ) ) {
+					$link_html = vc_get_template( 'partials/element-link.php', [
+						'text' => $thumbnail,
+						'wpb_link' => [
+							'url' => $custom_links[ $i ],
+							'target' => $custom_links_target,
+						],
+					] );
+				} else {
+					$link_html = vc_get_template( 'partials/element-link.php', [
+						'text' => $thumbnail,
+					]);
+				}
 			}
 			break;
+		default:
+			$link_html = $thumbnail;
 	}
 
-	$gal_images .= $el_start . $link_start . $thumbnail . $link_end . $el_end;
+	$gal_images .= $el_start . $link_html . $el_end;
 }
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $class_to_filter = 'wpb_gallery wpb_content_element vc_clearfix';
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . ' ' . esc_attr( $element_class ) . $this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $settings['base'], $atts );
 $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';

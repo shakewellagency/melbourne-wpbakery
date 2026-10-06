@@ -9,13 +9,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 ?>
-<img class="vc-featured-img" src="<?php echo esc_url( vc_asset_url( 'vc/wpb-8-7-about.png' ) ); ?>"/>
+<img class="vc-featured-img" src="<?php echo esc_url( vc_asset_url( 'vc/wpb-9-0-about.png' ) ); ?>"/>
 
 <div class="vc-feature-text">
-	<h3><?php esc_html_e( 'What\'s new in WPBakery 8.7?', 'js_composer' ); ?></h3>
+	<h3><?php esc_html_e( 'Welcome to WPBakery 9.0', 'js_composer' ); ?></h3>
 
-	<p><?php esc_html_e( 'Experience a faster edit window loading with the new built-in WPBakery caching to speed up website creation.', 'js_composer' ); ?></p>
-	<p><?php esc_html_e( 'Discover more premium add-ons and extensions right in the “Add Element” window.', 'js_composer' ); ?></p>
+	<p><?php esc_html_e( 'WPBakery 9.0 introduces a refreshed user interface and significant performance improvements, making website building faster, smoother, and more enjoyable.', 'js_composer' ); ?></p>
 
 	<?php
 	$tabs = vc_settings()->getTabs();

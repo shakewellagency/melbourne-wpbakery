@@ -14,17 +14,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $el_class
- * @var $el_id
- * @var $width
- * @var $css
- * @var $offset
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $width
+ * @var string $css
+ * @var string $offset
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Column_Inner $this
  */
-$el_class = $width = $el_id = $css = $offset = '';
+$el_class = $width = $el_id = $css = $offset = $css_animation = '';
 $output = '';
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
@@ -33,7 +33,7 @@ $width = wpb_translateColumnWidthToSpan( $width );
 $width = vc_column_offset_class_merge( $offset, $width );
 
 $css_classes = [
-	$this->getExtraClass( $el_class ),
+	$this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation ),
 	'wpb_column',
 	'vc_column_container',
 	$width,
@@ -48,7 +48,7 @@ if ( vc_shortcode_custom_css_has_property( $css, [
 
 $wrapper_attributes = [];
 
-$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( $css_classes ) ), $this->settings['base'], $atts ) );
+$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( $css_classes ) ), $this->getSettings()['base'], $atts ) );
 $wrapper_attributes[] = 'class="' . esc_attr( trim( $css_class ) ) . '"';
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';

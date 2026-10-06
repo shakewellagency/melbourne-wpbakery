@@ -5,6 +5,8 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_cta_button.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @deprecated
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,17 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $color
- * @var $icon
- * @var $size
- * @var $target
- * @var $href
- * @var $title
- * @var $call_text
- * @var $position
- * @var $el_class
- * @var $css_animation
+ * @var array $atts
+ * @var string $color
+ * @var string $icon
+ * @var string $size
+ * @var string $target
+ * @var string $href
+ * @var string $title
+ * @var string $call_text
+ * @var string $position
+ * @var string $el_class
+ * @var string $css_animation
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Cta_button $this
  */
@@ -57,7 +59,7 @@ if ( '' !== $href ) {
 	$button = '';
 	$el_class .= ' cta_no_button';
 }
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'wpb_call_to_action wpb_content_element vc_clearfix ' . $position . $el_class, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'wpb_call_to_action wpb_content_element vc_clearfix ' . $position . $el_class, $this->getSettings()['base'], $atts );
 $css_class .= $this->getCSSAnimation( $css_animation );
 
 $output .= '<div class="' . esc_attr( $css_class ) . '">';

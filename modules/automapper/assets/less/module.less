@@ -6,9 +6,6 @@
 @import "../../../../assets/less/shortcodes/_shortcodes_container.less";
 
 #vc_settings-automapper {
-    .vc_atm-message {
-        padding: 10px;
-    }
     .vc_automapper-toolbar {
         margin-bottom: 15px;
     }
@@ -52,11 +49,15 @@
             display: block;
         }
         .vc_wrapper {
-            display: table;
+            display: flex;
             margin: 10px 0;
+            @media (max-width: @screen-md-min) {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
             .vc_string {
-                display: table-cell;
-                width: 100%;
+                flex: 1;
                 padding: 0;
                 input {
                     .box-sizing(border-box);
@@ -64,13 +65,17 @@
                 }
         }
         .vc_buttons {
-            width: 190px;
+            width: 270px;
             margin-left: 10px;
-            display: inline-block;
+            display: flex;
+            gap: 10px;
+            @media (max-width: @screen-md-min) {
+                margin-left: 0;
+            }
                 .button {
                     margin-top: -6px;
                 }
-            }   
+            }
         }
     }
     .vc_edit-form {

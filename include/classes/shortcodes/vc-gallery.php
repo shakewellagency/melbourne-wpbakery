@@ -25,6 +25,16 @@ class WPBakeryShortCode_Vc_Gallery extends WPBakeryShortCode {
 	}
 
 	/**
+	 * Get CSS file names for vc_gallery shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_gallery', 'vc_image_gallery' ];
+	}
+
+	/**
 	 * Register shortcode scripts.
 	 */
 	public function shortcodeScripts() {
@@ -87,5 +97,38 @@ class WPBakeryShortCode_Vc_Gallery extends WPBakeryShortCode {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Get images list as a regular array from the string of images data.
+	 *
+	 * @param string $images
+	 * @param string $source
+	 * @param string $custom_srcs
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_images_list( $images, $source, $custom_srcs ) {
+		$image_list = [];
+
+		switch ( $source ) {
+			case 'media_library':
+				$image_data = json_decode( $images, true );
+
+				if ( is_array( $image_data ) ) {
+					$image_list = array_keys( $image_data );
+				} else {
+					$image_list = explode( ',', $images );
+				}
+				break;
+
+			case 'external_link':
+				$images = vc_value_from_safe( $custom_srcs );
+				$image_list = explode( ',', $images );
+				break;
+		}
+
+		return $image_list;
 	}
 }

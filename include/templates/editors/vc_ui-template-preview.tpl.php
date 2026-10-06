@@ -39,7 +39,6 @@ $custom_tag = 'script';
 $first_tag = 'style';
 ?>
 <<?php echo esc_attr( $custom_tag ); ?>>
-	window.vc_user_mapper = <?php echo wp_json_encode( WPBMap::getUserShortCodes() ); ?>;
 	window.vc_mapper = <?php echo wp_json_encode( WPBMap::getShortCodes() ); ?>;
 	window.vc_roles = [];
 	window.vcAdminNonce = '<?php echo esc_js( vc_generate_nonce( 'vc-admin-nonce' ) ); ?>';
@@ -67,12 +66,13 @@ $first_tag = 'style';
 </<?php echo esc_attr( $first_tag ); ?>>
 <div class="vc_not-remove-overlay"></div>
 <div class="vc_ui-template-preview">
-	<textarea id="content" style="display: none;">
-		<?php
-		// @codingStandardsIgnoreLine
-		print $content;
-		?>
-	</textarea>
+	<?php
+	WPB_Form_Field_Textarea::render( [
+		'id'    => 'content',
+		'value' => $content,
+		'style' => 'display: none;',
+	] );
+	?>
 
 	<div id="wpb_wpbakery" class="postbox " style="display: block;">
 		<div class="inside">

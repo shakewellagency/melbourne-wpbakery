@@ -5,6 +5,8 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_gitem_image.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

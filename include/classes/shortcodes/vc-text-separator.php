@@ -46,4 +46,14 @@ class WPBakeryShortCode_Vc_Text_Separator extends WPBakeryShortCode {
 
 		return '';
 	}
+
+	/**
+	 * Get CSS of separator as it is using same file.
+	 *
+	 * @since 9.0
+	 * @return string
+	 */
+	public function get_shortcode_css_files() {
+		return 'vc_separator';
+	}
 }

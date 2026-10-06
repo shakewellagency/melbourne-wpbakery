@@ -22,27 +22,44 @@ $can_edit_others   = current_user_can( $cap_edit_others );
 $can_submit_for_review = current_user_can( $cap_edit ) && ! current_user_can( $cap_publish );
 
 $current_post_status = get_post_status( get_the_ID() );
+$options = [];
+if ( $can_edit ) {
+	$options[] = [
+		'value' => 'draft',
+		'label' => esc_html__( 'Draft', 'js_composer' ),
+		'selected' => 'draft' === $current_post_status,
+	];
+}
+if ( $can_submit_for_review ) {
+	$options[] = [
+		'value' => 'pending',
+		'label' => esc_html__( 'Pending Review', 'js_composer' ),
+		'selected' => 'pending' === $current_post_status,
+	];
+}
+if ( $can_publish ) {
+	$options[] = [
+		'value' => 'publish',
+		'label' => esc_html__( 'Published', 'js_composer' ),
+		'selected' => 'publish' === $current_post_status,
+	];
+}
 ?>
 
 <?php if ( current_user_can( 'edit_posts' ) && 'draft' !== $current_post_status ) : ?>
 <div class="vc_col-sm-12 vc_column" id="vc_settings-post_status">
-	<div class="wpb_element_label"><?php esc_html_e( 'Post status', 'js_composer' ); ?></div>
-	<select id="vc_post_status" name="post_status" class="wpb_vc_param_value wpb-input wpb-select wpb-select--full">
-		<?php if ( $can_edit ) : ?>
-			<option value="draft" <?php selected( $current_post_status, 'draft' ); ?>>
-				<?php esc_html_e( 'Draft', 'js_composer' ); ?>
-			</option>
-		<?php endif; ?>
-		<?php if ( $can_submit_for_review ) : ?>
-			<option value="pending" <?php selected( $current_post_status, 'pending' ); ?>>
-				<?php esc_html_e( 'Pending Review', 'js_composer' ); ?>
-			</option>
-		<?php endif; ?>
-		<?php if ( $can_publish ) : ?>
-			<option value="publish" <?php selected( $current_post_status, 'publish' ); ?>>
-				<?php esc_html_e( 'Published', 'js_composer' ); ?>
-			</option>
-		<?php endif; ?>
-	</select>
+	<label for="vc_post_status" class="wpb_element_label">
+		<?php
+		echo esc_html( sprintf( __( '%s status', 'js_composer' ), wpb_get_post_type_noun() ) );
+		?>
+	</label>
+	<?php
+	WPB_Form_Field_Dropdown::render( [
+		'id' => 'vc_post_status',
+		'classes' => 'wpb_vc_param_value wpb-input wpb-select wpb-select--full',
+		'name' => 'post_status',
+		'options' => $options,
+	] );
+	?>
 </div>
 <?php endif; ?>

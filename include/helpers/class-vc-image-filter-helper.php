@@ -31,7 +31,7 @@ class Vc_Image_Filter_Helper {
 	/**
 	 * Get the current image resource
 	 *
-	 * @depreacted 8.5
+	 * @deprecated 8.5
 	 * @return resource
 	 */
 	public function getImage() { // phpcs:ignore:WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid

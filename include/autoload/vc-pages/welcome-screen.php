@@ -28,7 +28,7 @@ function vc_page_welcome_slug() {
  */
 function vc_get_page_welcome_tabs() {
 	global $vc_page_welcome_tabs;
-	$vc_page_welcome_tabs = apply_filters( 'vc_page-welcome-slugs-list', [
+	$vc_page_welcome_tabs = apply_filters( 'vc_page_welcome_slugs_list', [
 		'vc-welcome' => esc_html__( 'What\'s New', 'js_composer' ),
 		'vc-faq' => esc_html__( 'FAQ', 'js_composer' ),
 		'vc-resources' => esc_html__( 'Resources', 'js_composer' ),
@@ -44,26 +44,20 @@ function vc_get_page_welcome_tabs() {
  * @see vc_filter: vc_page_welcome_render_capabilities
  *
  * @since 4.5
+ * @deprecated 9.0 Welcome page is now integrated into settings tabs.
  */
 function vc_page_welcome_render() {
-	$vc_page_welcome_tabs = vc_get_page_welcome_tabs();
-	$slug = vc_page_welcome_slug();
-	$tab_slug = vc_get_param( 'tab', $slug );
-	// If tab slug in the list please render.
-	if ( ! empty( $tab_slug ) && isset( $vc_page_welcome_tabs[ $tab_slug ] ) ) {
-		$pages_group = vc_pages_group_build( $slug, $vc_page_welcome_tabs[ $tab_slug ], $tab_slug );
-		$pages_group->render();
-	}
+	// Welcome page is now integrated into settings tabs
+	// This function is kept for backward compatibility.
 }
 
 /**
  * Add submenu page.
+ *
+ * @deprecated 9.0 Welcome page is now part of settings tabs.
  */
 function vc_page_welcome_add_sub_page() {
-	// Add submenu page.
-	$page = add_submenu_page( VC_PAGE_MAIN_SLUG, esc_html__( 'About', 'js_composer' ), esc_html__( 'About', 'js_composer' ), 'edit_posts', vc_page_welcome_slug(), 'vc_page_welcome_render' );
-	// Css for perfect styling.
-	add_action( 'admin_print_styles-' . $page, 'vc_page_css_enqueue' );
+	// Welcome page is now integrated into settings, no need to add a separate submenu.
 }
 
 /**
@@ -108,7 +102,10 @@ function vc_page_welcome_redirect() {
 	$redirect = get_transient( '_vc_page_welcome_redirect' );
 	delete_transient( '_vc_page_welcome_redirect' );
 	if ( $redirect ) {
-		wp_safe_redirect( admin_url( 'admin.php?page=' . rawurlencode( vc_page_welcome_slug() ) ) );
+		// Welcome page is now integrated into settings as a tab.
+		// Redirect to the welcome tab within the settings page.
+		wp_safe_redirect( admin_url( 'admin.php?page=vc-welcome&tab=vc-welcome' ) );
+		exit;
 	}
 }
 

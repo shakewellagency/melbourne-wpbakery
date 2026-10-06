@@ -197,6 +197,7 @@ class Vc_Roles {
 				'revision',
 				'nav_menu_item',
 				'mediapage',
+				'wpb_gutenberg_param',
 			] );
 		}
 

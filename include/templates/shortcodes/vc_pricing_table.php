@@ -5,23 +5,20 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_pricing_table.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
+ * @var string $content - shortcode content
+ * @var WPBakeryShortCode_Vc_Pricing_Table $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
-/**
- * Shortcode attributes
- *
- * @var $atts
- * @var $content - shortcode content
- * Shortcode class
- * @var WPBakeryShortCode_Vc_Pricing_Table $this
- */
 
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 $this->buildTemplate( $atts, $content );
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $css_class = trim( 'vc_general ' . esc_attr( implode( ' ', $this->getTemplateVariable( 'css-class' ) ) ) . ' ' . esc_attr( $element_class ) );
 $currency = isset( $atts['currency'] ) ? $atts['currency'] : '';
 $price = isset( $atts['price'] ) ? $atts['price'] : '';

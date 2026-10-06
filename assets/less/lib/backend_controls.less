@@ -54,6 +54,11 @@
   color: #888888;
   font-size: 14px;
 
+  &:focus:not(:focus-visible) {
+    color: #888888;
+    box-shadow: none;
+  }
+
   &.column_add, .vc-controls-add {
     .vc_icon {
       background-position: -16px -16px;
@@ -112,6 +117,7 @@
   .vc_row_edit_clone_delete {
     display: flex;
     flex-direction: row-reverse;
+    margin-left: auto;
   }
   .vc_control {
     background-color: @vc_row_control_bg;
@@ -128,8 +134,14 @@
     padding: 5px 12px;
   }
 
-  .vc-c-icon-add,
-  .vc-c-icon-delete_empty,
+  .vc_control.column_add.vc_column-add {
+    .vc-c-add-circle {
+      height: 20px;
+    }
+  }
+
+  .vc-c-add-circle,
+  .vc-c-trash,
   .vc-c-icon-content_copy {
     position: relative;
     font-size: 14px;
@@ -145,7 +157,7 @@
     }
   }
 
-  .vc-c-icon-delete_empty {
+  .vc-c-trash {
     font-size: 12px;
   }
 
@@ -165,7 +177,7 @@
     display: block;
     height: 16px;
     overflow: hidden;
-    padding: 3px 0 5px 4px;
+    padding: 3px 0 7px 4px;
     text-align: left;
     margin-left: 1px;
     background: #e6e6e6;
@@ -281,6 +293,66 @@
     .column_toggle {
       margin: 0;
     }
+    // Border radius on the rightmost button (first-child due to row-reverse)
+    > :first-child {
+      .border-right-radius(@vc_border_radius);
+    }
+  }
+
+  // Copy/Paste select dropdown
+  .vc_copypaste-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    border: 0 !important;
+
+    + .select2-container {
+      vertical-align: middle;
+      width: auto !important;
+      margin-left: 1px;
+
+      .select2-selection {
+        background-color: @vc_row_control_bg;
+        border: none;
+        border-radius: 0;
+        height: auto;
+        padding: 5px 12px;
+        cursor: pointer;
+
+        &:hover .select2-selection__rendered::before {
+          .opacity(0.7);
+        }
+      }
+
+      .select2-selection__rendered {
+        font-size: 0;
+        color: transparent;
+        padding: 0 !important;
+        width: 18px;
+        height: 18px;
+        position: relative;
+
+        &::before {
+          content: @vc-c-controls-menu;
+          font-family: 'vcpb-plugin-icons' !important;
+          font-size: 12px;
+          color: #888888;
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          line-height: 18px;
+          text-align: center;
+        }
+      }
+
+      .select2-selection__arrow {
+        display: none;
+      }
+    }
   }
 
   .vc_row_color {
@@ -389,11 +461,14 @@
   }
 }
 
-.wpb_content_element {
+body:not(.vc-dnd-dragging--start) .wpb_content_element {
   &:hover,
   &.vc_active {
     > .vc_controls {
       .vc_controls-visible;
+      > div {
+        .opacity(1);
+      }
     }
   }
 }

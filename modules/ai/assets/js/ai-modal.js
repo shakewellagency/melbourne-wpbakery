@@ -7,8 +7,13 @@
 	var $aiTokensUsage = $aiModal.find( '.vc-ai-tokens-usage' );
 
 	$wpwrap.on( 'click', '.vc_ui-icon-ai', openModal );
+	$wpwrap.on( 'keydown', '.vc_ui-icon-ai', openModal );
 
 	function openModal ( e ) {
+		if ( e.type === 'keydown' && e.keyCode !== 13 && e.keyCode !== 32 ) {
+			return;
+		}
+
 		var $currentBtn = $( e.currentTarget );
 		var $currentParamContainer = $currentBtn.closest( '.vc_shortcode-param' );
 		var currentParamData = null;
@@ -50,6 +55,7 @@
 		}
 
 		$aiModal.addClass( 'vc_active' );
+		$aiModal.find( '[data-vc-ui-element="button-close"]' ).focus();
 		$aiModal.on( 'click', closeModal );
 	}
 
@@ -96,6 +102,8 @@
 				$aiModal.find( ' .vc_ui-panel-content-container' ).scrollTop( 0 );
 				$aiModal.find( '.vc_ui-helper-modal-ai-preloader' ).remove();
 				$aiModal.find( ' .vc_ui-panel-content-container' ).removeClass( 'vc_ui-hidden' );
+
+				vc.formComponents.select.initAll();
 			} else {
 				// error returned by wpbakery server api
 				var is_error_message =
@@ -121,7 +129,7 @@
 	}
 
 	function showErrorMessage ( message ) {
-		window.vc.showMessage( message, 'error', 10000, '#vc_ui-helper-modal-ai .vc_ui-panel-window-inner' );
+		window.wpbNotifications.show( message, { type: 'error' });
 	}
 
 	function closeModal ( e ) {

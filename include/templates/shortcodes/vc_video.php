@@ -7,16 +7,16 @@
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  *
  * Shortcode attributes
- * @var $atts
- * @var $title
- * @var $link
- * @var $el_class
- * @var $el_id
- * @var $css
- * @var $css_animation
- * @var $el_width
- * @var $el_aspect
- * @var $align
+ * @var array $atts
+ * @var string $title
+ * @var string $link
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $css
+ * @var string $css_animation
+ * @var string $el_width
+ * @var string $el_aspect
+ * @var string $align
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Video $this
  */
@@ -50,7 +50,6 @@ $el_classes = [
 	$el_class,
 	vc_shortcode_custom_css_class( $css, ' ' ),
 	'vc_video-aspect-ratio-' . esc_attr( $el_aspect ),
-	'vc_video-el-width-' . esc_attr( $el_width ),
 	'vc_video-align-' . esc_attr( $align ),
 ];
 $css_class = implode( ' ', $el_classes );
@@ -59,9 +58,13 @@ $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';
 }
+$wrapper_style = '';
+if ( '' !== $el_width ) {
+	$wrapper_style = ' style="width: ' . esc_attr( $el_width ) . '%"';
+}
 $output = '
 	<div class="' . esc_attr( $css_class ) . '" ' . implode( ' ', $wrapper_attributes ) . '>
-		<div class="wpb_wrapper">
+		<div class="wpb_wrapper"' . $wrapper_style . '>
 			' . wpb_widget_title( [
 	'title' => $title,
 	'extraclass' => 'wpb_video_heading',

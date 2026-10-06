@@ -31,8 +31,7 @@ class WPBakeryShortCode_Vc_Tta_Section extends WPBakeryShortCode_Vc_Tta_Accordio
 		'add',
 		'edit',
 		'clone',
-		'copy',
-		'paste',
+		'copypaste',
 		'delete',
 	];
 
@@ -309,7 +308,7 @@ class WPBakeryShortCode_Vc_Tta_Section extends WPBakeryShortCode_Vc_Tta_Accordio
 
 		$output .= ' data-vc-container=".vc_tta-container">';
 		$output .= empty( $atts['i_position'] ) ? '' : $this->getTemplateVariable( 'icon-left' );
-		$output .= '<span class="vc_tta-title-text">' . wp_kses_post( $this->getTemplateVariable( 'title' ) ) . '</span>';
+		$output .= '<span class="vc_tta-title-text">' . wp_kses_post( (string) $this->getTemplateVariable( 'title' ) ) . '</span>';
 		$output .= empty( $atts['i_position'] ) ? '' : $this->getTemplateVariable( 'icon-right' );
 		if ( ! $isPageEditable ) {
 			$output .= $this->getTemplateVariable( 'control-icon' );
@@ -368,5 +367,15 @@ class WPBakeryShortCode_Vc_Tta_Section extends WPBakeryShortCode_Vc_Tta_Accordio
 	 */
 	public function getAddAllowed() {
 		return vc_user_access()->part( 'shortcodes' )->checkStateAny( true, 'custom', null )->get();
+	}
+
+	/**
+	 * Get CSS file names for vc_tta_section shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
 	}
 }

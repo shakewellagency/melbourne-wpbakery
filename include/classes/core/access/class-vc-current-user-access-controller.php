@@ -48,14 +48,14 @@ class Vc_Current_User_Access_Controller extends Vc_Role_Access_Controller {
 		if ( $this->getValidAccess() ) {
 			require_once ABSPATH . 'wp-includes/pluggable.php';
 			$access = ! $valid;
-			$vcapp = vcapp();
 			foreach ( $argsList as &$args ) {
 				if ( ! is_array( $args ) ) {
 					$args = [ $args ];
 				}
 				array_unshift( $args, 'current_user_can' );
 				$this->setValidAccess( true );
-				$vcapp->call( $callback, $args );
+
+				call_user_func_array( $callback, $args );
 				if ( $valid === $this->getValidAccess() ) {
 					$access = $valid;
 					break;

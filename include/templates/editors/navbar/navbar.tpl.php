@@ -30,17 +30,27 @@ $class .= ! empty( $post ) && ! empty( $post->post_content ) ? ' vc_not-empty' :
 	id="vc_navbar">
 	<div class="vc_navbar-header">
 		<?php
-		// @codingStandardsIgnoreLine
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		print $nav_bar->getLogo();
 		?>
 	</div>
 	<ul class="vc_navbar-nav">
 		<?php
 		foreach ( $controls as $control ) :
-			// @codingStandardsIgnoreLine
-			print $control[1];
+			if ( is_string( $control[1] ) ) {
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				print $control[1];
+			}
+			if ( is_array( $control[1] ) ) {
+				vc_include_template(
+						'editors/navbar/vc_control-get-more-buttons.tpl.php',
+						[
+							'title' => __( 'More', 'js_composer' ),
+							'controls' => $control[1],
+						]
+				);
+			}
 		endforeach;
 		?>
 	</ul>
-	<!--/.nav-collapse -->
 </div>

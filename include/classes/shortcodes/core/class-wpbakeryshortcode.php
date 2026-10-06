@@ -464,32 +464,171 @@ abstract class WPBakeryShortCode {
 	}
 
 	/**
+	 * Check if shortcode's mapping settings contain a valid html_template file path.
+	 *
+	 * @return bool
+	 * @version 9.0
+	 */
+	protected function is_html_template_param() {
+		return ! empty( $this->settings['html_template'] ) && is_file( $this->settings( 'html_template' ) );
+	}
+
+	/**
+	 * Check if a theme template file exists for this shortcode.
+	 *
+	 * @return bool
+	 * @version 9.0
+	 */
+	protected function is_theme_template() {
+		return is_file( vc_shortcodes_theme_templates_dir( $this->getFileName() . '.php' ) );
+	}
+
+	/**
+	 * Get default template path for this shortcode.
+	 *
+	 * @return string
+	 * @version 9.0
+	 */
+	protected function get_default_template_path() {
+		return vc_manager()->getDefaultShortcodesTemplatesDir() . '/' . $this->getFileName() . '.php';
+	}
+
+	/**
+	 * Check if a default template file exists for this shortcode.
+	 *
+	 * @return bool
+	 * @version 9.0
+	 */
+	protected function is_default_template() {
+		return is_file( $this->get_default_template_path() );
+	}
+
+	/**
 	 * Find html template for shortcode output.
 	 */
 	protected function findShortcodeTemplate() {
 		// Check template path in shortcode's mapping settings.
-		if ( ! empty( $this->settings['html_template'] ) && is_file( $this->settings( 'html_template' ) ) ) {
+		if ( $this->is_html_template_param() ) {
 			return $this->setTemplate( $this->settings['html_template'] );
 		}
 
 		// Check template in theme directory.
-		$user_template = vc_shortcodes_theme_templates_dir( $this->getFileName() . '.php' );
-		if ( is_file( $user_template ) ) {
-			return $this->setTemplate( $user_template );
+		if ( $this->is_theme_template() ) {
+			$template = vc_shortcodes_theme_templates_dir( $this->getFileName() . '.php' );
+			if ( $this->is_theme_template_version_outdated( $template ) ) {
+				$this->trigger_template_version_deprecation( $template );
+			}
+
+			if ( ! $this->is_theme_template_critically_outdated( $template ) ) {
+				return $this->setTemplate( $template );
+			}
 		}
 
 		// Check default place.
-		$default_dir = vc_manager()->getDefaultShortcodesTemplatesDir() . '/';
-		if ( is_file( $default_dir . $this->getFileName() . '.php' ) ) {
-			return $this->setTemplate( $default_dir . $this->getFileName() . '.php' );
-		}
-		$template = apply_filters( 'vc_shortcode_set_template_' . $this->shortcode, '' );
-
-		if ( ! empty( $template ) ? $template : '' ) {
-			return $this->setTemplate( $template );
+		if ( $this->is_default_template() ) {
+			return $this->setTemplate( $this->get_default_template_path() );
 		}
 
-		return '';
+		return $this->setTemplate( '' );
+	}
+
+
+	/**
+	 * Compare the @version tag in theme and default templates and output a deprecation warning if needed.
+	 *
+	 * @param string $template
+	 * @return bool
+	 * @version 9.0
+	 */
+	public function is_theme_template_version_outdated( $template ) {
+		$default_version = $this->get_template_version_tag( $this->get_default_template_path() );
+
+		if ( '' === $default_version ) {
+			return false;
+		}
+
+		$theme_version = $this->get_template_version_tag( $template );
+		if ( $this->is_template_version_outdated( $default_version, $theme_version ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Extract @version tag value from a template file's doc comment.
+	 *
+	 * @param string $template Path to template file.
+	 * @return string
+	 * @version 9.0
+	 */
+	protected function get_template_version_tag( $template ) {
+		if ( ! is_file( $template ) ) {
+			return '';
+		}
+
+		$contents = vc_file_get_contents( $template );
+
+		if ( ! $contents || ! preg_match( '/@version\s+([0-9]+(?:\.[0-9]+)*)/', $contents, $matches ) ) {
+			return '';
+		}
+
+		return $matches[1];
+	}
+
+	/**
+	 * Check if theme template version is outdated compared to default template version.
+	 *
+	 * @param string $default_version
+	 * @param string $theme_version
+	 * @return bool
+	 * @version 9.0
+	 */
+	protected function is_template_version_outdated( $default_version, $theme_version ) {
+		if ( '' === $theme_version ) {
+			return true;
+		}
+
+		return version_compare( $theme_version, $default_version, '<' );
+	}
+
+	/**
+	 * Trigger deprecation warning for an outdated theme template override.
+	 *
+	 * @param string $template
+	 * @version 9.0
+	 */
+	protected function trigger_template_version_deprecation( $template ) {
+		if ( ! function_exists( 'wp_trigger_error' ) ) {
+			return;
+		}
+
+		$theme_version = $this->get_template_version_tag( $template );
+		$default_version = $this->get_template_version_tag( $this->get_default_template_path() );
+
+		$message = sprintf(
+		/* translators: 1: theme name, 2: template file name, 3: theme template version, 4: default template version */
+			esc_html__( 'Your theme "%1$s" template override for WPBakery template "%2$s" is outdated (version %3$s) compared to the default (version %4$s). Contact theme author update it to avoid compatibility issues.', 'js_composer' ),
+			wp_get_theme()->get( 'Name' ),
+			basename( $template ),
+			'' === $theme_version ? esc_html__( 'not set', 'js_composer' ) : $theme_version,
+			$default_version
+		);
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
+	}
+
+	/**
+	 * Here shortcode class can override it to true
+	 * and not let theme author template render if it not has
+	 * some critical for this element template functionality.
+	 *
+	 * @since 9.0
+	 * @param string $template
+	 * @return bool
+	 */
+	public function is_theme_template_critically_outdated( $template ) { // phpcs:ignore:Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		return false;
 	}
 
 	/**
@@ -605,7 +744,7 @@ abstract class WPBakeryShortCode {
 	 * Get shortcode output.
 	 *
 	 * @param array $atts
-	 * @param null $content
+	 * @param null|string $content
 	 * @param string $base
 	 *
 	 * vc_filter: vc_shortcode_output - hook to override output of shortcode
@@ -625,6 +764,7 @@ abstract class WPBakeryShortCode {
 			$output .= $this->contentInline( $this->atts, $content );
 		} else {
 			$this->enqueueDefaultScripts();
+			$this->enqueue_shortcode_css();
 			$custom_output = VC_SHORTCODE_CUSTOMIZE_PREFIX . $this->shortcode;
 			$custom_output_before = VC_SHORTCODE_BEFORE_CUSTOMIZE_PREFIX . $this->shortcode; // before shortcode function hook.
 			$custom_output_after = VC_SHORTCODE_AFTER_CUSTOMIZE_PREFIX . $this->shortcode; // after shortcode function hook.
@@ -662,6 +802,50 @@ abstract class WPBakeryShortCode {
 			wp_enqueue_script( 'wpb_composer_front_js' );
 			wp_enqueue_style( 'js_composer_front' );
 			self::$default_scripts_enqueued = true;
+		}
+	}
+
+	/**
+	 * Enqueue shortcode specific CSS files.
+	 *
+	 * @since 9.0
+	 */
+	protected function enqueue_shortcode_css() {
+		$css_files = $this->get_shortcode_css_files();
+		if ( ! empty( $css_files ) ) {
+			foreach ( (array) $css_files as $css_file ) {
+				$this->enqueue_shortcode_styles( $css_file );
+			}
+		}
+	}
+
+	/**
+	 * Get CSS file names for this shortcode.
+	 *
+	 * @since 9.0
+	 * @return string|array
+	 */
+	public function get_shortcode_css_files() {
+		return $this->shortcode;
+	}
+
+	/**
+	 * Enqueue shortcode specific styles.
+	 *
+	 * @since 9.0
+	 * @param string $shortcode_name
+	 */
+	protected function enqueue_shortcode_styles( $shortcode_name ) {
+		// Allow frontend AJAX renders (e.g. grid data) to keep their styles (#4165).
+		if ( ! Vc_Css_Manager::should_load_optimized_css() || ( is_admin() && ! wp_doing_ajax() ) ) {
+			return;
+		}
+
+		$css_file = 'css/shortcodes/frontend/' . $shortcode_name . '.min.css';
+		$css_path = vc_path_dir( 'ASSETS_DIR', $css_file );
+
+		if ( file_exists( $css_path ) ) {
+			wp_enqueue_style( $shortcode_name . '_style', vc_asset_url( $css_file ), false, WPB_VC_VERSION );
 		}
 	}
 
@@ -810,13 +994,51 @@ abstract class WPBakeryShortCode {
 		$css_class = 'wpb_' . $this->settings['base'] . ' wpb_content_element ' . $sortable . '' . ( ! empty( $this->settings['class'] ) ? ' ' . $this->settings['class'] : '' );
 		$output .= '<div data-element_type="' . $this->settings['base'] . '" class="' . $css_class . '">';
 		$output .= str_replace( '%column_size%', wpb_translateColumnWidthToFractional( $width ), $column_controls );
-		$output .= $this->getCallbacks( $this->shortcode );
+		$output .= $this->getCallbacks();
 		$output .= '<div class="wpb_element_wrapper ' . $this->settings( 'wrapper_class' ) . '">';
 		$output .= '%wpb_element_content%';
 		$output .= '</div>';
 		$output .= '</div>';
 
 		return $output;
+	}
+
+	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) { // phpcs:ignore:Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		return [
+			'edit' => [
+				'title' => sprintf( esc_html__( 'Edit %s', 'js_composer' ), strtolower( $this->settings( 'name' ) ) ),
+				'classes' => 'column_edit',
+			],
+			'delete' => [
+				'title' => sprintf( esc_html__( 'Delete %s', 'js_composer' ), strtolower( $this->settings( 'name' ) ) ),
+				'classes' => 'column_delete',
+			],
+		];
+	}
+
+	/**
+	 * Get html list of column controls.
+	 *
+	 * @since 9.0
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_controls_html_list( $extended_css = '' ) {
+		$list = [];
+		foreach ( $this->get_column_control_settings( $extended_css ) as $slug => $settings ) {
+			$settings['slug'] = $slug;
+			$list[ $slug ] = str_replace( [ "\r", "\n" ], '', vc_get_template( 'editors/partials/backend_single_control.tpl.php', $settings ) );
+		}
+
+		return $list;
 	}
 
 	/**
@@ -834,14 +1056,13 @@ abstract class WPBakeryShortCode {
 		$controls_end = '</div>';
 
 		$controls_add = '';
-		$controls_edit = ' <a class="vc_control column_edit" href="javascript:;" title="' . sprintf( esc_attr__( 'Edit %s', 'js_composer' ), strtolower( $this->settings( 'name' ) ) ) . '"><span class="vc_icon"></span></a>';
-		$controls_delete = ' <a class="vc_control column_clone" href="javascript:;" title="' . sprintf( esc_attr__( 'Clone %s', 'js_composer' ), strtolower( $this->settings( 'name' ) ) ) . '"><span class="vc_icon"></span></a> <a class="column_delete" href="javascript:;" title="' . sprintf( esc_attr__( 'Delete %s', 'js_composer' ), strtolower( $this->settings( 'name' ) ) ) . '"><span class="vc_icon"></span></a>';
+		$control_list = $this->get_column_controls_html_list();
 
-		$column_controls_full = $controls_start . $controls_add . $controls_edit . $controls_delete . $controls_end;
-		$column_controls_size_delete = $controls_start . $controls_delete . $controls_end;
-		$column_controls_popup_delete = $controls_start . $controls_delete . $controls_end;
-		$column_controls_edit_popup_delete = $controls_start . $controls_edit . $controls_delete . $controls_end;
-		$column_controls_edit = $controls_start . $controls_edit . $controls_end;
+		$column_controls_full = $controls_start . $controls_add . $control_list['edit'] . $control_list['delete'] . $controls_end;
+		$column_controls_size_delete = $controls_start . $control_list['delete'] . $controls_end;
+		$column_controls_popup_delete = $controls_start . $control_list['delete'] . $controls_end;
+		$column_controls_edit_popup_delete = $controls_start . $control_list['edit'] . $control_list['delete'] . $controls_end;
+		$column_controls_edit = $controls_start . $control_list['edit'] . $controls_end;
 
 		$editAccess = vc_user_access_check_shortcode_edit( $this->shortcode );
 		$allAccess = vc_user_access_check_shortcode_all( $this->shortcode );
@@ -926,18 +1147,19 @@ abstract class WPBakeryShortCode {
 	/**
 	 * This will fire callbacks if they are defined in map.php
 	 *
-	 * @param string $id
-	 *
 	 * @return string
 	 */
-	public function getCallbacks( $id = '' ) { // phpcs:ignore:Generic.CodeAnalysis.UnusedFunctionParameter.Found
-
+	public function getCallbacks() {
 		$output = '';
 
 		if ( isset( $this->settings['js_callback'] ) ) {
 			foreach ( $this->settings['js_callback'] as $text_val => $val ) {
-				// TODO: name explain.
-				$output .= '<input type="hidden" class="wpb_vc_callback wpb_vc_' . esc_attr( $text_val ) . '_callback " name="' . esc_attr( $text_val ) . '" value="' . $val . '" />';
+				$output .= WPB_Form_Field_Hidden::get([
+					'name' => $text_val,
+					'value' => $val,
+					'classes' => 'wpb_vc_callback wpb_vc_' . $text_val . '_callback',
+					'is_value_escape' => false,
+				]);
 			}
 		}
 

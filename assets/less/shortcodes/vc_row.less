@@ -224,6 +224,7 @@
   }
 }
 
+// BC: legacy predefined gap classes.
 .vc_row {
   .vc_make-column-gap(1);
   .vc_make-column-gap(2);
@@ -236,6 +237,14 @@
   .vc_make-column-gap(25);
   .vc_make-column-gap(30);
   .vc_make-column-gap(35);
+}
+
+.vc_row.wpb_column-gap {
+  margin-left: ~"calc(-1 * (30px + var(--wpb-column-gap)) / 2)";
+  margin-right: ~"calc(-1 * (30px + var(--wpb-column-gap)) / 2)";
+  > .vc_column_container {
+    padding: ~"calc(var(--wpb-column-gap) / 2)";
+  }
 }
 
 .vc_column_container {

@@ -191,6 +191,7 @@
   display: block;
   margin-bottom: @vc_margin_bottom_gold;
   max-width: 100%;
+  // inline B.C state prior to 9.0
   &.vc_btn3-inline {
     display: inline-block;
     vertical-align: top;
@@ -648,7 +649,7 @@
   }
 }
 
-// make colors set
+// make colors set depricated since 9.0 version and should be removed later
 .vc-btn3-make-colors-set(@selector; @text; @background; @gradient-end;  @gradient; @contrast-color) {
   &.@{selector} {
     // Flat (default)

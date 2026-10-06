@@ -5,21 +5,15 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_gitem_animated_block.php
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var string $content - shortcode content
+ * @var array $atts
+ * @var WPBakeryShortCode_Vc_Gitem_Animated_Block $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
-/**
- * Shortcode attributes
- *
- * @var $atts
- * @var $css
- * @var $animation
- * @var $content - shortcode content
- * Shortcode class
- * @var WPBakeryShortCode_Vc_Gitem_Animated_Block $this
- */
 $css = $animation = $animation_attr = '';
 
 extract( shortcode_atts( [
@@ -27,6 +21,13 @@ extract( shortcode_atts( [
 	// unmapped.
 	'animation' => '',
 ], $atts ) );
+
+/**
+ * Extracted variables.
+ *
+ * @var string $css
+ * @var string $animation
+ */
 
 $css_style = '';
 $css_class = 'vc_gitem-animated-block ' . vc_shortcode_custom_css_class( $css, ' ' );
@@ -38,7 +39,7 @@ if ( ! empty( $animation ) ) {
 }
 
 $output = '';
-$output .= '<div class="' . trim( esc_attr( $css_class ) ) . '" ' . $animation_attr . ( empty( $css_style ) ? '' : ' style="' . esc_attr( $css_style ) . '"' ) . '>';
+$output .= '<div class="' . trim( esc_attr( $css_class ) ) . '" ' . $animation_attr . ( ! $css_style ? '' : ' style="' . esc_attr( $css_style ) . '"' ) . '>';
 $output .= do_shortcode( $content );
 $output .= '</div>';
 

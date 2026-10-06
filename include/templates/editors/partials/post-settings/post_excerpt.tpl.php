@@ -14,7 +14,7 @@ $excerpt = $post->post_excerpt;
 
 <div class="vc_col-sm-12 vc_column" id="vc_settings-post_excerpt">
 	<div class="wpb_settings-title">
-		<div class="wpb_element_label"><?php esc_html_e( 'Excerpt', 'js_composer' ); ?></div>
+		<label for="vc_post_excerpt" class="wpb_element_label"><?php esc_html_e( 'Excerpt', 'js_composer' ); ?></label>
 		<?php
 			vc_include_template( 'editors/partials/param-info.tpl.php', [ 'description' => sprintf( esc_html__( 'Add a summary of the current %s content (Note: if left blank, the first few lines of the content will be used automatically)', 'js_composer' ), esc_html( get_post_type() ) ) ] );
 		?>
@@ -26,6 +26,13 @@ $excerpt = $post->post_excerpt;
 		}
 		?>
 
-		<textarea name="post_excerpt" class="wpb_vc_param_value wpb-textarea textarea vc_post_excerpt" id="vc_post_excerpt"><?php echo esc_attr( $excerpt ); ?></textarea>
+<?php
+		WPB_Form_Field_Textarea::render( [
+			'id'    => 'vc_post_excerpt',
+			'name'  => 'post_excerpt',
+			'value' => $excerpt,
+			'class' => 'wpb_vc_param_value wpb-textarea textarea vc_post_excerpt',
+		] );
+		?>
 	</div>
 </div>

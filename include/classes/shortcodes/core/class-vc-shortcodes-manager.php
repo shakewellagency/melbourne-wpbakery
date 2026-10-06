@@ -2,8 +2,7 @@
 /**
  * Shortcodes Manager.
  *
- * @package WPBakery
- * @noinspection PhpIncludeInspection
+ * @var Vc_Manager $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

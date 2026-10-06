@@ -9,8 +9,54 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
+$params = [
+	[
+		'type' => 'dropdown',
+		'param_name' => 'tab_position',
+		'value' => [
+			esc_html__( 'Top', 'js_composer' ) => 'top',
+			esc_html__( 'Bottom', 'js_composer' ) => 'bottom',
+		],
+		'std' => 'top',
+		'heading' => esc_html__( 'Toggle position', 'js_composer' ),
+		'description' => esc_html__( 'Select pageable navigation position.', 'js_composer' ),
+	],
+	[
+		'type' => 'colorpicker',
+		'value' => '#5188F1',
+		'heading' => esc_html__( 'Active color', 'js_composer' ),
+		'param_name' => 'color',
+		'description' => esc_html__( 'Select custom toggle color.', 'js_composer' ),
+		'edit_field_class' => 'vc_col-xs-6',
+	],
+	[
+		'type' => 'colorpicker',
+		'value' => '#898989',
+		'heading' => esc_html__( 'Inactive color', 'js_composer' ),
+		'param_name' => 'hover_color',
+		'description' => esc_html__( 'Select custom toggle hover color.', 'js_composer' ),
+		'edit_field_class' => 'vc_col-xs-6',
+	],
+	[
+		'type' => 'hidden',
+		'param_name' => 'no_fill_content_area',
+		'std' => true,
+	],
+	// we need this hidden values cos we use pagination when switch container with toggle.
+	[
+		'type' => 'hidden',
+		'param_name' => 'active_section',
+		'value' => 1,
+	],
+	[
+		'type' => 'hidden',
+		'param_name' => 'pagination_style',
+		'value' => 'outline-square',
+	],
+];
+
 return [
-	'name' => esc_html__( 'Toggle Container', 'js_composer' ),
+	'name' => esc_html__( 'Toggle container', 'js_composer' ),
 	'base' => 'vc_tta_toggle',
 	'icon' => 'icon-wpb-tta-toggle',
 	'is_container' => true,
@@ -20,73 +66,6 @@ return [
 	],
 	'category' => esc_html__( 'Content', 'js_composer' ),
 	'description' => esc_html__( 'Pageable content container', 'js_composer' ),
-
-	'params' => array_merge(
-		[
-			[
-				'type' => 'colorpicker',
-				'value' => '#5188F1',
-				'heading' => esc_html__( 'On color', 'js_composer' ),
-				'param_name' => 'color',
-				'description' => esc_html__( 'Select custom toggle color.', 'js_composer' ),
-			],
-			[
-				'type' => 'colorpicker',
-				'value' => '#898989',
-				'heading' => esc_html__( 'Off color', 'js_composer' ),
-				'param_name' => 'hover_color',
-				'description' => esc_html__( 'Select custom toggle hover color.', 'js_composer' ),
-			],
-			[
-				'type' => 'dropdown',
-				'param_name' => 'tab_position',
-				'value' => [
-					esc_html__( 'Top', 'js_composer' ) => 'top',
-					esc_html__( 'Bottom', 'js_composer' ) => 'bottom',
-				],
-				'std' => 'top',
-				'heading' => esc_html__( 'Toggle position', 'js_composer' ),
-				'description' => esc_html__( 'Select pageable navigation position.', 'js_composer' ),
-			],
-			[
-				'type' => 'hidden',
-				'param_name' => 'no_fill_content_area',
-				'std' => true,
-			],
-			// we need this hidden values cos we use pagination when switch container with toggle.
-			[
-				'type' => 'hidden',
-				'param_name' => 'active_section',
-				'value' => 1,
-			],
-			[
-				'type' => 'hidden',
-				'param_name' => 'pagination_style',
-				'value' => 'outline-square',
-			],
-		],
-		[
-			vc_map_add_css_animation(),
-			[
-				'type' => 'el_id',
-				'heading' => esc_html__( 'Element ID', 'js_composer' ),
-				'param_name' => 'el_id',
-				'description' => sprintf( esc_html__( 'Enter element ID (Note: make sure it is unique and valid according to %1$sw3c specification%2$s).', 'js_composer' ), '<a href="https://www.w3schools.com/tags/att_global_id.asp" target="_blank">', '</a>' ),
-			],
-			[
-				'type' => 'textfield',
-				'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-				'param_name' => 'el_class',
-				'description' => esc_html__( 'If you wish to style particular content element differently, then use this field to add a class name and then refer to it in your css file.', 'js_composer' ),
-			],
-			[
-				'type' => 'css_editor',
-				'heading' => esc_html__( 'CSS box', 'js_composer' ),
-				'param_name' => 'css',
-				'group' => esc_html__( 'Design Options', 'js_composer' ),
-			],
-		]
-	),
 	'js_view' => 'VcBackendTtaPageableView',
 	'custom_markup' => '
 <div class="vc_tta-container vc_tta-o-non-responsive" data-vc-action="collapse">
@@ -105,4 +84,5 @@ return [
 	'admin_enqueue_js' => [
 		vc_asset_url( 'lib/vc/vc_tabs/vc-tabs.min.js' ),
 	],
+	'params' => vc_config()->merge_default_params( $params ),
 ];

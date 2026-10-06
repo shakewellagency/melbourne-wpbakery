@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function vc_vc_grid_item_form_field( $settings, $value ) {
 	require_once vc_path_dir( 'PARAMS_DIR', 'vc_grid_item/editor/class-vc-grid-item-editor.php' );
 	require_once vc_path_dir( 'PARAMS_DIR', 'vc_grid_item/class-vc-grid-item.php' );
-	$output = '<div data-vc-grid-element="container"><select data-vc-grid-element="value" type="hidden" name="' . esc_attr( $settings['param_name'] ) . '" class="wpb_vc_param_value wpb-select ' . esc_attr( $settings['param_name'] ) . ' ' . esc_attr( $settings['type'] ) . '_field">';
+	$output = '<div data-vc-grid-element="container"><select data-vc-grid-element="value" type="hidden" name="' . esc_attr( $settings['param_name'] ) . '" class="wpb_vc_param_value wpb-form-select ' . esc_attr( $settings['param_name'] ) . ' ' . esc_attr( $settings['type'] ) . '_field">';
 	$vc_grid_item_templates = Vc_Grid_Item::predefinedTemplates();
 	if ( is_array( $vc_grid_item_templates ) ) {
 		foreach ( $vc_grid_item_templates as $key => $data ) {

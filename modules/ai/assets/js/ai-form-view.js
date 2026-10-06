@@ -324,7 +324,7 @@
 		},
 
 		showErrorMessage: function ( message ) {
-			window.vc.showMessage( message, 'error', 10000, '#vc_ui-helper-modal-ai .vc_ui-panel-window-inner' );
+			window.wpbNotifications.show( message, { type: 'error' });
 		},
 
 		insertContent: function () {
@@ -437,7 +437,7 @@
 			}
 			try {
 				window.vc.utils.copyTextToClipboard( content );
-				vc.showMessage( this.getLocale().copied, 'success', 2000, '#vc_ui-helper-modal-ai .vc_ui-panel-window-inner' );
+				window.wpbNotifications.show( this.getLocale().copied, { timeout: 2000 });
 			} catch ( error ) {
 				console.error( 'Unable to copy content:', error );
 			}

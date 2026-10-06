@@ -70,9 +70,16 @@
     }
   }
 
+  .wpb-content-layouts-title {
+    color: @textGray;
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0.33em 0;
+  }
+
   .wpb-content-layouts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, 129px);
+    grid-template-columns: repeat(auto-fit, 120px);
     gap: 8px;
     padding: 0;
     margin: 0;
@@ -88,7 +95,7 @@
       font-family: Roboto;
 
       &:hover {
-        background: #F0F0F1;
+        background: #F5F5F5;
       }
     }
 
@@ -103,27 +110,20 @@
       text-decoration: none;
       font-weight: bold;
       text-align: center;
+      font-family: @wpb_font-family-primary;
       height: 100%;
 
       &:hover {
         box-shadow: none; // WP themes fix
       }
-      .vc_element-description {
-        display: block;
-        position: relative;
-        background-color: transparent;
-        margin-top: 4px;
-        font-size: 14px;
-        font-style: italic;
-        font-weight: 500;
-        line-height: 16px;
-        text-align: center;
-        color: #B6B6B6;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 5;
-        overflow: hidden;
-      }
+    }
+
+    .wpb-element-title {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 18px;
+      color: @textGray;
     }
 
     .vc_visible {
@@ -136,7 +136,7 @@
   }
 
   .vc_element-icon {
-    margin-bottom: 24px;
+    margin-bottom: 15px;
   }
 }
 

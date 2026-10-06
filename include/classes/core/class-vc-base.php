@@ -95,7 +95,23 @@ class Vc_Base {
 		} else {
 			$this->initPage();
 		}
+
+		$this->initTemplateAttributesMigration();
+
 		do_action( 'vc_after_init_base' );
+	}
+
+	/**
+	 * Register runtime template attribute migrations.
+	 *
+	 * Runs in both admin and frontend so legacy attributes are migrated for all renders.
+	 *
+	 * @since 9.0
+	 */
+	public function initTemplateAttributesMigration() {
+		require_once vc_path_dir( 'MIGRATIONS_DIR', 'class-wpb-template-attributes-migration.php' );
+		$atts_migration = new Wpb_Template_Attributes_Migration();
+		$atts_migration->init();
 	}
 
 	/**
@@ -476,7 +492,7 @@ class Vc_Base {
 	 *
 	 * @param int $id
 	 *
-	 * @depreacted 7.7
+	 * @deprecated 7.7
 	 */
 	public function addFrontCss( $id = null ) {
 		_deprecated_function( __METHOD__, '7.6', 'Vc_Base::addShortcodesCss' );
@@ -614,7 +630,7 @@ class Vc_Base {
 		wp_register_style( 'vc_font_awesome_6', vc_asset_url( 'lib/vendor/dist/@fortawesome/fontawesome-free/css/all.min.css' ), [ 'vc_font_awesome_5_shims' ], WPB_VC_VERSION );
 		wp_register_style( 'vc_animate-css', vc_asset_url( 'lib/vendor/dist/animate.css/animate.min.css' ), [], WPB_VC_VERSION );
 		wp_register_style( 'lightbox2', vc_asset_url( 'lib/vendor/dist/lightbox2/dist/css/lightbox.min.css' ), [], WPB_VC_VERSION );
-		$front_css_file = vc_asset_url( 'css/js_composer.min.css' );
+		$front_css_file = Vc_Css_Manager::get_frontend_css_file();
 
 		wp_register_style( 'js_composer_front', $front_css_file, [], WPB_VC_VERSION );
 
@@ -829,7 +845,7 @@ class Vc_Base {
 			// vc_welcome for a frontend editor
 			// then wrap with '<div>'.
 			if ( preg_match( '/vc_row/', $content ) || preg_match( '/vc_welcome/', $content ) ) {
-				$content = '<div class="wpb-content-wrapper">' . $content . '</div>';
+				$content = '<div class="wpb-content-wrapper" id="wpb-content-root">' . $content . '</div>';
 			}
 		}
 
@@ -908,15 +924,15 @@ class Vc_Base {
 			'template_removed' => esc_html__( 'Template successfully removed.', 'js_composer' ),
 			'template_is_empty' => esc_html__( 'Template is empty: There is no content to be saved as a template.', 'js_composer' ),
 			'template_save_error' => esc_html__( 'Error while saving template.', 'js_composer' ),
-			'page_settings_updated' => esc_html__( 'Page settings updated!', 'js_composer' ),
+			'page_settings_updated' => sprintf( esc_html__( '%s settings updated!', 'js_composer' ), wpb_get_post_type_noun() ),
 			'custom_code_updated' => esc_html__( 'Custom CSS/JS updated!', 'js_composer' ),
 			'seo_settings_updated' => esc_html__( 'SEO settings updated!', 'js_composer' ),
 			'update_all' => esc_html__( 'Update all', 'js_composer' ),
 			'confirm_to_leave' => esc_html__( 'The changes you made will be lost if you navigate away from this page.', 'js_composer' ),
-			'inline_element_saved' => esc_html__( '%s saved!', 'js_composer' ),
+			'inline_element_saved' => esc_html__( '%s saved.', 'js_composer' ),
 			'inline_element_deleted' => esc_html__( '%s deleted!', 'js_composer' ),
             // phpcs:ignore
-			'inline_element_cloned' => sprintf( __( '%%1$s cloned. %2$sEdit now?%s', 'js_composer' ), '<a href="#" class="vc_edit-cloned" data-model-id="%s">', '</a>' ),
+			'inline_element_cloned' => sprintf( __( '%%s cloned. %2$sEdit now?%1$s', 'js_composer' ), '</a>', '<a href="#" class="vc_edit-cloned" data-model-id="%s">' ),
 			'gfonts_loading_google_font_failed' => esc_html__( 'Loading font failed', 'js_composer' ),
 			'gfonts_loading_google_font' => esc_html__( 'Loading Font...', 'js_composer' ),
 			'gfonts_unable_to_load_google_fonts' => esc_html__( 'Unable to load Google Fonts', 'js_composer' ),
@@ -927,11 +943,11 @@ class Vc_Base {
 			'ui_saved' => sprintf( '<i class="vc-composer-icon vc-c-icon-check"></i> %s', esc_html__( 'Saved!', 'js_composer' ) ),
 			'ui_danger' => sprintf( '<i class="vc-composer-icon vc-c-icon-close"></i> %s', esc_html__( 'Failed to Save!', 'js_composer' ) ),
 			'delete_preset_confirmation' => esc_html__( 'You are about to delete this preset. This action can not be undone.', 'js_composer' ),
-			'ui_template_downloaded' => esc_html__( 'Downloaded', 'js_composer' ),
+			'ui_template_downloaded' => esc_html__( 'Template downloaded', 'js_composer' ),
 			'ui_template_update' => esc_html__( 'Update', 'js_composer' ),
 			'ui_templates_failed_to_download' => esc_html__( 'Failed to download template', 'js_composer' ),
 			'preset_removed' => esc_html__( 'Element successfully removed.', 'js_composer' ),
-			'vc_successfully_updated' => esc_html__( 'Successfully updated!', 'js_composer' ),
+			'vc_successfully_updated' => esc_html__( 'Successfully updated.', 'js_composer' ),
 			'gutenbergDoesntWorkProperly' => esc_html__( 'Gutenberg plugin doesn\'t work properly. Please check Gutenberg plugin.', 'js_composer' ),
 			'unfiltered_html_access' => esc_html__( 'Custom HTML is disabled for your user role. Please contact your site Administrator to change your capabilities.', 'js_composer' ),
 			'not_editable_post' => sprintf(
@@ -990,13 +1006,13 @@ class Vc_Base {
 			'consecutiveSentencesSuccess' => esc_html__( 'There is enough variety in your sentences. That\'s great!', 'js_composer' ),
 			'consecutiveSentencesFail' => esc_html__( 'The text contains %1$s consecutive sentences starting with the same word.', 'js_composer' ),
 			'passiveVoice' => esc_html__( 'Passive voice', 'js_composer' ),
-			'passiveVoiceError' => esc_html__( '%s of the sentences contain passive voice, which is more than the recommended maximum of 10%', 'js_composer' ),
+			'passiveVoiceError' => esc_html__( '%s of the sentences contain passive voice, which is more than the recommended maximum of 10%%', 'js_composer' ),
 			'passiveVoiceSuccess' => esc_html__( 'You\'re using enough active voice. That\'s great!', 'js_composer' ),
 			'paragraphLength' => esc_html__( 'Paragraph length', 'js_composer' ),
 			'paragraphLengthError' => esc_html__( '%s of the paragraphs contains more than the recommended maximum of 150 words.', 'js_composer' ),
 			'paragraphLengthSuccess' => esc_html__( 'None of the paragraphs are too long. Great job!', 'js_composer' ),
 			'sentenceLength' => esc_html__( 'Sentence length', 'js_composer' ),
-			'sentenceLengthError' => esc_html__( '%s%% of the sentences contain more than 20 words, which is more than the recommended maximum of 25%.', 'js_composer' ),
+			'sentenceLengthError' => esc_html__( '%s%% of the sentences contain more than 20 words, which is more than the recommended maximum of 25%%.', 'js_composer' ),
 			'subheadingDistribution' => esc_html__( 'Subheading distribution', 'js_composer' ),
 			'subheadingDistributionFail' => esc_html__( 'You are not using any subheadings, although your text is rather long. Try and add some subheadings.', 'js_composer' ),
 			'subheadingDistributionWarn' => esc_html__( '%s section of your text is longer than 300 words and is not separated by any subheadings. Add subheadings to improve readability.', 'js_composer' ),
@@ -1008,6 +1024,16 @@ class Vc_Base {
 			'post_title' => esc_html__( '%s title', 'js_composer' ),
 			'edit' => esc_html__( 'Edit', 'js_composer' ),
 			'preview_error' => esc_html__( 'An error occurred while generating the preview. ', 'js_composer' ),
+			'category_add_error' => esc_html__( 'There was an error while creating a category - please try again. ', 'js_composer' ),
+			'add_new' => esc_html__( 'Add new...', 'js_composer' ),
+			'upload' => esc_html__( 'Upload', 'js_composer' ),
+			'remove' => esc_html__( 'Remove', 'js_composer' ),
+			'upload_files' => esc_html__( 'Upload Files', 'js_composer' ),
+			'reorder' => esc_html__( 'Reorder', 'js_composer' ),
+			'wpb_link_press_enter' => esc_html__( 'Press ENTER to add this link', 'js_composer' ),
+			'wpb_link_type_link' => esc_html__( 'Link', 'js_composer' ),
+			'wpb_link_invalid_url' => esc_html__( 'This is not a valid URL', 'js_composer' ),
+			'wpb_no_results' => esc_html__( 'No results found', 'js_composer' ),
 		]);
 	}
 

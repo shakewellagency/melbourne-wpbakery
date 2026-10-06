@@ -10,7 +10,7 @@
 ?>
 
 <div class="vc_ui-settings-text-wrapper">
-	<p>
+	<p class="wpb-code-editor-tag">
 		&lt;script&gt;
 	</p>
 	<?php
@@ -19,12 +19,25 @@
 	}
 	?>
 </div>
-<textarea name="<?php echo esc_attr( $field_prefix ); ?>custom_js_<?php echo esc_attr( $area ); ?>" class="wpb_code_editor custom_code" data-code-type="html" style="display:none"><?php echo esc_textarea( $value ); ?></textarea>
-<pre id="wpb_js_<?php echo esc_attr( $area ); ?>_editor" class="wpb_content_element custom_code" data-ace-location="plugin-settings">
-	<?php
-	echo esc_textarea( $value );
-	?>
-</pre>
-<p>
+<?php
+WPB_Form_Field_Textarea::render( [
+	'name'            => $field_prefix . 'custom_js_' . $area,
+	'value'           => $value,
+	'class'           => 'wpb_code_editor custom_code',
+	'style'           => 'display:none',
+	'data_attributes' => [
+		'code-type' => 'html',
+	],
+] );
+WPB_Form_Field_Textarea_Ace::render([
+	'id' => 'wpb_js_' . $area . '_editor',
+	'classes' => 'wpb_content_element',
+	'decoded_value' => $value,
+	'data_attributes' => [
+		'ace-location' => 'plugin-settings',
+	],
+]);
+?>
+<p class="wpb-code-editor-tag">
 	&lt;/script&gt;
 </p>

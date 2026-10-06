@@ -4,9 +4,12 @@
  *
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_googleplus.php
  *
- * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ * @note For a frontend editor this element uses $this::contentInline() method to output template.
  *
- * @depecated
+ * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ * @see WPBakeryShortCode_Vc_GooglePlus::contentInline()
+ *
+ * @deprecated
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,14 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $type
- * @var $el_class
- * @var $el_id
- * @var $annotation
- * @var $widget_width
- * @var $css
- * @var $css_animation
+ * @var array $atts
+ * @var string $type
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $annotation
+ * @var string $widget_width
+ * @var string $css
+ * @var string $css_animation
  * Shortcode class
  * @var WPBakeryShortCode_Vc_GooglePlus $this
  */
@@ -47,7 +50,7 @@ if ( 'inline' === $annotation && strlen( $widget_width ) > 0 ) {
 
 $class_to_filter = 'wpb_googleplus wpb_content_element wpb_googleplus_type_' . $type . ' vc_googleplus-annotation-' . $annotation . $this->getCSSAnimation( $css_animation ) . $this->getExtraClass( $el_class );
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->getSettings()['base'], $atts );
 $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {
 	$wrapper_attributes[] = 'id="' . esc_attr( $el_id ) . '"';

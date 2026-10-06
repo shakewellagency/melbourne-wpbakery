@@ -14,15 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
+ * @var array $atts
+ * @var string $css_class
+ * @var string $content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Gitem_Post_Data $this
  */
-$output = $text = $google_fonts = $font_container = $el_class = $css = $link_html = '';
+$output = $text = $google_fonts = $font_container = $el_class = $css = $link_html = $color = $text_align = '';
 $font_container_data = [];
 $google_fonts_data = [];
 extract( $this->getAttributes( $atts ) );
 
+$font_container_data['values']['color'] = $color;
+$font_container_data['values']['text_align'] = $text_align;
 extract( $this->getStyles( $el_class, $css, $google_fonts_data, $font_container_data, $atts ) );
 
 $data_source = $this->getDataSource( $atts );

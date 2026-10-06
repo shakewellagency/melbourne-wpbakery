@@ -117,6 +117,7 @@ class Wpb_Acf_Provider {
 				'value' => $fields_param_value,
 				'save_always' => true,
 				'description' => esc_html__( 'Choose field from group.', 'js_composer' ),
+				'edit_field_class' => 'vc_col-xs-6',
 				'dependency' => [
 					'element' => 'field_group',
 					'value' => [ (string) $group[ $id ] ],
@@ -138,41 +139,36 @@ class Wpb_Acf_Provider {
 	 */
 	public function get_shortcode_params() {
 		$groups = $this->get_field_groups();
-		return array_merge( [
+		return array_merge(
 			[
-				'type' => 'dropdown',
-				'heading' => esc_html__( 'Field group', 'js_composer' ),
-				'param_name' => 'field_group',
-				'value' => $groups['groups_param_values'],
-				'save_always' => true,
-				'description' => esc_html__( 'Select field group.', 'js_composer' ),
-			],
-		], $groups['fields_params'], [
-			[
-				'type' => 'checkbox',
-				'heading' => esc_html__( 'Show label', 'js_composer' ),
-				'param_name' => 'show_label',
-				'value' => [ esc_html__( 'Yes', 'js_composer' ) => 'yes' ],
-				'description' => esc_html__( 'Enter label to display before key value.', 'js_composer' ),
-			],
-			[
-				'type' => 'dropdown',
-				'heading' => esc_html__( 'Align', 'js_composer' ),
-				'param_name' => 'align',
-				'value' => [
-					esc_attr__( 'left', 'js_composer' ) => 'left',
-					esc_attr__( 'right', 'js_composer' ) => 'right',
-					esc_attr__( 'center', 'js_composer' ) => 'center',
-					esc_attr__( 'justify', 'js_composer' ) => 'justify',
+				[
+					'type' => 'dropdown',
+					'heading' => esc_html__( 'Field group', 'js_composer' ),
+					'param_name' => 'field_group',
+					'value' => $groups['groups_param_values'],
+					'save_always' => true,
+					'description' => esc_html__( 'Select field group.', 'js_composer' ),
+					'edit_field_class' => 'vc_col-xs-6',
 				],
-				'description' => esc_html__( 'Select alignment.', 'js_composer' ),
 			],
+			$groups['fields_params'],
 			[
-				'type' => 'textfield',
-				'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-				'param_name' => 'el_class',
-				'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
+				[
+					'type' => 'button_group',
+					'heading' => esc_html__( 'Alignment', 'js_composer' ),
+					'param_name' => 'align',
+					'value' => vc_config()->get_text_align_param_value(),
+					'std' => 'left',
+					'description' => esc_html__( 'Select alignment.', 'js_composer' ),
+				],
+				[
+					'type' => 'toggle',
+					'heading' => esc_html__( 'Show label', 'js_composer' ),
+					'param_name' => 'show_label',
+					'description' => esc_html__( 'Enter label to display before key value.', 'js_composer' ),
+				],
 			],
-		] );
+			vc_config()->get_general_advanced_settings()
+		);
 	}
 }

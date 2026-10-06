@@ -41,7 +41,7 @@ class Vc_Gitem_Acf_Shortcode extends WPBakeryShortCode {
 		if ( ! empty( $field_group ) ) {
 			$field_key = ! empty( $atts[ 'field_from_' . $field_group ] ) ? $atts[ 'field_from_' . $field_group ] : 'field_from_group_' . $field_group;
 		}
-		if ( 'yes' === $show_label && $field_key ) {
+		if ( in_array( $show_label, [ 'yes', 'true' ], true ) && $field_key ) {
 			$field_key .= '_labeled';
 		}
 		$css_class = 'vc_gitem-acf' . ( strlen( $el_class ) ? ' ' . $el_class : '' ) . ( strlen( $align ) ? ' vc_gitem-align-' . $align : '' ) . ( strlen( $field_key ) ? ' ' . $field_key : '' );

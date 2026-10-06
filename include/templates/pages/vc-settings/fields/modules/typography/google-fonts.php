@@ -10,5 +10,5 @@
 		'description' => esc_html__( 'Synchronize Google Fonts to update the font list with the latest fonts from Google.', 'js_composer' ),
 	] );
 	?>
-	<a href="#" class="button" id="vc_synchronize_google_fonts_button"><?php esc_html_e( 'Synchronize', 'js_composer' ); ?></a>
+	<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_ui-button-with-spinner" id="vc_synchronize_google_fonts_button"><span class="vc_ui-button-label"><?php esc_html_e( 'Synchronize', 'js_composer' ); ?></span></a>
 </div>

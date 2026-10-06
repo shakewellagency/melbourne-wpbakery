@@ -28,7 +28,9 @@ $image_src = esc_url( $image_src );
 
 $align = 'vc-hoverbox-align--' . esc_attr( $atts['align'] );
 $shape = 'vc-hoverbox-shape--' . esc_attr( $atts['shape'] );
-$width = 'vc-hoverbox-width--' . esc_attr( $atts['el_width'] );
+$width = ctype_digit( $atts['el_width'] ) ? $atts['el_width'] . '%' : $atts['el_width'];
+$style = 'style="width:' . esc_attr( $width ) . '"';
+
 $reverse = 'vc-hoverbox-direction--default';
 if ( ! empty( $atts['reverse'] ) ) {
 	$reverse = 'vc-hoverbox-direction--reverse';
@@ -39,15 +41,10 @@ if ( ! empty( $atts['el_id'] ) ) {
 }
 
 $class_to_filter = vc_shortcode_custom_css_class( $atts['css'], ' ' ) . $this->getExtraClass( $atts['el_class'] ) . $this->getCSSAnimation( $atts['css_animation'] );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->getSettings()['base'], $atts );
 $css_class = esc_attr( $css_class );
 
-// Hover Background color.
-if ( 'custom' !== $atts['hover_background_color'] ) {
-	$hover_background_color = vc_convert_vc_color( $atts['hover_background_color'] );
-} else {
-	$hover_background_color = esc_attr( $atts['hover_custom_background'] );
-}
+$hover_background_color = $atts['hover_custom_background'] ?: '#EBEBEB';
 
 $primary_title = wp_kses_post( $this->getHeading( 'primary_title', $atts, $atts['primary_align'] ) );
 $hover_title = wp_kses_post( $this->getHeading( 'hover_title', $atts, $atts['hover_align'] ) );
@@ -58,8 +55,8 @@ if ( $atts['hover_add_button'] ) {
 	$button = $this->renderButton( $atts );
 }
 $template = <<<HTML
-<div class="vc-hoverbox-wrapper $css_class $shape $align $reverse $width" $id ontouchstart="">
-  <div class="vc-hoverbox">
+<div class="vc-hoverbox-wrapper $css_class $shape $align $reverse" $id ontouchstart="">
+  <div class="vc-hoverbox" $style>
     <div class="vc-hoverbox-inner">
       <div class="vc-hoverbox-block vc-hoverbox-front" style="background-image: url($image_src);">
         <div class="vc-hoverbox-block-inner vc-hoverbox-front-inner">

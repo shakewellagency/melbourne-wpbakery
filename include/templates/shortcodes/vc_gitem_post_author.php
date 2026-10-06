@@ -5,25 +5,31 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_gitem_post_author.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
+ * @var string $output
+ *  Shortcode class
+ * @var WPBakeryShortCode_Vc_Gitem_Post_Author $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-/**
- * Shortcode attributes
- *
- * @var $atts
- * Shortcode class
- * @var WPBakeryShortCode_Vc_Gitem_Post_Author $this
- */
-
 $atts = $this->getAttributes( $atts );
-
-$styles = $this->getStyles( $atts['el_class'], $atts['css'], $atts['google_fonts_data'], $atts['font_container_data'], $atts );
 $google_fonts_data = [];
+/**
+ * Extract.
+ *
+ * @var string $color
+ * @var string $text_align
+ */
 extract( $this->getAttributes( $atts ) );
+
+$font_container_data['values']['color'] = $color;
+$font_container_data['values']['text_align'] = $text_align;
+
+$styles = $this->getStyles( $atts['el_class'], $atts['css'], $atts['google_fonts_data'], $font_container_data, $atts );
 if ( ! empty( $atts['link'] ) ) {
 	$atts['link'] = 'post_author';
 	$link_html = vc_gitem_create_link( $atts );
@@ -51,7 +57,7 @@ $style = '';
 if ( ! empty( $styles['styles'] ) ) {
 	$style = 'style="' . esc_attr( implode( ';', $styles['styles'] ) ) . '"';
 }
-$tag = tag_escape( $atts['font_container_data']['values']['tag'] );
+$tag = tag_escape( $font_container_data['values']['tag'] );
 $output .= '<' . $tag . ' ' . $style . ' >';
 $output .= $content;
 $output .= '</' . $tag . '>';

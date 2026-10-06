@@ -39,7 +39,7 @@
 		iconCancelClass: 'fip-icon-cancel',       // Class for search canceling
 		iconSpinClass: 'fip-icon-spin3',        // Class for fip-icon-spin3
 		iconBlockClass: 'fip-icon-block',        // Class for block(none icon)
-		searchPlaceholder: 'Search Icon',            // Search icon text placeholder
+		searchPlaceholder: 'Search icon',            // Search icon text placeholder
 		mainClass: 'vc-icons-selector'
 	};
 
@@ -74,12 +74,12 @@
 			'<div class="selector-footer" style="display:none;">' +
 			'<span class="selector-pages">1/2</span>' +
 			'<span class="selector-arrows">' +
-			'<span class="selector-arrow-left" style="display:none;">' +
+			'<button type="button" class="selector-arrow-left" style="display:none;" aria-label="Previous page" title="Previous page">' +
 			'<i class="' + this.settings.iconLeftClass + '"></i>' +
-			'</span>' +
-			'<span class="selector-arrow-right">' +
+			'</button>' +
+			'<button type="button" class="selector-arrow-right" aria-label="Next page" title="Next page">' +
 			'<i class="' + this.settings.iconRightClass + '"></i>' +
-			'</span>' +
+			'</button>' +
 			'</span>' +
 			'</div>' +
 			'</div>'
@@ -860,7 +860,7 @@
 			}
 
 			// Set the text for page number index and total icons
-			this.iconPicker.find( '.selector-pages' ).html( this.currentPage + '/' + this.totalPage + ' <em>(' + this.iconsCount + ')</em>' );
+			this.iconPicker.find( '.selector-pages' ).html( this.currentPage + '/' + this.totalPage + ' (' + this.iconsCount + ')' );
 
 			// Set the offset for slice
 			offset = (this.currentPage - 1) * this.settings.iconsPerPage;

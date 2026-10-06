@@ -19,23 +19,22 @@ if ( '0' === $featured_image ) {
 
 <div class="vc_col-sm-12 vc_column wpb_el_type_attach_image vc_wrapper-param-type-attach_image" id="vc_settings-featured-image">
 	<div class="wpb_settings-title">
-		<div class="wpb_element_label"><?php esc_html_e( 'Featured image', 'js_composer' ); ?></div>
+		<label for="vc_featured_image" class="wpb_element_label"><?php esc_html_e( 'Featured image', 'js_composer' ); ?></label>
 	</div>
 	<div class="edit_form_line">
 		<?php
 		$param_value = wpb_removeNotExistingImgIDs( $featured_image );
 
-		vc_include_template( 'params/attache_images/template.php', [
-			'settings' => [
-				'param_name' => 'featured_image',
-				'type' => 'attach_image',
+		WPB_Form_Field_Attach_Image::render(
+			[
+				'param_value' => $param_value,
+				'image_id'    => $param_value,
+				'thumb_src' => wpb_get_image_thumb( $featured_image, 'medium' ),
+				'name' => 'featured_image',
 				'id' => 'vc_featured_image',
-			],
-			'value' => $featured_image,
-			'tag' => '',
-			'single' => true,
-			'param_value' => $param_value,
-		] );
+				'classes' => wpbakery()->editForm()->get_value_control_classes( 'featured_image', 'attach_image' ),
+			]
+		);
 		?>
 	</div>
 </div>

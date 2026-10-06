@@ -552,21 +552,22 @@
 	 * Accordion type: dropdown
 	 */
 	Accordion.prototype.dropdown = function ( opt ) {
-		var $this;
-		$this = this.$element;
+		const that = this;
+		const $target = that.getTarget();
 
-		if ( this.isActive() ) {
-			Plugin.call( $this, 'hide', opt );
+		if ( that.isActive() ) {
+			$target.removeClass( that.activeClass );
+			that.triggerEvent( 'hide.vc.accordion', opt );
+			$( document ).off( 'click.vc.accordion.data-api.dropdown' );
 		} else {
-			Plugin.call( $this, 'show', opt );
+			$target.addClass( that.activeClass );
+			that.triggerEvent( 'show.vc.accordion', opt );
 			$( document ).on( 'click.vc.accordion.data-api.dropdown', function ( e ) {
-				// Fix for https://app.asana.com/0/90442874619636/58756889349011
-				// var isTarget;
-				// isTarget = $( e.target ).closest( that.getTarget() ).length;
-				// if ( ! isTarget ) {
-				Plugin.call( $this, 'hide', opt );
-				$( document ).off( e );
-				// }
+				if ( ! $( e.target ).closest( $target ).length && ! $( e.target ).closest( that.$element ).length ) {
+					$target.removeClass( that.activeClass );
+					that.triggerEvent( 'hide.vc.accordion', opt );
+					$( document ).off( 'click.vc.accordion.data-api.dropdown' );
+				}
 			});
 		}
 	};

@@ -13,6 +13,7 @@ return [
 	'name' => esc_html__( 'Old Google Maps', 'js_composer' ),
 	'base' => 'vc_gmaps',
 	'deprecated' => '8.3',
+	'content_element' => false,
 	'icon' => 'icon-wpb-map-pin',
 	'element_default_class' => 'wpb_content_element',
 	'category' => esc_html__( 'Content', 'js_composer' ),
@@ -39,7 +40,7 @@ return [
 			'admin_label' => true,
 			'description' => esc_html__( 'Enter map height (in pixels or leave empty for responsive map).', 'js_composer' ),
 		],
-		vc_map_add_css_animation(),
+		vc_config()->get_css_animation(),
 		[
 			'type' => 'el_id',
 			'heading' => esc_html__( 'Element ID', 'js_composer' ),
@@ -54,9 +55,8 @@ return [
 		],
 		[
 			'type' => 'css_editor',
-			'heading' => esc_html__( 'CSS box', 'js_composer' ),
 			'param_name' => 'css',
-			'group' => esc_html__( 'Design Options', 'js_composer' ),
+			'group' => esc_html__( 'Design options', 'js_composer' ),
 			'value' => [
 				'margin-bottom' => '35px',
 			],

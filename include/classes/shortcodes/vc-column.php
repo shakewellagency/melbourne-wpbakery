@@ -41,6 +41,51 @@ class WPBakeryShortCode_VC_Column extends WPBakeryShortCode {
 	}
 
 	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) {
+		$settings = [
+			'edit'  => [
+				'classes' => 'column_edit vc_column-edit',
+				'title'   => __( 'Edit this column', 'js_composer' ),
+				'icon'    => 'vc-c-edit',
+			],
+			'paste' => [
+				'classes' => 'column_paste vc_column-paste',
+				'title'   => __( 'Paste', 'js_composer' ),
+				'icon'    => 'vc-c-icon-paste',
+			],
+			'delete' => [
+				'classes' => 'column_delete vc_column-delete',
+				'title'   => __( 'Delete this column', 'js_composer' ),
+				'icon'    => 'vc-c-trash',
+			],
+		];
+
+		if ( false !== strpos( $extended_css, 'bottom-controls' ) ) {
+			$control_title = __( 'Append to this column', 'js_composer' );
+		} else {
+			$control_title = __( 'Prepend to this column', 'js_composer' );
+		}
+		$add_icon = 'vc-c-add-circle';
+
+		if ( vc_user_access()->part( 'shortcodes' )->checkStateAny( true, 'custom', null )->get() ) {
+			$settings['add'] = [
+				'classes' => 'column_add vc_column-add',
+				'title' => $control_title,
+				'icon' => $add_icon,
+			];
+		}
+
+		return $settings;
+	}
+
+	/**
 	 * Attach element controls buttons to shortcode output in editor.
 	 *
 	 * @param mixed $controls
@@ -53,19 +98,12 @@ class WPBakeryShortCode_VC_Column extends WPBakeryShortCode {
 		$output = '<div class="vc_controls vc_control-column vc_controls-visible' . ( ! empty( $extended_css ) ? " {$extended_css}" : '' ) . '">';
 		$controls_end = '</div>';
 
-		if ( 'bottom-controls' === $extended_css ) {
-			$control_title = __( 'Append to this column', 'js_composer' );
-		} else {
-			$control_title = __( 'Prepend to this column', 'js_composer' );
-		}
-		if ( vc_user_access()->part( 'shortcodes' )->checkStateAny( true, 'custom', null )->get() ) {
-			$controls_add = '<a class="vc_control column_add vc_column-add" data-vc-control="add" href="#" title="' . $control_title . '"><i class="vc-composer-icon vc-c-icon-add"></i></a>';
-		} else {
-			$controls_add = '';
-		}
-		$controls_edit = '<a class="vc_control column_edit vc_column-edit"  data-vc-control="edit" href="#" title="' . __( 'Edit this column', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-mode_edit"></i></a>';
-		$controls_paste = '<a class="vc_control column_paste vc_column-paste"  data-vc-control="paste" href="#" title="' . __( 'Paste', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-paste"></i></a>';
-		$controls_delete = '<a class="vc_control column_delete vc_column-delete" data-vc-control="delete"  href="#" title="' . __( 'Delete this column', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a>';
+		$control_list = $this->get_column_controls_html_list( $extended_css );
+		$controls_edit = $control_list['edit'];
+		$controls_paste = $control_list['paste'];
+		$controls_delete = $control_list['delete'];
+		$controls_add = isset( $control_list['add'] ) ? $control_list['add'] : '';
+
 		$editAccess = vc_user_access_check_shortcode_edit( $this->shortcode );
 		$allAccess = vc_user_access_check_shortcode_all( $this->shortcode );
 		if ( is_array( $controls ) && ! empty( $controls ) ) {

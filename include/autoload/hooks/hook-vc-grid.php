@@ -178,27 +178,3 @@ add_action( 'vc_after_init', [
 	$hook,
 	'load',
 ] );
-
-if ( 'vc_edit_form' === vc_post_param( 'action' ) ) {
-	VcShortcodeAutoloader::getInstance()->includeClass( 'WPBakeryShortCode_Vc_Basic_Grid' );
-
-	add_filter( 'vc_edit_form_fields_attributes_vc_basic_grid', [
-		'WPBakeryShortCode_Vc_Basic_Grid',
-		'convertButton2ToButton3',
-	] );
-
-	add_filter( 'vc_edit_form_fields_attributes_vc_media_grid', [
-		'WPBakeryShortCode_Vc_Basic_Grid',
-		'convertButton2ToButton3',
-	] );
-
-	add_filter( 'vc_edit_form_fields_attributes_vc_masonry_grid', [
-		'WPBakeryShortCode_Vc_Basic_Grid',
-		'convertButton2ToButton3',
-	] );
-
-	add_filter( 'vc_edit_form_fields_attributes_vc_masonry_media_grid', [
-		'WPBakeryShortCode_Vc_Basic_Grid',
-		'convertButton2ToButton3',
-	] );
-}

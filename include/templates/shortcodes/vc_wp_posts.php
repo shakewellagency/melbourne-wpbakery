@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $number
- * @var $show_date
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $title
+ * @var string $number
+ * @var string $show_date
+ * @var string $el_class
+ * @var string $el_id
  * Shortcode class
- * @var WPBakeryShortCode_Vc_Wp_Posts $this
+ * @var WPBakeryShortCodeFishBones $this
  */
 $title = $number = $show_date = $el_class = $el_id = '';
 $output = '';

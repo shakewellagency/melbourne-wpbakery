@@ -31,7 +31,6 @@ function vc_edit_for_fields_add_optional_params( $params ) {
 		'checkbox',
 		'posttypes',
 		'taxonomies',
-		'taxomonies',
 		'exploded_textarea',
 		'textarea_raw_html',
 		'textarea_safe',

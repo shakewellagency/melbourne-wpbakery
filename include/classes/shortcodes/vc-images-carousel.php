@@ -34,6 +34,16 @@ class WPBakeryShortCode_Vc_Images_Carousel extends WPBakeryShortCode_Vc_Gallery 
 	}
 
 	/**
+	 * Get CSS file names for vc_images_carousel shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_carousel', 'vc_image_gallery', 'vc_gallery' ];
+	}
+
+	/**
 	 * Register element specific assets.
 	 */
 	public function jsCssScripts() {
@@ -57,7 +67,7 @@ class WPBakeryShortCode_Vc_Images_Carousel extends WPBakeryShortCode_Vc_Gallery 
 	 * @param string $size
 	 * @return string
 	 */
-	protected function getSliderWidth( $size ) {
+	public function getSliderWidth( $size ) {
 		global $_wp_additional_image_sizes;
 		$width = '100%';
 		if ( in_array( $size, get_intermediate_image_sizes(), true ) ) {

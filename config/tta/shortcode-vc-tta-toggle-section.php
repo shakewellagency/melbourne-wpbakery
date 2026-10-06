@@ -22,15 +22,10 @@ $params = [
 		'settings' => [
 			'auto_generate' => true,
 		],
-		'heading' => esc_html__( 'Section ID', 'js_composer' ),
+		'heading' => esc_html__( 'Toggle container section id', 'js_composer' ),
 		'description' => sprintf( esc_html__( 'Enter section ID (Note: make sure it is unique and valid according to %1$sw3c specification%2$s).', 'js_composer' ), '<a href="https://www.w3schools.com/tags/att_global_id.asp" target="_blank">', '</a>' ),
 	],
-	[
-		'type' => 'textfield',
-		'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-		'param_name' => 'el_class',
-		'description' => esc_html__( 'If you wish to style particular content element differently, then use this field to add a class name and then refer to it in your css file.', 'js_composer' ),
-	],
+	vc_config()->get_extra_class_params( false ),
 	// we use it to find which one title to switch.
 	[
 		'type' => 'hidden',
@@ -40,7 +35,7 @@ $params = [
 ];
 
 return [
-	'name' => esc_html__( 'Section', 'js_composer' ),
+	'name' => esc_html__( 'Toggle container section', 'js_composer' ),
 	'base' => 'vc_tta_toggle_section',
 	'icon' => 'icon-wpb-ui-tta-section',
 	'allowed_container_element' => 'vc_row',

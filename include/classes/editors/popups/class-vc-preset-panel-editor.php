@@ -41,7 +41,9 @@ class Vc_Preset_Panel_Editor {
 	 */
 	public function renderUIPreset() {
 		vc_include_template( 'editors/popups/vc_ui-panel-preset.tpl.php', [
+			'id' => 'preset',
 			'box' => $this,
+			'wrapper_classes' => 'vc_preset-panel',
 		] );
 
 		return '';
@@ -98,7 +100,7 @@ class Vc_Preset_Panel_Editor {
 			$output .= '</button>';
 
 			$output .= '<button type="button" class="vc_general vc_ui-control-button" data-vc-ui-delete="preset-title" data-preset="' . esc_attr( $preset_id ) . '" data-preset-parent="' . esc_attr( $preset['parent'] ) . '" title="' . esc_attr__( 'Delete element', 'js_composer' ) . '">';
-			$output .= '<i class="vc-composer-icon vc-c-icon-delete_empty"></i>';
+			$output .= '<i class="vc-composer-icon vc-c-trash"></i>';
 			$output .= '</button>';
 
 			$output .= '</div>';
