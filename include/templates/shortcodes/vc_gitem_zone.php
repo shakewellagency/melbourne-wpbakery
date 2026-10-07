@@ -5,30 +5,14 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_gitem_zone.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
+ * @var WPBakeryShortCode_Vc_Gitem_Zone $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
-/**
- * Shortcode attributes
- *
- * @var $atts
- * @var $el_class
- * @var $css
- * @var $position
- * @var $bgimage
- * @var $height
- * @var $link
- * @var $url
- * @var $height_mode
- * @var $featured_image
- * @var $img_size
- * @var $render
- * @var $content - shortcode content
- * Shortcode class
- * @var WPBakeryShortCode_Vc_Gitem_Zone $this
- */
 $el_class = $css = $position = $bgimage = $height = $link = $url = $height_mode = $featured_image = $img_size = $render = $rel = '';
 
 $css_style = $css_style_mini = '';
@@ -36,6 +20,24 @@ $image_block = $image = '';
 
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
+
+/**
+ * Shortcode attributes
+ *
+ * @var string $el_class
+ * @var string $css
+ * @var string $position
+ * @var string $bgimage
+ * @var string $height
+ * @var string $link
+ * @var string $url
+ * @var string $height_mode
+ * @var string $featured_image
+ * @var string $img_size
+ * @var string $render
+ * @var string $content - shortcode content
+ * @var string|null $css_style_mini
+ */
 
 if ( 'no' === $render ) {
 	return '';

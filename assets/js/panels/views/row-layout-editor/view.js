@@ -14,9 +14,10 @@
 		'click [data-vc-ui-element="button-save"]': 'save',
 		'click [data-vc-ui-element="button-close"]': 'hide',
 		'touchstart [data-vc-ui-element="button-close"]': 'hide',
-		'click [data-vc-ui-element="button-minimize"]': 'toggleOpacity',
-		'click [data-vc-ui-element="button-layout"]': 'setLayout',
-		'click [data-vc-ui-element="button-update-layout"]': 'updateFromInput'
+		'click [data-vc-ui-element="button-panel-minimize"]': 'toggleOpacity',
+		'click input[name="vc_row_layout_preset"]': 'onPresetChange',
+		'focusout #vc_row-layout': 'updateFromInput',
+		'keyup #vc_row-layout': 'onInputKeyup'
 	};
 
 	vc.RowLayoutEditorPanelView = vc.PanelView.extend({
@@ -25,11 +26,12 @@
 			'click [data-transparent=panel]': 'toggleOpacity',
 			'mouseover [data-transparent=panel]': 'addOpacity',
 			'mouseout [data-transparent=panel]': 'removeOpacity',
-			'click .vc_layout-btn': 'setLayout',
-			'click #vc_row-layout-update': 'updateFromInput'
+			'click input[name="vc_row_layout_preset"]': 'onPresetChange',
+			'focusout #vc_row-layout': 'updateFromInput',
+			'keyup #vc_row-layout': 'onInputKeyup'
 		},
 		_builder: false,
-		render: function ( model ) {
+		render ( model ) {
 			this.$input = $( '#vc_row-layout' );
 			if ( model ) {
 				this.model = model;
@@ -40,52 +42,63 @@
 			$( '.edit-form-info' ).initializeTooltips( '.vc_ui-panel-content' );
 			return this;
 		},
-		builder: function () {
+		builder () {
 			if ( !this._builder ) {
 				this._builder = new vc.ShortcodesBuilder();
 			}
 			return this._builder;
 		},
-		addCurrentLayout: function () {
+		addCurrentLayout () {
 			vc.shortcodes.sort();
-			var string = _.map( vc.shortcodes.where({ parent_id: this.model.get( 'id' ) }), function ( model ) {
-				var width = model.getParam( 'width' );
+			const columns = _.map( vc.shortcodes.where({ parent_id: this.model.get( 'id' ) }), ( model ) => {
+				const width = model.getParam( 'width' );
 				return width ? width : '1/1';
-			}, '', this ).join( ' + ' );
+			}, '', this );
+			const string = columns.join( ' + ' );
 			this.$input.val( string );
+			this.setActivePreset( columns );
 		},
-		isBuildComplete: function () {
+		isBuildComplete () {
 			return this.builder().isBuildComplete();
 		},
-		setLayout: function ( e ) {
-			if ( e && e.preventDefault ) {
-				e.preventDefault();
+		setActivePreset ( columns ) {
+			const cells = _.map( columns, ( col ) => {
+				const parts = col.split( '/' );
+				return `${parts[ 0 ]}${parts[ 1 ]}`;
+			}).join( '_' );
+			const $matchingRadio = this.$el.find( `input[name="vc_row_layout_preset"][value="${cells}"]` );
+			if ( $matchingRadio.length ) {
+				$matchingRadio.prop( 'checked', true );
+			} else {
+				this.$el.find( 'input[name="vc_row_layout_preset"]' ).prop( 'checked', false );
 			}
+		},
+		onPresetChange ( e ) {
 			if ( !this.isBuildComplete() ) {
+				e.preventDefault();
 				return false;
 			}
-			var $control = $( e.currentTarget ),
-				layout = $control.attr( 'data-cells' ),
-				columns = this.model.view.convertRowColumns( layout, this.builder() );
+			const value = $( e.currentTarget ).val();
+			const columns = this.model.view.convertRowColumns( value, this.builder() );
 			this.$input.val( columns.join( ' + ' ) );
 		},
-		updateFromInput: function ( e ) {
-			// TODO: Check for deprecated #vc_row-layout-update
-			if ( e && e.preventDefault ) {
-				e.preventDefault();
-			}
-			if ( !this.isBuildComplete() ) {
+		updateFromInput () {
+			if ( this._isUpdating || !this.isBuildComplete() ) {
 				return false;
 			}
-			var layout,
-				cells = this.$input.val();
+			this._isUpdating = true;
+			let layout;
+			const cells = this.$input.val();
 			if ( false !== ( layout = this.validateCellsList( cells ) ) ) {
 				this.model.view.convertRowColumns( layout, this.builder() );
+				const columns = cells.replace( /\s/g, '' ).split( '+' );
+				this.setActivePreset( columns );
 			} else {
 				window.alert( window.i18nLocale.wrong_cells_layout );
 			}
+			this._isUpdating = false;
 		},
-		validateCellsList: function ( cells ) {
+		validateCellsList ( cells ) {
 			var returnCells, split, b, num, denom;
 			returnCells = [];
 			split = cells.replace( /\s/g, '' ).split( '+' );
@@ -122,6 +135,12 @@
 				return false;
 			}
 			return returnCells.join( '_' );
+		},
+		onInputKeyup ( e ) {
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				this.updateFromInput();
+			}
 		}
 	});
 

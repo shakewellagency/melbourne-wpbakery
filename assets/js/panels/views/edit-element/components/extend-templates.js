@@ -11,6 +11,7 @@
 	'use strict';
 
 	window.vc.ExtendTemplates = {
+		isTemplateViewActive: false,
 		fetchSaveTemplateDialogAjaxData: function () {
 			return {
 				action: 'vc_action_render_settings_templates_prompt',
@@ -19,7 +20,7 @@
 			};
 		},
 		fetchSaveTemplateDialog: function ( callback ) {
-			var $tab = this.$el.find( '.vc_ui-panel-content-container' );
+			const $tab = this.$el.find( '.vc_ui-panel-content-container' );
 
 			if ( $tab.find( '.vc_ui-prompt-templates' ).length ) {
 				if ( 'undefined' !== typeof ( callback ) ) {
@@ -41,37 +42,63 @@
 					if ( 'undefined' !== typeof ( callback ) ) {
 						callback( true );
 					}
+				} else {
+					// Response success is false - invoke callback with false
+					if ( 'undefined' !== typeof ( callback ) ) {
+						callback( false );
+					}
+				}
+			}).fail( ( e ) => {
+				console.error( 'Failed to fetch save template dialog.', e );
+				// AJAX request failed - invoke callback with false
+				if ( 'undefined' !== typeof ( callback ) ) {
+					callback( false );
 				}
 			}).always( this.resetAjax );
 
 			return this.ajax;
 		},
-		showSaveTemplateDialog: function () {
-			var _this = this;
+		showSaveTemplateDialog () {
+			const _this = this;
 
-			this.fetchSaveTemplateDialog( function ( created ) {
-				var $tab = _this.$el.find( '.vc_ui-panel-content-container' ),
-					$prompt = $tab.find( '.vc_ui-prompt-templates' ),
-					$title = $prompt.find( '.textfield' );
+			this.fetchSaveTemplateDialog( ( created ) => {
+				// If created is false and dialog doesn't exist, fetch failed - reset flag
+				const $tab = _this.$el.find( '.vc_ui-panel-content-container' );
+				const $prompt = $tab.find( '.vc_ui-prompt-templates' );
+
+				// Check if prompt actually exists (fetch was successful)
+				if ( !$prompt.length ) {
+					// Fetch failed - reset flag and exit
+					_this.isTemplateViewActive = false;
+					return;
+				}
+
+				const $title = $prompt.find( '.textfield' );
 				$tab.find( '.vc_ui-prompt.vc_visible' ).removeClass( 'vc_visible' );
 
 				$prompt.addClass( 'vc_visible' );
 				$title.trigger( 'focus' );
 				$tab.addClass( 'vc_ui-content-hidden' );
 
+				// Set flag to indicate template dialog is active (only after dialog is shown)
+				_this.isTemplateViewActive = true;
+
+				// Hide all tabs when entering template view
+				_this.$el.find( '.vc_edit-form-tab-control' ).hide();
+
+				// Update resizable minHeight based on panel visibility
+				_this.updateResizableMinHeight?.();
+
 				if ( !created ) {
 					return;
 				}
-				var delay = 0;
-				var $btn = $prompt.find( '#vc_ui-save-templates-btn' );
+				let delay = 0;
+				const $btn = $prompt.find( '#vc_ui-save-templates-btn' );
 
 				$prompt.on( 'submit', function () {
-					var title = $title.val(),
-						// TODO: check if $button is used
-						// eslint-disable-next-line no-unused-vars
-						$button = _this.$el.find( _this.settingsButtonSelector );
+					const title = $title.val();
 
-					var data = {
+					const data = {
 						action: vc.templates_panel_view.save_template_action,
 						template: vc.shortcodes.singleStringify( _this.model.get( 'id' ), 'template' ),
 						template_name: title,
@@ -79,15 +106,23 @@
 						_vcnonce: window.vcAdminNonce
 					};
 
-					vc.templates_panel_view.reloadTemplateList( data, function () {
+					vc.templates_panel_view.reloadTemplateList( data, () => {
 						$title.val( '' );
 						_this.setCustomButtonMessage( $btn, undefined, undefined, true );
 
-						delay = _.delay( function () {
+						delay = _.delay( () => {
+							// Reset flag when dialog closes
+							_this.isTemplateViewActive = false;
 							$prompt.removeClass( 'vc_visible' );
 							$tab.removeClass( 'vc_ui-content-hidden' );
+
+							// Show tabs when exiting template view
+							_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+							// Update resizable minHeight based on panel visibility
+							_this.updateResizableMinHeight?.();
 						}, 5000 );
-					}, function () {
+					}, () => {
 						_this.setCustomButtonMessage( $btn, window.i18nLocale.ui_danger, 'danger' );
 					});
 
@@ -95,9 +130,19 @@
 				});
 
 				$prompt.on( 'click', '.vc_ui-prompt-close', function () {
+					// This handler is for closing the template DIALOG, not the dropdown "Edit element"
+					// Reset flag when closing dialog
+					_this.isTemplateViewActive = false;
 					_this.checkAjax();
 					$prompt.removeClass( 'vc_visible' );
 					$tab.removeClass( 'vc_ui-content-hidden' );
+
+					// Show tabs when exiting template view
+					_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+					// Update resizable minHeight based on panel visibility
+					_this.updateResizableMinHeight?.();
+
 					_this.clearCustomButtonMessage.call( this, $btn );
 					if ( delay ) {
 						window.clearTimeout( delay );
@@ -105,6 +150,8 @@
 					}
 					return false;
 				});
+
+				$( '.edit-form-info' ).initializeTooltips();
 			});
 		}
 	};

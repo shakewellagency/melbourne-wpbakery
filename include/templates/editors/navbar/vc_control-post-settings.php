@@ -2,7 +2,7 @@
 /**
  * Post settings control template for the navbar
  *
- * @package WPBakery Page Builder
+ * @var string $title
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,10 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <li class="vc_pull-right vc_hide-mobile vc_hide-desktop-more">
-	<a id="vc_post-settings-button" href="javascript:;" class="vc_icon-btn vc_post-settings" title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Page settings' ) ); ?>">
+	<a id="vc_post-settings-button" href="javascript:;" tabindex="9" class="vc_icon-btn vc_post-settings" role="button" aria-haspopup="dialog" aria-label="<?php echo esc_attr( $title ); ?>" title="<?php echo esc_attr( $title ); ?>">
 		<div class="vc_post-settings-icon">
-			<i class="vc-composer-icon vc-c-icon-cog"></i>
+			<?php vc_include_template( 'icons/settings-ico.tpl.php' ); ?>
 		</div>
-		<p class="vc_hide-desktop"><?php echo esc_html__( 'Settings', 'js_composer' ); ?></p>
+		<p class="vc_hide-desktop" aria-hidden="true"><?php echo esc_html__( 'Settings', 'js_composer' ); ?></p>
 	</a>
 </li>

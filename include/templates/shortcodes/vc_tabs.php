@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $interval
- * @var $el_class
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $title
+ * @var string $interval
+ * @var string $el_class
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Tabs $this
  */
@@ -31,7 +31,8 @@ wp_enqueue_script( 'jquery-ui-tabs' );
 $el_class = $this->getExtraClass( $el_class );
 
 $element = 'wpb_tabs';
-if ( 'vc_tour' === $this->shortcode ) {
+$shortcode = $this->getShortcode();
+if ( 'vc_tour' === $shortcode ) {
 	$element = 'wpb_tour';
 }
 
@@ -52,9 +53,9 @@ foreach ( $tab_titles as $tab ) {
 }
 $tabs_nav .= '</ul>';
 
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, trim( $element . ' wpb_content_element ' . $el_class ), $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, trim( $element . ' wpb_content_element ' . $el_class ), $this->getSettings()['base'], $atts );
 
-if ( 'vc_tour' === $this->shortcode ) {
+if ( 'vc_tour' === $shortcode ) {
 	$next_prev_nav = '<div class="wpb_tour_next_prev_nav vc_clearfix"> <span class="wpb_prev_slide"><a href="#prev" title="' . esc_attr__( 'Previous tab', 'js_composer' ) . '">' . esc_html__( 'Previous tab', 'js_composer' ) . '</a></span> <span class="wpb_next_slide"><a href="#next" title="' . esc_attr__( 'Next tab', 'js_composer' ) . '">' . esc_html__( 'Next tab', 'js_composer' ) . '</a></span></div>';
 } else {
 	$next_prev_nav = '';

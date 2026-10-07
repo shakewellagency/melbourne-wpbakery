@@ -399,16 +399,25 @@ class Vc_Seo_Module extends Vc_Module {
 			return $controls;
 		}
 
-		$title = esc_attr( wpb_get_title_with_shortcut( 'WPBakery SEO' ) );
-		$controls[] = [
+		$seo_control = [
 			'seo',
-			'<li class="vc_pull-right vc_hide-mobile vc_hide-desktop-more">
-				<a href="javascript:;" class="vc_icon-btn vc_seo-button" id="vc_seo-button" title="' . $title . '">
-					<i class="vc-composer-icon vc-c-icon-seo"></i>
-					<p class="vc_hide-desktop">' . __( 'SEO', 'js_composer' ) . '</p>
-				</a>
-			</li>',
+			vc_get_template(
+				'editors/navbar/vc_control-seo-button.tpl.php',
+				[ 'title' => wpb_get_title_with_shortcut( 'WPBakery SEO' ) ]
+			),
 		];
+
+		// Insert seo button after undo/redo more button in 'More' submenu.
+		foreach ( $controls as $index => $control_item ) {
+			if ( 'more' === $control_item[0] ) {
+				array_splice( $control_item[1], 2, 0, [ $seo_control ] );
+				$controls[ $index ][1] = $control_item[1];
+				break;
+			}
+		}
+
+		$controls[] = $seo_control;
+
 		return $controls;
 	}
 

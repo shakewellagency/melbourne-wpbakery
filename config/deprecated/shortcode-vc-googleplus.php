@@ -3,7 +3,7 @@
  * Configuration file for [vc_googleplus] shortcode of 'Google+ Button' element.
  *
  * @see https://kb.wpbakery.com/docs/inner-api/vc_map/ for more detailed information about element attributes.
- * @depreacted 6.0
+ * @deprecated 6.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,6 +15,7 @@ return [
 	'base' => 'vc_googleplus',
 	'icon' => 'icon-wpb-application-plus',
 	'deprecated' => '6.0',
+	'content_element' => false,
 	'category' => esc_html__( 'Social', 'js_composer' ),
 	'description' => esc_html__( 'Recommend on Google', 'js_composer' ),
 	'params' => [
@@ -54,7 +55,7 @@ return [
 			],
 			'description' => esc_html__( 'Minimum width of 120px to display. If annotation is set to "inline", this parameter sets the width in pixels to use for button and its inline annotation. Default width is 450px.', 'js_composer' ),
 		],
-		vc_map_add_css_animation(),
+		vc_config()->get_css_animation(),
 		[
 			'type' => 'el_id',
 			'heading' => esc_html__( 'Element ID', 'js_composer' ),
@@ -69,9 +70,8 @@ return [
 		],
 		[
 			'type' => 'css_editor',
-			'heading' => esc_html__( 'CSS box', 'js_composer' ),
 			'param_name' => 'css',
-			'group' => esc_html__( 'Design Options', 'js_composer' ),
+			'group' => esc_html__( 'Design options', 'js_composer' ),
 		],
 	],
 ];

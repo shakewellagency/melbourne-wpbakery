@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $css
- * @var $el_class
- * @var $position
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $css
+ * @var string $el_class
+ * @var string $position
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Gitem_Row $this
  */

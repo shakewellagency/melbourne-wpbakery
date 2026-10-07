@@ -35,8 +35,15 @@ $custom_tag = 'script';
 	<div class="wpb_message_placeholder notice notice-success" style="display:none"><p></p></div>
 	<div class="wpb_message_placeholder notice notice-error" style="display:none"><p></p></div>
 <?php endif ?>
-
+<?php
+// Add HTML after Form.
+do_action( 'wpb_add_before_settings_form' );
+?>
 <form action="options.php"
+	<?php
+	// Add HTML after Form.
+	do_action( 'wpb_add_before_open_form_tag' );
+	?>
 		method="post"
 		id="vc_settings-<?php echo esc_attr( $tab ); ?>"
 		data-vc-ui-element="settings-tab-<?php echo esc_attr( $tab ); ?>"
@@ -53,7 +60,7 @@ $custom_tag = 'script';
 				</th>
 				<td>
 					<?php vc_include_template( 'editors/partials/param-info.tpl.php', [ 'description' => esc_html__( 'Guide tours are shown in WPBakery editors to help you to start working with editors. You can see them again by clicking button above.', 'js_composer' ) ] ); ?>
-					<a href="#" class="button vc_pointers-reset-button"
+					<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_pointers-reset-button"
 							id="vc_settings-vc-pointers-reset"
 							data-vc-done-txt="<?php esc_attr_e( 'Done', 'js_composer' ); ?>"><?php esc_html_e( 'Reset', 'js_composer' ); ?></a>
 				</td>
@@ -61,29 +68,26 @@ $custom_tag = 'script';
 		</table>
 	<?php endif ?>
 
-	<?php
-
-	$submit_button_attributes = [];
-    // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
-	$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes', $submit_button_attributes, $tab );
-    // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
-	$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes-' . $tab, $submit_button_attributes, $tab );
-
-	?>
-
 	<?php if ( 'updater' !== $tab && ! $page->get_ajax_save() ) : ?>
-		<?php submit_button( esc_html__( 'Save Changes', 'js_composer' ), 'primary', 'submit_btn', true, $submit_button_attributes ); ?>
+		<?php
+		$submit_button_attributes = [];
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes', $submit_button_attributes, $tab );
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes-' . $tab, $submit_button_attributes, $tab );
+		vc_include_template( 'pages/vc-settings/partials/submit-button.php', [ 'attributes' => $submit_button_attributes ] );
+		?>
 	<?php endif ?>
 
 	<input type="hidden" name="vc_action" value="vc_action-<?php echo esc_attr( $tab ); ?>"
 			id="vc_settings-<?php echo esc_attr( $tab ); ?>-action"/>
 
 	<?php if ( 'color' === $tab ) : ?>
-		<a href="#" class="button vc_restore-button" id="vc_settings-color-restore-default">
+		<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_restore-button" id="vc_settings-color-restore-default">
 			<?php echo esc_html__( 'Restore Default', 'js_composer' ); ?>
 		</a>
 	<?php elseif ( 'color-picker' === $tab ) : ?>
-	<a href="#" class="button vc_restore-button" id="vc_settings-color-picker-restore-default">
+	<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_restore-button" id="vc_settings-color-picker-restore-default">
 		<?php echo esc_html__( 'Restore Default', 'js_composer' ); ?>
 	</a>
 	<?php endif ?>
@@ -105,7 +109,7 @@ $custom_tag = 'script';
 
 				<p>
 					<button
-							class="button button-primary button-hero button-updater"
+							class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw button-hero button-updater"
 							data-vc-action="deactivation"
 							type="button"
 							id="vc_settings-updater-button">
@@ -126,7 +130,7 @@ $custom_tag = 'script';
 
 				<p>
 					<button
-							class="button button-primary button-hero button-updater"
+							class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw button-hero button-updater"
 							data-vc-action="activation"
 							type="button"
 							id="vc_settings-updater-button">
@@ -143,11 +147,13 @@ $custom_tag = 'script';
 
 			<?php endif ?>
 		</div>
-
-	<?php endif ?>
+		<?php
+	endif;
+	// Add HTML after Form.
+	do_action( 'wpb_add_before_closing_form_tag' );
+	?>
 </form>
-
 <?php
-// [modal ai render]
-vc_include_template( 'editors/popups/ai/modal.tpl.php' );
+// Add HTML after Form.
+do_action( 'wpb_add_after_settings_form' );
 ?>

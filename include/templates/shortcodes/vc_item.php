@@ -14,8 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $el_class
+ * @var array $atts
+ * @var string $el_class
  * Shortcode class
  * @var WPBakeryShortCode $this
  */

@@ -7,6 +7,7 @@
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  * @var array $atts
  * @var string $content - shortcode content
+ * @var WPBakeryShortCode_Vc_Container_Item_Base $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 
 <div <?php $this->output_wrapper_attributes( $atts ); ?>>
-	<div class="vc_grid_container_item-inner <?php $this->output_custom_css_class( $atts, 'vc_grid_container_item' ); ?>">
+	<div class="vc_grid_container_item-inner <?php $this->output_custom_css_class( $atts ); ?>">
 		<div class="wpb_wrapper">
 			<?php echo wpb_js_remove_wpautop( $content, true ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</div>

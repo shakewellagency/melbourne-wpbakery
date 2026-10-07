@@ -28,7 +28,7 @@ $all_access = vc_user_access_check_shortcode_all( $shortcode );
 			<?php if ( 'add' === $control && vc_user_access()->part( 'shortcodes' )->checkStateAny( true, 'custom', null )->get() ) : ?>
 				<a class="vc_control-btn vc_control-btn-prepend vc_edit" href="#"
 						title="<?php printf( esc_html__( 'Prepend to %s', 'js_composer' ), esc_attr( $name ) ); ?>"><span
-							class="vc_btn-content"><i class="vc-composer-icon vc-c-icon-add"></i></span></a>
+							class="vc_btn-content"><i class="vc-composer-icon vc-c-add-circle"></i></span></a>
 			<?php elseif ( $edit_access && 'edit' === $control ) : ?>
 				<a class="vc_control-btn vc_control-btn-edit" href="#"
 						title="<?php printf( esc_html__( 'Edit %s', 'js_composer' ), esc_attr( $name ) ); ?>"><span

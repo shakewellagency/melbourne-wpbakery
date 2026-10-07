@@ -184,6 +184,53 @@ class WPBakeryShortCode_Vc_Grid_Container extends WPBakeryShortCode {
 		}
 		return $row_edit_clone_delete;
 	}
+	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) {
+		return [
+			'move' => [
+				'classes' => 'column_move vc_column-move',
+				'title'   => __( 'Drag Grid container to reorder', 'js_composer' ),
+				'icon'    => 'vc-c-param-group-dragndrop',
+			],
+			'delete' => [
+				'classes' => 'column_delete vc_column-delete',
+				'title'   => __( 'Delete Grid container', 'js_composer' ),
+				'icon'    => 'vc-c-trash',
+			],
+			'clone' => [
+				'classes' => 'column_clone vc_column-clone',
+				'title'   => __( 'Clone Grid container', 'js_composer' ),
+				'icon'    => 'vc-c-icon-clone',
+			],
+			'copy' => [
+				'classes' => 'column_copy vc_column-copy',
+				'title'   => __( 'Copy Grid container', 'js_composer' ),
+				'icon'    => 'vc-c-icon-copy',
+			],
+			'paste' => [
+				'classes' => 'column_paste vc_column-paste',
+				'title'   => __( 'Paste', 'js_composer' ),
+				'icon'    => 'vc-c-icon-paste',
+			],
+			'edit' => [
+				'classes' => 'column_edit vc_column-edit',
+				'title'   => __( 'Edit Grid container', 'js_composer' ),
+				'icon'    => 'vc-c-edit',
+			],
+			'toggle' => [
+				'classes' => 'column_toggle vc_column-toggle',
+				'title'   => __( 'Toggle Grid container', 'js_composer' ),
+				'icon'    => 'vc-c-icon-arrow_drop_down',
+			],
+		];
+	}
 
 	/**
 	 * Returns HTML for a specific control based on access.
@@ -196,15 +243,7 @@ class WPBakeryShortCode_Vc_Grid_Container extends WPBakeryShortCode {
 	 * @return string HTML for the control or empty string.
 	 */
 	public function getControlHtml( $control, $edit_access, $all_access ) {
-		$controls_map = [
-			'move'   => ' <a class="vc_control column_move vc_column-move" href="#" title="' . esc_attr__( 'Drag Grid container to reorder', 'js_composer' ) . '" data-vc-control="move"><i class="vc-composer-icon vc-c-icon-dragndrop"></i></a>',
-			'delete' => '<a class="vc_control column_delete vc_column-delete" href="#" title="' . esc_attr__( 'Delete Grid container', 'js_composer' ) . '" data-vc-control="delete"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a>',
-			'edit'   => ' <a class="vc_control column_edit vc_column-edit" href="#" title="' . esc_attr__( 'Edit Grid container', 'js_composer' ) . '" data-vc-control="edit"><i class="vc-composer-icon vc-c-icon-mode_edit"></i></a>',
-			'clone'  => ' <a class="vc_control column_clone vc_column-clone" href="#" title="' . esc_attr__( 'Clone Grid container', 'js_composer' ) . '" data-vc-control="clone"><i class="vc-composer-icon vc-c-icon-clone"></i></a>',
-			'copy'   => ' <a class="vc_control column_copy vc_column-copy" href="#" title="' . esc_attr__( 'Copy Grid container', 'js_composer' ) . '" data-vc-control="copy"><i class="vc-composer-icon vc-c-icon-copy"></i></a>',
-			'paste'  => ' <a class="vc_control column_paste vc_column-paste" href="#" title="' . esc_attr__( 'Paste', 'js_composer' ) . '" data-vc-control="paste"><i class="vc-composer-icon vc-c-icon-paste"></i></a>',
-			'toggle' => ' <a class="vc_control column_toggle vc_column-toggle" href="#" title="' . esc_attr__( 'Toggle Grid container', 'js_composer' ) . '" data-vc-control="toggle"><i class="vc-composer-icon vc-c-icon-arrow_drop_down"></i></a>',
-		];
+		$controls_map = $this->get_column_controls_html_list();
 
 		if ( ! isset( $controls_map[ $control ] ) ) {
 			return '';
@@ -250,6 +289,17 @@ class WPBakeryShortCode_Vc_Grid_Container extends WPBakeryShortCode {
 		$el_class = $css = $el_id = $css_animation = $disable_element = '';
 		extract( $atts );
 
+		/**
+		 * Extracted attributes.
+		 *
+		 * @var string $el_class
+		 * @var string $css
+		 * @var string $el_id
+		 * @var string $css_animation
+		 * @var string $disable_element
+		 * @var string $rows
+		 */
+
 		$el_class = $this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation );
 
 		$css_classes = [
@@ -259,7 +309,7 @@ class WPBakeryShortCode_Vc_Grid_Container extends WPBakeryShortCode {
 		];
 
 		if ( 'yes' === $disable_element && vc_is_page_editable() ) {
-			$css_classes[] = 'vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
+			$css_classes[] = 'vc_hidden-xl vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
 		}
 
 		$wrapper_attributes = [];

@@ -45,10 +45,16 @@ class WPBakeryShortCode_Vc_Raw_Js extends WPBakeryShortCode_Vc_Raw_html {
 		$content = rawurldecode( base64_decode( wp_strip_all_tags( $content ) ) );
 		$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'wpb_raw_code' . $el_class, $this->settings['base'], $atts );
 
+		$textarea = WPB_Form_Field_Textarea::get( [
+			'value' => $content,
+			'class' => 'vc_js_inline_holder',
+			'style' => 'display: none;',
+		] );
+
 		$output = '
 			<div class="' . $css_class . '">
 				<div class="wpb_wrapper">
-					<textarea style="display: none;" class="vc_js_inline_holder">' . esc_attr( $content ) . '</textarea>
+					' . $textarea . '
 				</div>
 			</div>
 		';

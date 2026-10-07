@@ -20,14 +20,30 @@ class Vc_Navbar {
 		'add_element',
 		'templates',
 		'save_backend',
-		'preview',
 		'frontend',
 		'post_settings',
 		'custom_code',
 		'fullscreen',
 		'windowed',
 		'more',
+		'undo',
+		'redo',
 	];
+
+	/**
+	 * List of controls to be displayed in the "More" dropdown menu.
+	 *
+	 * @since 9.0
+	 * @var array
+	 */
+	public $more_button_controls = [
+		'undo',
+		'redo',
+		'post_settings',
+		'custom_code',
+		'save_backend_mobile',
+	];
+
 	/**
 	 * URL for the brand logo.
 	 *
@@ -68,19 +84,49 @@ class Vc_Navbar {
 	 *
 	 * @return array - list of arrays witch contains key name and html output for button.
 	 */
-	public function getControls() {
-		$control_list = [];
-		foreach ( $this->getControlList() as $control ) {
-			$method = vc_camel_case( 'get_control_' . $control );
-			if ( method_exists( $this, $method ) ) {
-				$control_list[] = [
-					$control,
-					$this->$method(),
-				];
+	public function getControls() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$control_output_list = $this->get_control_output_list( $this->getControlList() );
+
+		return apply_filters( $this->controls_filter_name, $control_output_list );
+	}
+
+	/**
+	 * Get control output list.
+	 *
+	 * @since 9.0
+	 * @param array $control_list list of controls slugs.
+	 * @return array
+	 */
+	public function get_control_output_list( $control_list ) {
+		$control_output_list = [];
+		foreach ( $control_list as $control ) {
+			$control_output = $this->get_single_control_output( $control );
+			if ( ! $control_output ) {
+				continue;
 			}
+
+			$control_output_list[] = [
+				$control,
+				$control_output,
+			];
 		}
 
-		return apply_filters( $this->controls_filter_name, $control_list );
+		return $control_output_list;
+	}
+
+	/**
+	 * Get single control output.
+	 *
+	 * @since 9.0
+	 * @param string $control Control slug.
+	 * @return string
+	 */
+	public function get_single_control_output( $control ) {
+		$method = vc_camel_case( 'get_control_' . $control );
+		if ( method_exists( $this, $method ) ) {
+			return $this->$method();
+		}
+		return '';
 	}
 
 	/**
@@ -89,7 +135,7 @@ class Vc_Navbar {
 	 * @since 7.7
 	 * @return array
 	 */
-	public function getControlList() {
+	public function getControlList() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		/**
 		 * Filters list of navbar controls.
 		 *
@@ -134,8 +180,15 @@ class Vc_Navbar {
 	 * @see vc_filter: vc_nav_front_logo - hook to override WPBakery Page Builder logo
 	 * @return string
 	 */
-	public function getLogo() {
-		$output = '<a id="vc_logo" class="vc_navbar-brand" title="' . esc_attr__( 'WPBakery Page Builder', 'js_composer' ) . '" href="' . esc_url( $this->brand_url ) . '" target="_blank">' . esc_attr__( 'WPBakery Page Builder', 'js_composer' ) . '</a>';
+	public function getLogo() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+
+		$output = vc_get_template(
+			'editors/navbar/vc_control-brand-button.tpl.php',
+			[
+				'title' => esc_attr__( 'WPBakery Page Builder', 'js_composer' ),
+				'link' => $this->brand_url,
+			],
+		);
 
 		return apply_filters( 'vc_nav_front_logo', $output );
 	}
@@ -146,7 +199,7 @@ class Vc_Navbar {
 	 * @return string
 	 * @throws \Exception
 	 */
-	public function getControlPostSettings() {
+	public function getControlPostSettings() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		$has_post_settings_access = vc_user_access()->part( 'post_settings' )->can()->get();
 		if ( ! $has_post_settings_access ) {
 			return '';
@@ -162,7 +215,36 @@ class Vc_Navbar {
 			return '';
 		}
 
-		return vc_get_template( 'editors/navbar/vc_control-post-settings.php' );
+		$title = sprintf( __( '%s settings', 'js_composer' ), wpb_get_post_type_noun( $this->post ) );
+
+		return vc_get_template(
+			'editors/navbar/vc_control-post-settings.php',
+			[ 'title' => wpb_get_title_with_shortcut( $title ) ]
+		);
+	}
+
+	/**
+	 * Renders undo control.
+	 *
+	 * @return string
+	 */
+	public function getControlUndo() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return vc_get_template(
+			'editors/navbar/vc_control-undo-button.tpl.php',
+			[ 'title' => wpb_get_title_with_shortcut( 'Undo' ) ],
+		);
+	}
+
+	/**
+	 * Renders redo control.
+	 *
+	 * @return string
+	 */
+	public function getControlRedo() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return vc_get_template(
+			'editors/navbar/vc_control-redo-button.tpl.php',
+			[ 'title' => wpb_get_title_with_shortcut( 'Redo' ) ],
+		);
 	}
 
 	/**
@@ -170,13 +252,16 @@ class Vc_Navbar {
 	 *
 	 * @return string
 	 */
-	public function getControlCustomCode() {
+	public function getControlCustomCode() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		// Only show if at least one of the custom code modules is enabled.
 		if ( ! vc_modules_manager()->is_module_on( [ 'vc-custom-js', 'vc-custom-css' ] ) ) {
 			return '';
 		}
 
-		return vc_get_template( 'editors/navbar/vc_control-custom-code.php' );
+		return vc_get_template(
+			'editors/navbar/vc_control-custom-code.php',
+			[ 'title' => wpb_get_title_with_shortcut( 'Custom CSS/JS' ) ]
+		);
 	}
 
 	/**
@@ -184,8 +269,11 @@ class Vc_Navbar {
 	 *
 	 * @return string
 	 */
-	public function getControlFullscreen() {
-		return '<li class="vc_pull-right vc_hide-mobile"><a id="vc_fullscreen-button" class="vc_icon-btn vc_fullscreen-button" title="' . esc_attr__( 'Full screen', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-fullscreen"></i></a></li>';
+	public function getControlFullscreen() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return vc_get_template(
+			'editors/navbar/vc_control-full-screen-button.tpl.php',
+			[ 'title' => __( 'Full screen', 'js_composer' ) ],
+		);
 	}
 
 	/**
@@ -193,8 +281,11 @@ class Vc_Navbar {
 	 *
 	 * @return string
 	 */
-	public function getControlWindowed() {
-		return '<li class="vc_pull-right"><a id="vc_windowed-button" class="vc_icon-btn vc_windowed-button" title="' . esc_attr__( 'Exit full screen', 'js_composer' ) . '"><i class="vc-composer-icon vc-c-icon-fullscreen_exit"></i></a></li>';
+	public function getControlWindowed() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return vc_get_template(
+			'editors/navbar/vc_control-exit-full-screen-button.tpl.php',
+			[ 'title' => __( 'Exit full screen', 'js_composer' ) ],
+		);
 	}
 
 	/**
@@ -203,10 +294,12 @@ class Vc_Navbar {
 	 * @return string
 	 * @throws \Exception
 	 */
-	public function getControlAddElement() {
+	public function getControlAddElement() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( vc_user_access()->part( 'shortcodes' )->checkStateAny( true, 'custom', null )->get() && vc_user_access_check_shortcode_all( 'vc_row' ) && vc_user_access_check_shortcode_all( 'vc_column' ) ) {
-			$title = esc_attr( wpb_get_title_with_shortcut( 'Add new element' ) );
-			return '<li class="vc_show-mobile">	<a href="javascript:;" class="vc_icon-btn vc_element-button" data-model-id="vc_element" id="vc_add-new-element" title="' . $title . '">    <i class="vc-composer-icon vc-c-icon-add_element"></i>	</a></li>';
+			return vc_get_template(
+				'editors/navbar/vc_control-add-new-element-button.tpl.php',
+				[ 'title' => wpb_get_title_with_shortcut( 'Add new element' ) ],
+			);
 		}
 
 		return '';
@@ -218,26 +311,34 @@ class Vc_Navbar {
 	 * @return string
 	 * @throws \Exception
 	 */
-	public function getControlTemplates() {
+	public function getControlTemplates() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( ! vc_user_access()->part( 'templates' )->can()->get() ) {
 			return '';
 		}
 
-		return vc_get_template( 'editors/navbar/vc_control-templates-button.php' );
+		return vc_get_template(
+			'editors/navbar/vc_control-templates-button.php',
+			[ 'title' => wpb_get_title_with_shortcut( 'Templates' ) ]
+		);
 	}
 
 	/**
 	 * Renders the frontend control if the frontend editor is enabled.
 	 *
+	 * @note we hide this button but keep it for click action on another 'Frontend Editor' button.
+	 *
 	 * @return string
 	 * @throws \Exception
 	 */
-	public function getControlFrontend() {
+	public function getControlFrontend() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( ! vc_enabled_frontend() ) {
 			return '';
 		}
 
-		return '<li class="vc_pull-right" style="display: none;"><a href="' . esc_url( vc_frontend_editor()->getInlineUrl() ) . '" class="vc_btn vc_btn-primary vc_btn-sm vc_navbar-btn" id="wpb-edit-inline">' . esc_html__( 'Frontend', 'js_composer' ) . '</a></li>';
+		return vc_get_template(
+			'editors/navbar/vc_control-frontend-editor-button.tpl.php',
+			[ 'title' => __( 'Frontend', 'js_composer' ) ],
+		);
 	}
 
 	/**
@@ -245,7 +346,9 @@ class Vc_Navbar {
 	 *
 	 * @return string
 	 */
-	public function getControlPreview() {
+	public function getControlPreview() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		_deprecated_function( __METHOD__, '9.0' );
+
 		return '';
 	}
 
@@ -253,10 +356,10 @@ class Vc_Navbar {
 	 * Renders the save backend control with appropriate label based on post status and user capabilities.
 	 *
 	 * @since 8.0
-	 * @param bool $is_mobile since 8.0.
+	 * @param string $template
 	 * @return string
 	 */
-	public function getControlSaveBackend( $is_mobile = false ) {
+	public function getControlSaveBackend( $template = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		$post_type = $this->post()->post_type;
 		$post_type_object = get_post_type_object( $post_type );
 		$can_publish = current_user_can( $post_type_object->cap->publish_posts );
@@ -271,59 +374,33 @@ class Vc_Navbar {
 			$save_text = esc_html__( 'Submit for Review', 'js_composer' );
 		}
 
-		if ( $is_mobile ) {
-			return vc_get_template(
-				'editors/navbar/vc_control-buttons-mobile.tpl.php',
-				[
-					'save_text' => $save_text,
-				]
-			);
-		} else {
-			return vc_get_template(
-				'editors/navbar/vc_control-buttons-desktop.tpl.php',
-				[
-					'save_text' => $save_text,
-				]
-			);
+		if ( ! $template ) {
+			$template = 'editors/navbar/vc_control-buttons-desktop.tpl.php';
 		}
+
+		return vc_get_template(
+			$template,
+			[ 'save_text' => $save_text ]
+		);
+	}
+
+	/**
+	 * Renders the save backend control for mobile.
+	 *
+	 * @since 9.0
+	 * @return string
+	 */
+	public function getControlSaveBackendMobile() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return $this->getControlSaveBackend( 'editors/navbar/vc_control-buttons-mobile.tpl.php' );
 	}
 
 	/**
 	 * Renders the more control.
 	 *
 	 * @since 8.0
-	 * @return string
+	 * @return array
 	 */
-	public function getControlMore() {
-		return vc_get_template(
-			'editors/navbar/vc_control-get-more-buttons.tpl.php',
-			[ '_this' => $this ]
-		);
-	}
-
-	/**
-	 * Output get more menu buttons.
-	 *
-	 * @since 8.0
-	 */
-	public function outputGetMoreMenuButtons() {
-		$control_list = apply_filters( $this->controls_filter_name, [] );
-		foreach ( $control_list as $control ) :
-            // @codingStandardsIgnoreLine
-            print $control[1];
-		endforeach;
-
-		$this->outputIndividualControlElements();
-	}
-
-	/**
-	 * Output individual control elements.
-	 *
-	 * @since 8.0
-	 */
-	public function outputIndividualControlElements() {
-		echo wp_kses_post( $this->getControlPostSettings() );
-		echo wp_kses_post( $this->getControlCustomCode() );
-		echo wp_kses_post( $this->getControlSaveBackend( true ) );
+	public function getControlMore() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return $this->get_control_output_list( $this->more_button_controls );
 	}
 }

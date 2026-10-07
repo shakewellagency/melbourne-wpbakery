@@ -29,7 +29,7 @@ class Vc_Automapper {
 	/**
 	 * Is automapper disabled.
 	 *
-	 * @depreacted since 7.7
+	 * @deprecated since 7.7
 	 * @var bool
 	 */
 	protected static $disabled = false;
@@ -142,7 +142,7 @@ class Vc_Automapper {
 			<p><?php esc_html_e( 'WPBakery Page Builder Shortcode Mapper adds custom 3rd party vendors shortcodes to the list of WPBakery Page Builder content elements menu (Note: to map shortcode it needs to be installed on site).', 'js_composer' ); ?></p>
 		</div>
 		<div class="vc_automapper-toolbar">
-			<a href=javascript:;" class="button button-primary"
+			<a href=javascript:;" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw"
 				id="vc_automapper-add-btn"><?php esc_html_e( 'Map Shortcode', 'js_composer' ); ?></a>
 		</div>
 		<ul class="vc_automapper-list">
@@ -172,8 +172,8 @@ class Vc_Automapper {
 			</div>
 			<div class="vc_buttons">
 				<a href="#" id="vc_atm-parse-string"
-					class="button button-primary vc_parse-btn"><?php esc_attr_e( 'Parse Shortcode', 'js_composer' ); ?></a>
-				<a href="#" class="button vc_atm-cancel"><?php esc_attr_e( 'Cancel', 'js_composer' ); ?></a>
+					class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_parse-btn"><?php esc_attr_e( 'Parse Shortcode', 'js_composer' ); ?></a>
+				<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_atm-cancel"><?php esc_attr_e( 'Cancel', 'js_composer' ); ?></a>
 			</div>
 		</div>
 		<span
@@ -204,52 +204,80 @@ class Vc_Automapper {
 
 			<div class="vc_field vc_tag">
 				<label for="vc_atm-tag"><?php esc_html_e( 'Tag:', 'js_composer' ); ?></label>
-				<input type="text" name="tag" id="vc_atm-tag" value="{{ tag }}">
+				<?php
+				WPB_Form_Field_Textfield::render(
+					[
+						'id'          => 'vc_atm-tag',
+						'name'        => 'tag',
+						'value'       => '{{ tag }}',
+					]
+				);
+				?>
 			</div>
 			<div class="vc_field vc_category">
 				<div class="wpb_settings-title">
 					<label for="vc_atm-category"><?php esc_html_e( 'Category:', 'js_composer' ); ?></label>
 					<?php
 					$category_info = vc_get_template( 'editors/partials/param-info.tpl.php', [ 'description' => esc_html__( 'Comma separated categories names', 'js_composer' ) ] );
-					// phpcs:ignore
-					if ( is_string( $category_info ) ) { echo $category_info; }
+					if ( is_string( $category_info ) ) {
+                        // phpcs:ignore: WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo $category_info;
+					}
 					?>
 				</div>
-				<input type="text" name="category" id="vc_atm-category" value="{{ category }}">
+				<?php
+				WPB_Form_Field_Textfield::render(
+						[
+							'id'          => 'vc_atm-category',
+							'name'        => 'category',
+							'value'       => '{{ category }}',
+						]
+				);
+				?>
 			</div>
 			<div class="vc_field vc_description">
 				<label for="vc_atm-description"><?php esc_html_e( 'Description:', 'js_composer' ); ?></label>
-				<textarea name="description" id="vc_atm-description">{{ description }}</textarea>
+				<?php
+				WPB_Form_Field_Textarea::render( [
+					'id'    => 'vc_atm-description',
+					'name'  => 'description',
+					'value' => '{{ description }}',
+				] );
+				?>
 			</div>
 			<div class="vc_field vc_is-container">
-				<label for="vc_atm-is-container"><input type="checkbox" name="is_container"
-														id="vc_atm-is-container"
-														value=""> <?php esc_html_e( 'Include content param into shortcode', 'js_composer' ); ?>
-				</label>
+				<?php
+				WPB_Form_Field_Checkbox::render( [
+					'id'    => 'vc_atm-is-container',
+					'name'  => 'is_container',
+					'value' => '',
+					'label' => esc_html__( 'Include content param into shortcode', 'js_composer' ),
+				] );
+				?>
 			</div>
 		</div>
 		<div class="vc_line"></div>
 		<div class="vc_wrapper">
 			<h4 class="vc_h"><?php esc_html_e( 'Shortcode Parameters', 'js_composer' ); ?></h4>
 			<a href="#" id="vc_atm-add-param"
-				class="button vc_add-param">+ <?php esc_html_e( 'Add Param', 'js_composer' ); ?></a>
+				class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_add-param">+ <?php esc_html_e( 'Add Param', 'js_composer' ); ?></a>
 
 			<div class="vc_params" id="vc_atm-params-list"></div>
 		</div>
 		<div class="vc_buttons">
 			<a href="#" id="vc_atm-save"
-				class="button button-primary"><?php esc_html_e( 'Save Changes', 'js_composer' ); ?></a>
-			<a href="#" class="button vc_atm-cancel"><?php esc_html_e( 'Cancel', 'js_composer' ); ?></a>
-			<a href="#" class="button vc_atm-delete"><?php esc_html_e( 'Delete', 'js_composer' ); ?></a>
+				class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw"><?php esc_html_e( 'Save Changes', 'js_composer' ); ?></a>
+			<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_atm-cancel"><?php esc_html_e( 'Cancel', 'js_composer' ); ?></a>
+			<a href="#" class="vc_general vc_ui-button vc_ui-button-action vc_ui-button-shape-rounded vc_ui-button-fw vc_atm-delete"><?php esc_html_e( 'Delete', 'js_composer' ); ?></a>
 		</div>
 		</<?php echo esc_attr( $custom_tag ); ?>>
 		<<?php echo esc_attr( $custom_tag ); ?> type="text/html" id="vc_atm-form-param-tpl">
 		<div class="vc_controls vc_controls-row vc_clearfix"><a
 				class="vc_control column_move vc_column-move vc_move-param" href="#"
 				title="<?php esc_html_e( 'Drag row to reorder', 'js_composer' ); ?>" data-vc-control="move"><i
-					class="vc-composer-icon vc-c-icon-dragndrop"></i></a><span class="vc_row_edit_clone_delete"><a
+					class="vc-composer-icon vc-c-param-group-dragndrop"></i></a><span class="vc_row_edit_clone_delete"><a
 					class="vc_control column_delete vc_delete-param" href="#"
-					title="<?php esc_html_e( 'Delete this param', 'js_composer' ); ?>"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a></span>
+					title="<?php esc_html_e( 'Delete this param', 'js_composer' ); ?>"><i class="vc-composer-icon vc-c-trash"></i></a></span>
 		</div>
 		<div class="wpb_element_wrapper">
 			<div class="vc_row vc_row-fluid wpb_row_container">
@@ -262,23 +290,34 @@ class Vc_Automapper {
 								<# if ( 'content' === param_name) { #>
 									</div>
 									<span class="vc_content"><?php esc_html_e( 'Content', 'js_composer' ); ?></span>
-									<input type="text" style="display: none;" name="param_name"
-										value="{{ param_name }}"
-										placeholder="<?php esc_attr_e( 'Required value', 'js_composer' ); ?>"
-										class="vc_param-name"
-										data-system="true">
-								<span class="description"
-										style="display: none;"><?php esc_html_e( 'Use only letters, numbers and underscore.', 'js_composer' ); ?></span>
+									<?php
+									WPB_Form_Field_Textfield::render( [
+										'name' => 'param_name',
+										'value' => '{{ param_name }}',
+										'placeholder' => __( 'Required value', 'js_composer' ),
+										'classes' => 'vc_param-name',
+										'data_attr_list' => [ 'system' => 'true' ],
+										'style' => 'display: none;',
+									] );
+									?>
+									<span class="description" style="display: none;"><?php esc_html_e( 'Use only letters, numbers and underscore.', 'js_composer' ); ?></span>
 								<# } else { #>
-								<?php
-								$param_name_info = vc_get_template( 'editors/partials/param-info.tpl.php', [ 'description' => esc_html__( 'Please use only letters, numbers and underscore.', 'js_composer' ) ] );
-								// phpcs:ignore
-								if ( is_string( $param_name_info ) ) { echo $param_name_info; }
-								?>
-								</div>
-								<input type="text" name="param_name" value="{{ param_name }}"
-										placeholder="<?php esc_attr_e( 'Required value', 'js_composer' ); ?>"
-										class="vc_param-name">
+									<?php
+									$param_name_info = vc_get_template( 'editors/partials/param-info.tpl.php', [ 'description' => esc_html__( 'Please use only letters, numbers and underscore.', 'js_composer' ) ] );
+									if ( is_string( $param_name_info ) ) {
+                                        // phpcs:ignore: WordPress.Security.EscapeOutput.OutputNotEscaped
+										echo $param_name_info;
+									}
+									?>
+									</div>
+									<?php
+									WPB_Form_Field_Textfield::render( [
+										'name' => 'param_name',
+										'value' => '{{ param_name }}',
+										'placeholder' => __( 'Required value', 'js_composer' ),
+										'classes' => 'vc_param-name',
+									] );
+									?>
 								<# } #>
 							</div>
 							<div class="vc_heading vc_param-field">
@@ -286,15 +325,20 @@ class Vc_Automapper {
 									<label><?php esc_html_e( 'Heading', 'js_composer' ); ?></label>
 									<?php
 									$heading_info = vc_get_template( 'editors/partials/param-info.tpl.php', [ 'description' => esc_html__( 'Heading for field in shortcode edit form.', 'js_composer' ) ] );
-									// phpcs:ignore
-									if ( is_string( $heading_info ) ) { echo $heading_info; }
+									if ( is_string( $heading_info ) ) {
+                                        // phpcs:ignore: WordPress.Security.EscapeOutput.OutputNotEscaped
+										echo $heading_info;
+									}
 									?>
 								</div>
-								<input type="text" name="heading" value="{{ heading }}"
-										placeholder="<?php esc_attr_e( 'Input heading', 'js_composer' ); ?>"
-								<# if ( 'hidden' === type) { #>
-								disabled="disabled"
-								<# } #>>
+								<?php
+								WPB_Form_Field_Textfield::render( [
+									'name' => 'heading',
+									'value' => '{{ heading }}',
+									'placeholder' => __( 'Input heading', 'js_composer' ),
+									'underscore_code' => "<# if ( 'hidden' === type) { #>disabled=\"disabled\" <# } #>",
+								] );
+								?>
 							</div>
 							<div class="vc_type vc_param-field">
 								<div class="wpb_settings-title">
@@ -305,22 +349,42 @@ class Vc_Automapper {
 									if ( is_string( $field_type_info ) ) { echo $field_type_info; }
 									?>
 								</div>
-								<select name="type">
-									<option value=""><?php esc_html_e( 'Select field type', 'js_composer' ); ?></option>
-									<option
-										value="textfield"<?php echo '<# if (type === "textfield") { #> selected<# } #>'; ?>><?php esc_html_e( 'Textfield', 'js_composer' ); ?></option>
-									<option
-										value="dropdown"<?php echo '<# if (type === "dropdown") { #> selected<# } #>'; ?>><?php esc_html_e( 'Dropdown', 'js_composer' ); ?></option>
-									<option
-										value="textarea"<?php echo '<# if(type==="textarea") { #> selected="selected"<# } #>'; ?>><?php esc_html_e( 'Textarea', 'js_composer' ); ?></option>
-									<# if ( 'content' === param_name ) { #>
-									<option
-										value="textarea_html"<?php echo '<# if (type === "textarea_html") { #> selected<# } #>'; ?>><?php esc_html_e( 'Textarea HTML', 'js_composer' ); ?></option>
-									<# } #>
-									<option
-										value="hidden"<?php echo '<# if (type === "hidden") { #> selected<# } #>'; ?>><?php esc_html_e( 'Hidden', 'js_composer' ); ?></option>
-
-								</select>
+								<?php
+								$options = [
+									[
+										'label' => __( 'Select field type', 'js_composer' ),
+									],
+									[
+										'value' => 'textfield',
+										'label' => __( 'Textfield', 'js_composer' ),
+										'underscore_code' => '<# if (type === "textfield") { #> selected<# } #>',
+									],
+									[
+										'value' => 'dropdown',
+										'label' => __( 'Dropdown', 'js_composer' ),
+										'underscore_code' => '<# if (type === "dropdown") { #> selected<# } #>',
+									],
+									[
+										'value' => 'textarea',
+										'label' => __( 'Textarea', 'js_composer' ),
+										'underscore_code' => '<# if (type === "textarea") { #> selected<# } #>',
+									],
+									[
+										'value' => 'textarea_html',
+										'label' => __( 'Textarea HTML', 'js_composer' ),
+										'underscore_code' => '<# if (type === "textarea_html") { #> selected<# } #>',
+									],
+									[
+										'value' => 'hidden',
+										'label' => __( 'Hidden', 'js_composer' ),
+										'underscore_code' => '<# if (type === "hidden") { #> selected<# } #>',
+									],
+								];
+								WPB_Form_Field_Dropdown::render( [
+									'name' => 'type',
+									'options' => $options,
+								] );
+								?>
 							</div>
 							<div class="vc_value vc_param-field">
 								<div class="wpb_settings-title">
@@ -331,7 +395,13 @@ class Vc_Automapper {
 									if ( is_string( $default_value_info ) ) { echo $default_value_info; }
 									?>
 								</div>
-								<input type="text" name="value" value="{{ value }}" class="vc_param-value">
+								<?php
+								WPB_Form_Field_Textfield::render( [
+									'name' => 'value',
+									'value' => '{{ value }}',
+									'classes' => 'vc_param-value',
+								] );
+								?>
 							</div>
 							<div class="description vc_param-field">
 								<div class="wpb_settings-title">
@@ -464,7 +534,7 @@ class Vc_Automapper {
 	/**
 	 * Setter/Getter for Disabling Automapper
 	 *
-	 * @depreacted 7.7
+	 * @deprecated 7.7
 	 * @param bool $disable
 	 */
 	public static function setDisabled( $disable = true ) { // @codingStandardsIgnoreLine
@@ -475,7 +545,7 @@ class Vc_Automapper {
 	/**
 	 * Check automapper is disabled.
 	 *
-	 * @depreacted 7.7
+	 * @deprecated 7.7
 	 * @return bool
 	 */
 	public static function disabled() {

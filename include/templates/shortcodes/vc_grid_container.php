@@ -8,6 +8,7 @@
  *
  * @var array $atts
  * @var string $content - shortcode content
+ * @var WPBakeryShortCode_VC_Grid_Container $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -9,14 +9,17 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
-
-$checked = $page_settings_data['is_hide_title'] ? 'checked' : '';
 ?>
 
+
 <div class="vc_col-sm-12 vc_column">
-	<div class="wpb-toggle-wrapper vc_settings-comments">
-		<input type="checkbox" id="wpb_post-hide-title" <?php echo esc_attr( $checked ); ?> />
-		<label for="wpb_post-hide-title"></label>
-		<div class="wpb_element_label"><?php esc_html_e( 'Hide Page Title', 'js_composer' ); ?></div>
-	</div>
+	<?php
+	WPB_Form_Field_Toggle::render( [
+		'id'      => 'wpb_post-hide-title',
+		'classes' => 'wpb_toggle-input',
+		'is_checked' => $page_settings_data['is_hide_title'],
+		'title'    => __( 'Hide title', 'js_composer' ),
+		'container_classes' => 'vc_settings-comments',
+	] );
+	?>
 </div>

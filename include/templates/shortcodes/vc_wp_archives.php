@@ -14,25 +14,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $options
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $title
+ * @var string $type
+ * @var string $count
+ * @var string $el_class
+ * @var string $el_id
  * Shortcode class
  * @var WPBakeryShortCode $this
  */
-$title = $el_class = $el_id = $options = '';
+$title = $el_class = $el_id = $type = $count = '';
 $output = '';
 
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
 
-$options = explode( ',', $options );
-if ( in_array( 'dropdown', $options, true ) ) {
+if ( 'dropdown' === $type ) {
 	$atts['dropdown'] = true;
 }
-if ( in_array( 'count', $options, true ) ) {
+if ( 'true' === $count ) {
 	$atts['count'] = true;
 }
 

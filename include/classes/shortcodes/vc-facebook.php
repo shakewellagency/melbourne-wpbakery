@@ -22,20 +22,18 @@ class WPBakeryShortCode_Vc_Facebook extends WPBakeryShortCode {
 	 * @throws \Exception
 	 */
 	protected function contentInline( $atts, $content = null ) {
+		$atts = vc_map_get_attributes( $this->getShortcode(), $atts );
+		extract( $atts );
+
 		/**
 		 * Shortcode attributes
 		 *
-		 * @var $atts
-		 * @var $type
-		 * @var $el_class
-		 * @var $css
-		 * @var $css_animation
+		 * @var array $atts
+		 * @var string $type
+		 * @var string $css_animation
 		 * Shortcode class
 		 * @var WPBakeryShortCode_Vc_Facebook $this
 		 */
-		$type = $css = $el_class = '';
-		$atts = vc_map_get_attributes( $this->getShortcode(), $atts );
-		extract( $atts );
 
 		$url = get_permalink();
 

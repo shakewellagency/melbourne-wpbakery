@@ -66,6 +66,7 @@ class Vc_Mapper {
 		require_once vc_path_dir( 'PARAMS_DIR', 'load.php' );
 		WPBMap::setInit();
 		require_once vc_path_dir( 'CONFIG_DIR', 'lean-map.php' );
+		require_once vc_path_dir( 'HOOKS_DIR', 'class-wpb-lean-map-hooks.php' );
 		$this->callActivities();
 		do_action( 'vc_mapper_init_after' );
 	}
@@ -73,7 +74,7 @@ class Vc_Mapper {
 	/**
 	 * This method is called by VC objects methods if it is called before VC initialization.
 	 *
-	 * @param object $object - mame of class object.
+	 * @param string $objectString - name of class object.
 	 * @param string $method - method name.
 	 * @param array $params - list of attributes for object method.
 	 * @since  4.2
@@ -81,9 +82,9 @@ class Vc_Mapper {
 	 *
 	 * @see WPBMAP
 	 */
-	public function addActivity( $object, $method, $params = [] ) { // phpcs:ignore:Universal.NamingConventions.NoReservedKeywordParameterNames.objectFound
+	public function addActivity( $objectString, $method, $params = [] ) {
 		$this->init_activity[] = [
-			$object,
+			$objectString,
 			$method,
 			$params,
 		];

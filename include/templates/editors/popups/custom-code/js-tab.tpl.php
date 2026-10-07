@@ -30,7 +30,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</div>
-		<pre id="wpb_js_header_editor" class="wpb_content_element custom_code <?php echo $page_settings_data['can_unfiltered_html_cap'] ? '' : 'wpb_missing_unfiltered_html'; ?>" data-code-type="javascript" data-ace-location="page-js"><?php echo $page_settings_data['can_unfiltered_html_cap'] ? esc_textarea( $page_settings_data['custom_js_header'] ) : esc_html( wpbakery()->getEditorsLocale()['unfiltered_html_access'] ); ?></pre>
+		<?php
+		WPB_Form_Field_Textarea_Ace::render([
+			'id' => 'wpb_js_header_editor',
+			'classes' => 'wpb_content_element' . $page_settings_data['can_unfiltered_html_cap'] ? '' : 'wpb_missing_unfiltered_html',
+			'decoded_value' => $page_settings_data['can_unfiltered_html_cap'] ? $page_settings_data['custom_js_header'] : wpbakery()->getEditorsLocale()['unfiltered_html_access'],
+			'data_attributes' => [
+				'code-type' => 'javascript',
+				'ace-location' => 'page-js',
+			],
+		]);
+		?>
 		<p class="wpb-code-editor-tag">&lt;/script&gt;</p>
 	</div>
 </div>
@@ -55,7 +65,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</div>
-		<pre id="wpb_js_footer_editor" class="wpb_content_element custom_code <?php echo $page_settings_data['can_unfiltered_html_cap'] ? '' : 'wpb_missing_unfiltered_html'; ?>" data-code-type="javascript" data-ace-location="page-js"><?php echo $page_settings_data['can_unfiltered_html_cap'] ? esc_textarea( $page_settings_data['custom_js_footer'] ) : esc_html( wpbakery()->getEditorsLocale()['unfiltered_html_access'] ); ?></pre>
+		<?php
+		WPB_Form_Field_Textarea_Ace::render([
+			'id' => 'wpb_js_footer_editor',
+			'classes' => 'wpb_content_element' . ( $page_settings_data['can_unfiltered_html_cap'] ? '' : 'wpb_missing_unfiltered_html' ),
+			'decoded_value' => $page_settings_data['can_unfiltered_html_cap'] ? $page_settings_data['custom_js_footer'] : wpbakery()->getEditorsLocale()['unfiltered_html_access'],
+			'data_attributes' => [
+				'code-type' => 'javascript',
+				'ace-location' => 'page-js',
+			],
+		]);
+		?>
 		<p class="wpb-code-editor-tag">&lt;/script&gt;</p>
 	</div>
 </div>

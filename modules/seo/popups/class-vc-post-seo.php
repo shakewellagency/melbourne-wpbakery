@@ -57,6 +57,7 @@ class Vc_Post_Seo {
 		vc_include_template(
 			'editors/popups/vc_ui-panel-post-seo.tpl.php',
 			[
+				'id' => 'post-seo',
 				'box' => $this,
 				'can_unfiltered_html_cap' =>
 					vc_user_access()->part( 'unfiltered_html' )->checkStateAny( true, null )->get(),
@@ -174,7 +175,7 @@ class Vc_Post_Seo {
 	public function get_categories() {
 		return [
 			esc_html__( 'General', 'js_composer' ),
-			esc_html__( 'Content Analysis', 'js_composer' ),
+			esc_html__( 'Content analysis', 'js_composer' ),
 			esc_html__( 'Social', 'js_composer' ),
 		];
 	}

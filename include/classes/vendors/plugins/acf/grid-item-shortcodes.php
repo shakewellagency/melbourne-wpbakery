@@ -16,13 +16,14 @@ $provider = new Wpb_Acf_Provider();
 
 return [
 	'vc_gitem_acf' => [
-		'name' => esc_html__( 'Advanced Custom Field', 'js_composer' ),
+		'name' => esc_html__( 'Advanced custom field', 'js_composer' ),
 		'base' => 'vc_gitem_acf',
 		'icon' => 'vc_icon-acf',
 		'category' => esc_html__( 'Content', 'js_composer' ),
-		'description' => esc_html__( 'Advanced Custom Field', 'js_composer' ),
+		'description' => esc_html__( 'Advanced custom field', 'js_composer' ),
 		'php_class_name' => 'Vc_Gitem_Acf_Shortcode',
 		'params' => $provider->get_shortcode_params(),
 		'post_type' => Vc_Grid_Item_Editor::postType(),
+		'sections' => vc_config()->get_advanced_sections(),
 	],
 ];

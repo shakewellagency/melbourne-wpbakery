@@ -14,10 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $content - shortcode content
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $content - shortcode content
+ * @var string $el_class
+ * @var string $el_id
  * @var WPBakeryShortCode_Vc_Tta_Accordion|WPBakeryShortCode_Vc_Tta_Tabs|WPBakeryShortCode_Vc_Tta_Tour|WPBakeryShortCode_Vc_Tta_Pageable $this
  */
 $el_class = $css = $css_animation = '';
@@ -35,11 +35,13 @@ $prepare_content = $this->getTemplateVariable( 'content' );
 
 $class_to_filter = $this->getTtaGeneralClasses();
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . $this->getCSSAnimation( $css_animation );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->getSettings()['base'], $atts );
 
 $output = '<div ' . $this->getWrapperAttributes() . '>';
 $output .= $this->getTemplateVariable( 'title' );
-$output .= '<div class="' . esc_attr( $css_class ) . '">';
+$general_style = $this->getTtaGeneralStyle();
+$general_style_attr = '' !== $general_style ? ' style="' . esc_attr( $general_style ) . '"' : '';
+$output .= '<div class="' . esc_attr( $css_class ) . '"' . $general_style_attr . '>';
 $output .= $this->getTemplateVariable( 'tabs-list-top' );
 $output .= $this->getTemplateVariable( 'tabs-list-left' );
 $output .= '<div class="vc_tta-panels-container">';

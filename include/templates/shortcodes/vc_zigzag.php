@@ -7,6 +7,7 @@
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
  *
  * @var array $atts
+ * @var WPBakeryShortCode_VC_Zigzag $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,17 +18,14 @@ $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 
 $class_to_filter = 'vc-zigzag-wrapper';
 $class_to_filter .= vc_shortcode_custom_css_class( $atts['css'], ' ' ) . $this->getExtraClass( $atts['el_class'] ) . $this->getCSSAnimation( $atts['css_animation'] );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->getSettings()['base'], $atts );
 if ( ! empty( $atts['align'] ) ) {
 	$class_to_filter .= ' vc-zigzag-align-' . esc_attr( $atts['align'] );
 }
 
 $color = '';
-if ( 'custom' !== $atts['color'] ) {
-	$color = vc_convert_vc_color( $atts['color'] );
-} else {
-	$color = esc_attr( $atts['custom_color'] );
-}
+$color = esc_attr( $atts['custom_color'] );
+
 $width = '100%';
 if ( ! empty( $atts['el_width'] ) ) {
 	$width = esc_attr( $atts['el_width'] ) . '%';

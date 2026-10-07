@@ -5,19 +5,16 @@
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_tt_section.php.
  *
  * @see https://kb.wpbakery.com/docs/developers-how-tos/change-shortcodes-html-output
+ *
+ * @var array $atts
+ * @var string $content - shortcode content
+ * @var WPBakeryShortCode_Vc_Tta_Section $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-/**
- * Shortcode attributes
- *
- * @var $atts
- * @var $content - shortcode content
- * @var WPBakeryShortCode_Vc_Tta_Section $this
- */
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 $this->resetVariables( $atts, $content );
 WPBakeryShortCode_Vc_Tta_Section::$self_count++;

@@ -47,13 +47,13 @@ function vc_gutenberg_sanitize_disable_callback( $rules ) {
 function vc_gutenberg_disable_render_callback() {
     // phpcs:ignore
 	$checked = ( $checked = get_option( 'wpb_js_gutenberg_disable' ) ) ? $checked : false;
-	?>
-	<label>
-		<input type="checkbox"<?php echo esc_attr( $checked ) ? ' checked' : ''; ?> value="1"
-			name="<?php echo 'wpb_js_gutenberg_disable'; ?>">
-		<?php esc_html_e( 'Disable', 'js_composer' ); ?>
-	</label>
-	<?php
+
+	WPB_Form_Field_Checkbox::render( [
+		'name'    => 'wpb_js_gutenberg_disable',
+		'value'   => '1',
+		'checked' => $checked,
+		'label'   => esc_html__( 'Disable', 'js_composer' ),
+	] );
 }
 
 /**

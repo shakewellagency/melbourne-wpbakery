@@ -4,15 +4,18 @@
  *
  * @var array $module_data
  * @var string $module_slug
- * @var string $module_value
+ * @var bool $is_module_active
  */
 
 ?>
 
 <div class="wpb-module-wrapper">
-	<p><?php echo esc_html( $module_data['name'] ); ?></p>
-	<div class="wpb-toggle-wrapper">
-		<input type="checkbox" <?php echo esc_attr( $module_value ); ?> id="<?php echo esc_html( $module_slug ); ?>" class="module-toggle" />
-		<label for="<?php echo esc_html( $module_slug ); ?>"><?php echo esc_html( $module_data['name'] ); ?></label>
-	</div>
+	<?php
+	WPB_Form_Field_Toggle::render( [
+		'id'      => $module_slug,
+		'classes' => 'wpb_toggle-input module-toggle',
+		'is_checked' => $is_module_active,
+		'title'    => $module_data['name'],
+	] );
+	?>
 </div>

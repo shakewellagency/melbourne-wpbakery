@@ -16,6 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WPBakeryShortCode_Vc_Btn extends WPBakeryShortCode {
 	/**
+	 * Get CSS file names for vc_btn shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_button3', 'vc_button3_editform' ];
+	}
+
+	/**
 	 * Convert old attributes to new attributes.
 	 *
 	 * @param array $atts
@@ -99,5 +109,107 @@ class WPBakeryShortCode_Vc_Btn extends WPBakeryShortCode {
 		$icon = $this->settings( 'icon' );
 
 		return '<h4 class="wpb_element_title"><span class="vc_general vc_element-icon vc_btn3-icon' . ( ! empty( $icon ) ? ' ' . $icon : '' ) . '"></span></h4>';
+	}
+
+	/**
+	 * Resolve link attributes for a custom URL link type.
+	 *
+	 * @param array $atts
+	 * @return array
+	 */
+	public function resolve_link_custom( $atts ) {
+		$atts['link'] = isset( $atts['url'] ) ? $atts['url'] : '';
+		return $atts;
+	}
+
+	/**
+	 * Resolve link attributes for a post permalink link type.
+	 *
+	 * @param array        $atts
+	 * @param WP_Post|null $post
+	 * @param string       $target_suffix
+	 * @return array
+	 */
+	public function resolve_link_post_link( $atts, $post, $target_suffix ) {
+		if ( $post instanceof WP_Post ) {
+			$atts['link'] = 'url:' . rawurlencode( get_permalink( $post->ID ) ) . $target_suffix;
+		}
+		return $atts;
+	}
+
+	/**
+	 * Resolve link attributes for a post thumbnail image link type.
+	 *
+	 * @param array        $atts
+	 * @param WP_Post|null $post
+	 * @param string       $target_suffix
+	 * @return array
+	 */
+	public function resolve_link_image( $atts, $post, $target_suffix ) {
+		$href = vc_gitem_template_attribute_post_image_url( '', [
+			'post' => $post,
+			'data' => '',
+		] );
+		if ( ! empty( $href ) ) {
+			$atts['link'] = 'url:' . rawurlencode( $href ) . $target_suffix;
+		}
+		return $atts;
+	}
+
+	/**
+	 * Resolve link attributes for a full-size post image link type.
+	 *
+	 * @param array        $atts
+	 * @param WP_Post|null $post
+	 * @param string       $target_suffix
+	 * @return array
+	 */
+	public function resolve_link_image_full( $atts, $post, $target_suffix ) {
+		$href = vc_gitem_template_attribute_post_full_image_url( '', [
+			'post' => $post,
+			'data' => '',
+		] );
+		if ( ! empty( $href ) ) {
+			$atts['link'] = 'url:' . rawurlencode( $href ) . $target_suffix;
+		}
+		return $atts;
+	}
+
+	/**
+	 * Resolve link attributes for a full-size image lightbox link type.
+	 *
+	 * @param array        $atts
+	 * @param WP_Post|null $post
+	 * @return array
+	 */
+	public function resolve_link_image_lightbox( $atts, $post ) {
+		$href = vc_gitem_template_attribute_post_full_image_url( '', [
+			'post' => $post,
+			'data' => '',
+		] );
+		if ( ! empty( $href ) ) {
+			$atts['link']              = 'url:' . rawurlencode( $href );
+			$atts['vc_gitem_lightbox'] = 'lightbox[rel-' . md5( vc_request_param( 'shortcode_id' ) ) . ']';
+		}
+		return $atts;
+	}
+
+	/**
+	 * Resolve link attributes for a thumbnail image lightbox link type.
+	 *
+	 * @param array        $atts
+	 * @param WP_Post|null $post
+	 * @return array
+	 */
+	public function resolve_link_image_full_lightbox( $atts, $post ) {
+		$href = vc_gitem_template_attribute_post_image_url( '', [
+			'post' => $post,
+			'data' => '',
+		] );
+		if ( ! empty( $href ) ) {
+			$atts['link']              = 'url:' . rawurlencode( $href );
+			$atts['vc_gitem_lightbox'] = 'lightbox[rel-' . md5( vc_request_param( 'shortcode_id' ) ) . ']';
+		}
+		return $atts;
 	}
 }

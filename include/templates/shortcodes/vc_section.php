@@ -14,28 +14,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $el_class
- * @var $full_width
- * @var $min_height
- * @var $full_height
- * @var $columns_placement
- * @var $content_placement
- * @var $parallax
- * @var $parallax_image
- * @var $css
- * @var $el_id
- * @var $video_bg
- * @var $video_bg_url
- * @var $video_bg_parallax
- * @var $parallax_speed_bg
- * @var $parallax_speed_video
- * @var $content - shortcode content
- * @var $css_animation
+ * @var array $atts
+ * @var string $el_class
+ * @var string $full_width
+ * @var string $min_height
+ * @var string $full_height
+ * @var string $columns_placement
+ * @var string $vertical_content_position
+ * @var string $parallax
+ * @var string $parallax_image
+ * @var string $css
+ * @var string $el_id
+ * @var string $video_bg
+ * @var string $video_bg_url
+ * @var string $video_bg_parallax
+ * @var string $parallax_speed_bg
+ * @var string $parallax_speed_video
+ * @var string $content - shortcode content
+ * @var string $css_animation
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Row $this
  */
-$el_class = $full_height = $min_height = $parallax_speed_bg = $parallax_speed_video = $full_width = $flex_row = $columns_placement = $content_placement = $parallax = $parallax_image = $css = $el_id = $video_bg = $video_bg_url = $video_bg_parallax = $css_animation = '';
+$el_class = $full_height = $min_height = $parallax_speed_bg = $parallax_speed_video = $full_width = $flex_row = $columns_placement = $vertical_content_position = $parallax = $parallax_image = $css = $el_id = $video_bg = $video_bg_url = $video_bg_parallax = $css_animation = '';
 $disable_element = '';
 $output = $after_output = '';
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
@@ -53,7 +53,7 @@ $css_classes = [
 
 if ( 'yes' === $disable_element ) {
 	if ( vc_is_page_editable() ) {
-		$css_classes[] = 'vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
+		$css_classes[] = 'vc_hidden-xl vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
 	} else {
 		return '';
 	}
@@ -95,9 +95,9 @@ if ( ! empty( $full_height ) ) {
 	$css_classes[] = 'vc_row-o-full-height';
 }
 
-if ( ! empty( $content_placement ) ) {
+if ( ! empty( $vertical_content_position ) ) {
 	$flex_row = true;
-	$css_classes[] = 'vc_section-o-content-' . $content_placement;
+	$css_classes[] = 'vc_section-o-content-' . $vertical_content_position;
 }
 
 if ( ! empty( $flex_row ) ) {
@@ -142,7 +142,7 @@ if ( ! empty( $parallax_image ) ) {
 if ( ! $parallax && $has_video_bg ) {
 	$wrapper_attributes[] = 'data-vc-video-bg="' . esc_attr( $video_bg_url ) . '"';
 }
-$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( array_unique( $css_classes ) ) ), $this->settings['base'], $atts ) );
+$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( array_unique( $css_classes ) ) ), $this->getSettings()['base'], $atts ) );
 $wrapper_attributes[] = 'class="' . esc_attr( trim( $css_class ) ) . '"';
 
 $output .= '<section ' . implode( ' ', $wrapper_attributes ) . '>';

@@ -155,38 +155,44 @@
 			showPanel: function ( element ) {
 				element.css( 'visibility', 'visible' );
 				element.css( 'opacity', '1' );
+				element.css( 'pointer-events', 'auto' );
 			},
 			hidePanel: function ( element ) {
 				element.css( 'visibility', 'hidden' );
 				element.css( 'opacity', '0' );
+				element.css( 'pointer-events', 'none' );
 			},
 			/**
 			 *
 			 * @param model
-			 * @param isUsageCount
 			 * @param toCache
 			 * @returns {vc.EditElementPanelView}
 			 */
-			render: function ( model, isUsageCount, toCache = false ) {
+			render ( model, toCache = false ) {
 				this.model = model;
 				var modelId = this.model.get( 'id' );
 
 				if ( toCache ) {
 					this.addEditPanelToCache( modelId, this.$el );
 
-					return this.processRender( model, isUsageCount, true );
+					return this.processRender( model, true );
 				} else {
 					if ( this.isEditPanelCached( modelId ) ) {
+						if ( vc.active_panel && vc.active_panel !== this ) {
+							vc.closeActivePanel();
+						}
 						this.showPanel( window.vc.editPanelCache.element );
+						vc.active_panel = this;
+						this.$el.addClass( 'vc_active' );
 						this.removeEditPanelCache();
 					} else {
 						vc.closeActivePanel();
 
-						return this.processRender( model, isUsageCount );
+						return this.processRender( model );
 					}
 				}
 			},
-			processRender: function ( model, isUsageCount, isHidden = false ) {
+			processRender ( model, isHidden = false ) {
 				var params;
 				this.model = model;
 
@@ -215,19 +221,21 @@
 				}, this );
 				this.trigger( 'render' );
 				this.show();
-				this.processRenderAjax( tag, model, isUsageCount ).then();
+				this.processRenderAjax( tag, model ).then();
 
 				return this;
 			},
-			processRenderAjax: async function ( tag, model, isUsageCount ) {
+			async processRenderAjax ( tag, model ) {
 				var modelId = this.model.get( 'id' );
 				var isAddElement = model.attributes && model.attributes.is_add_element;
+				const hasPreset = model.get( 'preset' );
 
 				// we cache ajax for add element panel here.
-				if ( isAddElement && await this.waitAddElementEditPanelAjaxCache( tag ) ) {
+				// Don't use cache for preset elements - they have custom params that need to be sent via AJAX.
+				if ( isAddElement && !hasPreset && await this.waitAddElementEditPanelAjaxCache( tag ) ) {
 					delete model.attributes.is_add_element;
 					this.buildParamsContent( this.getAddElementEditPanelAjaxCache( tag ) );
-				// we cache ajax for edit panel for editor elements here.
+					vc.events.once( 'editElementPanel:ready', () => this.updateElementUsageCount( tag ) );
 				} else if ( this.isEditPanelEditorElementAjaxCached( modelId ) ) {
 					this.buildParamsContent( this.getEditPanelEditorElementAjaxCache( modelId ) );
 				} else {
@@ -236,10 +244,21 @@
 					this.ajax = $.ajax({
 						type: 'POST',
 						url: window.ajaxurl,
-						data: this.ajaxData( isUsageCount ),
+						data: this.ajaxData(),
 						context: this
 					}).done( this.buildParamsContent ).always( this.resetAjax );
 				}
+			},
+			updateElementUsageCount ( tag ) {
+				this.ajax = $.ajax({
+					type: 'POST',
+					url: window.ajaxurl,
+					data: {
+						action: 'wpb_update_element_usage_count',
+						tag,
+						_vcnonce: window.vcAdminNonce
+					} // we don't need handling response here.
+				});
 			},
 			prepareContentBlock: function () {
 				this.$content = this.$el.find( this.contentSelector ).removeClass( 'vc_with-tabs' );
@@ -339,21 +358,34 @@
 			resetMinimize: function () {
 				this.$el.removeClass( 'vc_panel-opacity' );
 			},
-			ajaxData: function ( isUsageCount ) {
-				var parentTag, parentId, params, mergedParams;
+			findShortcodeAtts ( id ) {
+				if ( vc.storage?.data?.[ id ]) {
+					return vc.storage.data[ id ].params || {};
+				}
+				const entry = vc.findShortcodeEntry( id );
+				if ( entry ) {
+					return vc.getShortcodeAttsById( id, entry );
+				}
+				const model = vc.shortcodes && vc.shortcodes.get( id );
+				return model ? model.get( 'params' ) || {} : {};
+			},
+			ajaxData () {
+				let parentTag, parentId, params;
 
 				parentId = this.model.get( 'parent_id' );
 				parentTag = parentId ? this.model.collection.get( parentId ).get( 'shortcode' ) : null;
+				const tag = this.model.get( 'shortcode' );
 				params = this.model.get( 'params' );
-				mergedParams = _.extend({}, vc.getDefaults( this.model.get( 'shortcode' ) ), params );
+				const mergedParams = _.extend({}, vc.getDefaults( tag ), params );
+				const id = this.model.get( 'id' );
 
 				return {
 					action: 'vc_edit_form', // OLD version wpb_show_edit_form
-					tag: this.model.get( 'shortcode' ),
+					tag,
 					parent_tag: parentTag,
 					post_id: window.vc_post_id,
 					params: mergedParams,
-					usage_count: isUsageCount,
+					shortcode_atts: this.findShortcodeAtts( id ),
 					_vcnonce: window.vcAdminNonce
 				};
 			},
@@ -543,6 +575,7 @@
 
 				paramsSettings = this.mapped_params;
 				this.params = _.extend({}, this.model.get( 'params' ) );
+
 				_.each( paramsSettings, function ( param ) {
 					var value;
 
@@ -599,7 +632,9 @@
 					mergedParams.content = params.content;
 				}
 				$this.model.save({ params: mergedParams });
-				$this.showMessage( window.sprintf( window.i18nLocale.inline_element_saved, vc.getMapped( shortcode ).name ), 'success' );
+				if ( !window.vc_auto_save ) {
+					window.wpbNotifications.show( window.sprintf( window.i18nLocale.inline_element_saved, $this.getElementTitle() ) );
+				}
 				if ( !window.vc_auto_save && !window.vc.frame_window ) {
 					this.hide();
 				}
@@ -616,6 +651,7 @@
 					this.initDraggable();
 				}
 				this.fixElContainment();
+				this.focusCloseButton( this.$el );
 				this.trigger( 'show' );
 			},
 			hide: function ( e ) {
@@ -644,8 +680,24 @@
 				this.trigger( 'hide' );
 			},
 			setTitle: function () {
-				this.$el.find( this.titleSelector ).html( vc.getMapped( this.model.get( 'shortcode' ) ).name + ' ' + window.i18nLocale.settings );
+				let title = '<i class="vc-composer-icon vc-c-param-group-dragndrop"></i>';
+				title += this.getElementTitle();
+				this.$el.find( this.titleSelector ).html( title );
 				return this;
+			},
+			getElementTitle () {
+				const mapped = vc.getMapped( this.model.get( 'shortcode' ) );
+				// Some elements (e.g. the shared vc_tta_section) display a different name depending on their parent.
+				const titleByParent = mapped.title_by_parent;
+				if ( titleByParent ) {
+					const parentId = this.model.get( 'parent_id' );
+					const parentModel = parentId && this.model.collection ? this.model.collection.get( parentId ) : null;
+					const parentTag = parentModel ? parentModel.get( 'shortcode' ) : null;
+					if ( parentTag && titleByParent[ parentTag ]) {
+						return titleByParent[ parentTag ];
+					}
+				}
+				return mapped.name;
 			},
 			_killEditor: function () {
 				if ( !_.isUndefined( window.tinyMCE ) ) {
@@ -671,9 +723,11 @@
 			el: '#vc_ui-panel-edit-element',
 			events: {
 				'click [data-vc-ui-element="button-save"]': 'save',
+				'keydown [data-vc-ui-element="button-save"]': 'keydownSave',
 				'click [data-vc-ui-element="button-close"]': 'hide',
 				'touchstart [data-vc-ui-element="button-close"]': 'hide',
-				'click [data-vc-ui-element="button-minimize"]': 'toggleOpacity',
+				'keydown [data-vc-ui-element="button-close"]': 'keydownHide',
+				'click [data-vc-ui-element="button-panel-minimize"]': 'toggleOpacity',
 				'click [data-vc-ui-element="panel-tab-control"]': 'changeTab'
 			},
 			titleSelector: '[data-vc-ui-element="panel-title"]',
@@ -725,6 +779,7 @@
 					cleanupPanel();
 					_self.init();
 				}
+				vc.formComponents.select.initAll();
 			},
 			changeTab: function ( e ) {
 				if ( e && e.preventDefault ) {

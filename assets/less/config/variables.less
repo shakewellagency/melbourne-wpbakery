@@ -50,7 +50,7 @@
 @vc_image_slider_link: @vc_grey;
 @vc_image_slider_link_active: darken(@vc_grey, 20%);
 
-//vc_post_slider.less
+//vc_posts_slider.less
 @vc_post_slider_caption_bg: @vc_grey;
 
 //vc_progress_bar.less
@@ -104,4 +104,31 @@
 @vc_grid-float-breakpoint: @grid-float-breakpoint;
 @vc_grid-float-breakpoint-max: @grid-float-breakpoint-max;
 
+// XL Breakpoint (extra large devices)
+@screen-xl-min: 1400px;
+@screen-lg-max: (@screen-xl-min - 1);
+
 @vc_success_frontend_editor: #12C248;
+
+// Font
+@wpb_font-family-primary: 'Inter', -apple-system, Roboto, sans-serif;
+@wpb_font-family-secondary: Sora, sans-serif;
+@wpb_font-size-sm: 12px;
+@wpb_font-size-xs: 9px;
+@wpb_font-weight: 500;
+
+// Transitions
+@wpb_transition_duration: 0.15s;
+@wpb_transition_duration_slow: 0.3s;
+@wpb_transition_easing: ease;
+
+// Icon font mixin for consistent icon rendering.
+.wpb-icon-font() {
+  font-family: 'vcpb-plugin-icons', sans-serif;
+  font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// WordPress dashboard variables
+@wpb_admin-bar-mobile-height: 46px;

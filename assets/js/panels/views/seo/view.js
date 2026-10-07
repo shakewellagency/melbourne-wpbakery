@@ -38,7 +38,7 @@
 			$seoSettingsHiddenInput.val( JSON.stringify( customFormat ) );
 
 			this.trigger( 'save' );
-			window.vc.showMessage( window.i18nLocale.seo_settings_updated, 'success' );
+			window.wpbNotifications.show( window.i18nLocale.seo_settings_updated );
 		}
 	});
 

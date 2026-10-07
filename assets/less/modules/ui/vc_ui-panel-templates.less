@@ -63,7 +63,7 @@
 
   .vc_ui-list-bar-item-trigger {
     padding: @vcui-panel-content-padding-horizontal;
-    font-weight: 600;
+    font-weight: @wpb_font-weight;
     outline: none;
     transition-property: color;
     transition-duration: .2s;
@@ -132,7 +132,15 @@
     }
   }
   h3 {
-    margin-bottom: 0.5em;
+    margin-bottom: 15px;
+  }
+
+  .vc_element_label {
+    font-weight: 700;
+  }
+
+  .vc_ui-save-template-form .vc_element_label {
+    font-weight: 500;
   }
 }
 
@@ -150,13 +158,6 @@
         padding: 0em 1em 1em 4em;
       }
     }
-  }
-
-  .vc_template-save-btn {
-    height: 46px;
-    display: inline-flex;
-    align-items: center;
-    line-height: 1;
   }
 }
 

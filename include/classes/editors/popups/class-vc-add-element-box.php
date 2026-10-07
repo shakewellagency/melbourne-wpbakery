@@ -176,7 +176,7 @@ class Vc_Add_Element_Box {
 		$shortcodes = $this->shortcodes();
 		$most_used_elements = $this->getMostUsedElements( array_column( $shortcodes, 'base' ) );
 		if ( ! empty( $most_used_elements ) ) {
-			$output .= '<div class="vc_clearfix"><h4>' . esc_html__( 'Most used', 'js_composer' ) . '</h4>';
+			$output .= '<div class="vc_clearfix"><h4 class="wpb-content-layouts-title">' . esc_html__( 'Most used', 'js_composer' ) . '</h4>';
 			$output .= '<ul class="wpb-content-layouts" style="margin-bottom: 20px">';
 			foreach ( $most_used_elements as $element ) {
 				$button = $this->renderButton( WPBMap::getShortCode( $element ) );
@@ -188,7 +188,7 @@ class Vc_Add_Element_Box {
 		}
 
 		if ( ! empty( $most_used_elements ) ) {
-			$output .= '<div class="vc_clearfix"><h4>' . esc_html__( 'All elements', 'js_composer' ) . '</h4>';
+			$output .= '<div class="vc_clearfix"><h4 class="wpb-content-layouts-title">' . esc_html__( 'All elements', 'js_composer' ) . '</h4>';
 		}
 		$output .= '<ul class="wpb-content-layouts">';
 		$buttons_count = 0;
@@ -249,6 +249,7 @@ class Vc_Add_Element_Box {
 	 */
 	public function render() {
 		vc_include_template( 'editors/popups/vc_ui-panel-add-element.tpl.php', [
+			'id' => 'add-element',
 			'box' => $this,
 			'teasers' => $this->getTeasers(),
 			'header_tabs_template_variables' => [

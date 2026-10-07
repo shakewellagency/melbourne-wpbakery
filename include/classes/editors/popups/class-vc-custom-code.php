@@ -56,6 +56,7 @@ class Vc_Custom_Code {
 
 		vc_include_template( 'editors/popups/vc_ui-panel-custom-code.tpl.php',
 		[
+			'id' => 'custom-code',
 			'controls' => $this->get_controls(),
 			'box' => $this,
 			'page_settings_data' => array_merge([

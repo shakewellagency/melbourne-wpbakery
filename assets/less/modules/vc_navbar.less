@@ -1,9 +1,17 @@
 @vcui-navbar-transition-duration: .2s;
 @vcui-navbar-transition-function: ease-in-out;
+@wpb-navbar-icon-size: 50px;
+
+.wpb-navbar-button-font() {
+  font-family: @wpb_font-family-primary;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
 
 .vc_navbar {
   .box-sizing(border-box);
-  min-height: @vc_navbar_height; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
+  height: @vc_navbar_height; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
   margin: @vc_navbar_margin;
   border: 0;
   // Prevent floats from breaking the navbar
@@ -22,23 +30,16 @@
     > li {
       float: left;
       margin: 0;
-      a {
+      a:focus {
+        box-shadow: none;
       }
-      height: 56px;
+      height: @vc_navbar_height;
     }
   }
 
   .vc_navbar-brand {
-    .navbar-brand();
-    font-size: 0;
-    background: transparent url(@vcui_navbar_logo) center center no-repeat;
-    background-size: 32px;
-    display: block;
-    width: 32px;
-    height: 26px;
-    padding: 27px 30px 27px 35px;
-    &.vc_ui-wp-spinner {
-      background-image: none;
+    svg {
+      transform: scale(1.8);
     }
   }
   &.vc_navbar-frontend {
@@ -57,10 +58,11 @@
     padding-right: 5px;
   }
   a.vc_icon-btn {
-    display: block;
-    width: 60px;
-    height: @vc_navbar_height;
-    padding: 28px 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: @wpb-navbar-icon-size;
+    height: @wpb-navbar-icon-size;
     cursor: pointer;
     outline: 0;
     background: transparent;
@@ -69,14 +71,12 @@
     font-size: 24px;
     &[disabled], &[disabled]#vc_navbar-redo, &[disabled]#vc_navbar-undo {
       .opacity(0.2);
+      cursor: not-allowed;
     }
-    &:not([disabled]):hover {
+    &:not([disabled]):hover,
+    &:not([disabled]):focus {
       background-color: @vc_navbar_icon_btn_color_hover;
     }
-    &:not([disabled]):focus {
-      background-color: transparent;
-    }
-
     .vc-composer-icon, .vc_navbar-icon {
       color: @vc_navbar_icon_color;
       position: absolute;
@@ -95,12 +95,30 @@
   }
   .vc_btn.vc_btn-save {
     background-color: #fff;
-    color: #34434A;
+    color: @textGray;
     margin-left: 2px;
+
     &-draft {
-      background-color: @vc_main_color_hover;
+      background-color:  @vc_navbar_icon_btn_color_hover;
       color: #fff;
       margin-right: 2px;
+      transition: color @vcui-navbar-transition-duration @vcui-navbar-transition-function,
+                  background-color @vcui-navbar-transition-duration @vcui-navbar-transition-function;
+    }
+
+    &.vc_navbar-btn:hover,
+    &.vc_navbar-btn:active,
+    &.vc_navbar-btn:focus,
+    &.vc_navbar-btn:active:focus,
+    &.vc_navbar-btn:focus-within,
+    &-draft.vc_navbar-btn:hover,
+    &-draft.vc_navbar-btn:active,
+    &-draft.vc_navbar-btn:focus,
+    &-draft.vc_navbar-btn:active:focus,
+    &-draft.vc_navbar-btn:focus-within {
+      background-color: @vc_navbar_btn_hover_bg;
+      color: @textGray;
+      outline: none;
     }
   }
   .vc_undo-redo {
@@ -110,10 +128,6 @@
   .vc_windowed-button {
     font-size: 23px;
   }
-  .vc_back-button {
-    font-size: 18px;
-    padding: 20px 23px;
-  }
 
   ul.vc_navbar-nav li a#vc_windowed-button {
     display: none;
@@ -122,14 +136,19 @@
     }
   }
 
+  .wpb-custom-code-icon-container {
+    display: inline-flex;
+    position: relative;
+  }
+
   .vc_badge-custom-code {
     display: block;
     background-color: #fcb714;
     position: absolute;
     top: 13px;
     right: 16px;
-    height: 8px;
-    width: 8px;
+    height: 7px;
+    width: 7px;
     min-width: unset;
     padding: 0;
     border-radius: 50%;
@@ -139,27 +158,33 @@
     display: none;
     .vc_control-preview {
       margin-right: 0;
-      background-color: @vc_main_color_hover;
+      background-color: @vc_navbar_icon_btn_color_hover;
       color: #fff !important; // override another !important
+      transition: background-color @vcui-navbar-transition-duration @vcui-navbar-transition-function,
+                  color @vcui-navbar-transition-duration @vcui-navbar-transition-function;
+      &:hover,
+      &:active,
+      &:focus,
+      &:active:focus {
+        background-color: @vc_navbar_btn_hover_bg;
+        color: @textGray !important; // override own !important
+      }
     }
     .vc_control-save {
       margin-left: 5px;
       background-color: #fff;
-      color: #34434A;
+      color: @textGray;
       text-align: center;
+      &:hover,
+      &:active,
+      &:focus,
+      &:active:focus {
+        background-color: @vc_navbar_btn_hover_bg;
+      }
     }
   }
   .vc_dropdown {
     position: relative;
-    .vc_dropdown-toggle {
-      transition: background-color @vcui-navbar-transition-duration @vcui-navbar-transition-function;
-      cursor: pointer;
-      display: block;
-      height: 56px;
-      line-height: 16px;
-      padding: 19px;
-      text-decoration: none;
-    }
     .vc_current-layout-icon {
       color: #FFFFFF;
     }
@@ -171,11 +196,10 @@
       display: none;
       position: absolute;
       z-index: 1000;
-      top: 55px;
-      // left: 0px;
+      top: @vc_navbar_height;
       background: @vc_navbar_icon_btn_color_hover;
-      // border: 1px solid #1e5072;
-      // border-width: 0 1px 1px 1px;
+      border-bottom-left-radius: @vc_border_radius;
+      border-bottom-right-radius: @vc_border_radius;
       padding-top: 1px;
       max-height: calc(100vh - 102px);
       overflow: auto;
@@ -183,13 +207,11 @@
         margin: 0;
       }
       a {
-        display: block;
-        color: #FFFFFF;
+        display: flex;
+        color: @white; // required for the mobile vide dropdown
         text-decoration: none;
         transition: background-color @vcui-navbar-transition-duration @vcui-navbar-transition-function;
         background-color: transparent;
-        width: 56px;
-        height: 37px;
         position: relative;
         &::before {
           position: absolute;
@@ -222,7 +244,7 @@
 
     &-more {
       .vc_dropdown-list {
-        top: 56px;
+        top: @vc_navbar_height;
         right: 0;
         margin: 0;
         padding: 0;
@@ -230,11 +252,10 @@
       .vc_dropdown-list-item {
         a {
           width: auto;
-          min-width: 147px;
-          height: auto;
-          padding: 21px 21px;
-          line-height: 1;
-          font-size: 15px;
+          min-width: 160px;
+          height: 50px;
+          padding: 16px 20px;
+          .wpb-navbar-button-font();
         }
       }
     }
@@ -249,26 +270,15 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  font-weight: 500;
-  font-size: 13px;
-  line-height: 1;
-  border-radius: 5px;
-  width: 120px;
-  height: 45px;
+  .wpb-navbar-button-font();
+  border-radius: @vc_border_radius;
+  width: 100px;
+  height: 40px;
   margin: 5.5px 21px;
   transition: background-color @vcui-navbar-transition-duration @vcui-navbar-transition-function;
 
   &.vc_btn-xs {
     .navbar-vertical-align(22);
-  }
-
-  &.vc_btn-default:hover {
-    background: @vc_main_color_hover;
-    color: #fff;
-  }
-  &.vc_btn-primary:hover {
-    background: #E9F2F6;
-    color: inherit;
   }
 }
 
@@ -326,27 +336,28 @@
 
   .vc_navbar ul.vc_navbar-nav {
 
-    & > li > a p {
-      text-align: center;
-    }
-
     li {
       &.vc_save-buttons {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin: 0 21px;
+        gap: 10px;
+        margin: 0 10px;
         a {
           margin: 0;
           padding: 8px;
           display: flex;
+          border-radius: @vc_border_radius;
         }
       }
 
       a {
-        display: inline-block;
         p {
+          text-align: center;
           margin: 0;
+          .wpb-navbar-button-font();
+          &.wpb-desktop-preview-text {
+            margin-left: 10px;
+          }
         }
       }
 
@@ -394,6 +405,7 @@
           p {
             margin: 0;
             margin-left: 18px;
+            .wpb-navbar-button-font();
           }
         }
       }
@@ -505,7 +517,7 @@
 
   body:not(.vc_editor).auto-fold .vc_navbar {
     padding-left: 0;
-    top: 46px; // #wpadminbar height
+    top: @wpb_admin-bar-mobile-height;
   }
 
   #wpwrap.wp-responsive-open .vc_navbar {
@@ -561,8 +573,8 @@
 .vc_custom-code-icon {
   position: relative;
   .vc_badge {
-    top: -15px;
-    right: -15px;
+    top: -3px;
+    right: -3px;
   }
 }
 
@@ -579,10 +591,8 @@
   }
 }
 
-.vc_navbar .vc_navbar-btn.vc_btn.vc_btn-white {
-    background-color: #fff;
-    color: #34434A !important;
-  &:hover {
-    background-color: #E9F2F6;
-  }
+.vc_screen-size-current {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

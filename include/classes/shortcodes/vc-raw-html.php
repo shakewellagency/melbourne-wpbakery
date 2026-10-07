@@ -55,8 +55,22 @@ class WPBakeryShortCode_Vc_Raw_Html extends WPBakeryShortCode {
 
 		if ( isset( $param['holder'] ) && 'hidden' !== $param['holder'] ) {
 			if ( 'textarea_ace' === $param['type'] ) {
-				// @codingStandardsIgnoreLine
-				$output .= sprintf( '<%s class="wpb_vc_param_value %s %s %s" name="%s">%s</%s><input type="hidden" name="%s_code" class="%s_code" value="%s" />', $param['holder'], $param_name, $type, $class, $param_name, htmlentities( rawurldecode( base64_decode( wp_strip_all_tags( $value ) ) ), ENT_COMPAT, 'UTF-8' ), $param['holder'], $param_name, $param_name, wp_strip_all_tags( $value ) );
+				$output .= sprintf(
+					'<%s class="wpb_vc_param_value %s %s %s" name="%s">%s</%s>%s',
+					$param['holder'],
+					$param_name,
+					$type,
+					$class,
+					$param_name,
+					htmlentities( rawurldecode( base64_decode( wp_strip_all_tags( $value ) ) ), ENT_COMPAT, 'UTF-8' ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+					$param['holder'],
+					WPB_Form_Field_Hidden::get([
+						'name' => $param_name . '_code',
+						'classes' => $param_name . '_code',
+						'value' => wp_strip_all_tags( $value ),
+						'is_value_escape' => false,
+					]),
+				);
 
 			} else {
 				$output .= '<' . $param['holder'] . ' class="wpb_vc_param_value ' . $param_name . ' ' . $type . ' ' . $class . '" name="' . $param_name . '">' . $value . '</' . $param['holder'] . '>';

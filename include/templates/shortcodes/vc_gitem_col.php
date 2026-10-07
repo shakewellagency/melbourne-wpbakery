@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $width
- * @var $align
- * @var $css
- * @var $el_class
- * @var $featured_image
- * @var $img_size
- * @var $content - shortcode content
+ * @var array $atts
+ * @var string $width
+ * @var string $align
+ * @var string $css
+ * @var string $el_class
+ * @var string $featured_image
+ * @var string $img_size
+ * @var string $content - shortcode content
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Gitem_Col $this
  */

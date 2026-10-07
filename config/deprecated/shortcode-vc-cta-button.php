@@ -3,7 +3,7 @@
  * Configuration file for [vc_cta_button] shortcode of 'Old Call to Action' element.
  *
  * @see https://kb.wpbakery.com/docs/inner-api/vc_map/ for more detailed information about element attributes.
- * @depreacted 4.5
+ * @deprecated 4.5
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -87,7 +87,7 @@ return [
 			],
 			'description' => esc_html__( 'Select button alignment.', 'js_composer' ),
 		],
-		vc_map_add_css_animation(),
+		vc_config()->get_css_animation(),
 		[
 			'type' => 'textfield',
 			'heading' => esc_html__( 'Extra class name', 'js_composer' ),

@@ -65,6 +65,27 @@
 		isBase64: function ( string ) {
 			return /^[A-Za-z0-9+/]+={0,2}$/.test( string ) && string.length % 4 === 0;
 		},
+		decodeParamValue: ( value ) => {
+			let decodedValue = '';
+			if ( ! value ) {
+				return decodedValue;
+			}
+			const isBase64Value = window.vc.utils.isBase64( value );
+
+			if ( isBase64Value ) {
+				decodedValue = window.base64_decode( value );
+
+				try {
+					decodedValue = window.rawurldecode( decodedValue );
+				} catch ( e ) {
+					console.error( 'Failed to decode:', e.message );
+				}
+			} else {
+				decodedValue = value;
+			}
+
+			return decodedValue;
+		},
 		/**
 		 * Returns a new order value to insert a shortcode right after the given model.
 		 * Used in clone and paste operations to maintain correct element positioning.
@@ -176,6 +197,47 @@
 					'target'
 				]
 			});
+		},
+		findShortCacheKey ( query, cachedData ) {
+			for ( const key in cachedData ) {
+				if ( query.startsWith( key ) ) {
+					return key;
+				}
+			}
+
+			return false;
+		},
+		/**
+		 * If we already have a search results for a request like 'foo' and have another request 'foo1'
+		 * we search among 'foo' results for 'foo1'
+		 */
+		searchInShortCacheKey ( searchRequest, cachedData ) {
+			const results = [];
+
+			cachedData.forEach( ( item ) => {
+				if ( item.label.toLowerCase().includes( searchRequest ) ) {
+					results.push( item );
+				}
+			});
+
+			return results;
+		},
+		/**
+		 * Check whether a search term is present in an in-memory cache,
+		 * either as an exact key or via the short-key prefix optimisation.
+		 *
+		 * @param {string} term       Current user-typed query.
+		 * @param {Object} cachedData Cache map keyed by previous query strings.
+		 * @return {boolean}
+		 */
+		isInCache ( term, cachedData ) {
+			if ( typeof term !== 'string' || term === '' || !cachedData || typeof cachedData !== 'object' ) {
+				return false;
+			}
+			if ( term in cachedData ) {
+				return true;
+			}
+			return Boolean( this.findShortCacheKey( term, cachedData ) );
 		}
 	};
 })( window );

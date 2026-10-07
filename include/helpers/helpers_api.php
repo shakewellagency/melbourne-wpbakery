@@ -366,57 +366,24 @@ if ( ! function_exists( 'vc_map_integrate_shortcode' ) ) :
 	 * @param string $group_prefix
 	 * @param null|array $change_fields
 	 * @param null|array $dependency
+	 * @param bool $is_sections flag if we need sections.
+	 * @param bool $is_remove_css_animation_group we use this flag for b.c. when we move our css_animation to css tab.
 	 * @return array
 	 * @throws Exception
 	 */
-	function vc_map_integrate_shortcode( $shortcode, $field_prefix = '', $group_prefix = '', $change_fields = null, $dependency = null ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		if ( is_string( $shortcode ) ) {
-			$shortcode_data = WPBMap::getShortCode( $shortcode );
-		} else {
-			$shortcode_data = $shortcode;
-		}
-		if ( is_array( $shortcode_data ) && ! empty( $shortcode_data ) ) {
-			// WPBakeryShortCodeFishBones $shortcode - base shortcode.
-			$params = ! empty( $shortcode_data['params'] ) ? $shortcode_data['params'] : false;
-			if ( is_array( $params ) && ! empty( $params ) ) {
-				$keys = array_keys( $params );
-				$count = count( $keys );
-				for ( $i = 0; $i < $count; $i++ ) {
-					$param = &$params[ $keys[ $i ] ]; // Note! passed by reference to automatically update data.
-					if ( isset( $change_fields ) ) {
-						$param = vc_map_integrate_include_exclude_fields( $param, $change_fields );
-						if ( empty( $param ) ) {
-							continue;
-						}
-					}
-					if ( ! empty( $group_prefix ) ) {
-						if ( isset( $param['group'] ) ) {
-							$param['group'] = $group_prefix . ': ' . $param['group'];
-						} else {
-							$param['group'] = $group_prefix;
-						}
-					}
-					if ( ! empty( $field_prefix ) && isset( $param['param_name'] ) ) {
-						$param['param_name'] = $field_prefix . $param['param_name'];
-						if ( isset( $param['dependency']['element'] ) && is_array( $param['dependency'] ) ) {
-							$param['dependency']['element'] = $field_prefix . $param['dependency']['element'];
-						}
-						$param = vc_map_integrate_add_dependency( $param, $dependency );
-
-					} elseif ( ! empty( $dependency ) ) {
-						$param = vc_map_integrate_add_dependency( $param, $dependency );
-					}
-					$param['integrated_shortcode'] = is_array( $shortcode ) ? $shortcode['base'] : $shortcode;
-					$param['integrated_shortcode_field'] = $field_prefix;
-				}
-			}
-
-			return is_array( $params ) ? array_filter( $params ) : [];
-		}
-
-		return [];
+	function vc_map_integrate_shortcode( $shortcode, $field_prefix = '', $group_prefix = '', $change_fields = null, $dependency = null, $is_sections = false, $is_remove_css_animation_group = true ) {
+		return wpb_map_integrator()->integrate_shortcode( [
+			'shortcode'                     => $shortcode,
+			'field_prefix'                  => $field_prefix,
+			'group_prefix'                  => $group_prefix,
+			'change_fields'                 => $change_fields,
+			'dependency'                    => $dependency,
+			'is_sections'                   => $is_sections,
+			'is_remove_css_animation_group' => $is_remove_css_animation_group,
+		] );
 	}
 endif;
+
 if ( ! function_exists( 'vc_map_integrate_parse_atts' ) ) :
 	/**
 	 * Parses and integrates attributes between two shortcodes.
@@ -438,7 +405,7 @@ if ( ! function_exists( 'vc_map_integrate_parse_atts' ) ) :
 		$data = [];
 		if ( is_array( $params ) && ! empty( $params ) ) {
 			foreach ( $params as $param ) {
-				$value = '';
+				unset( $value );
 				if ( isset( $atts[ $param['param_name'] ] ) ) {
 					$value = $atts[ $param['param_name'] ];
 				}

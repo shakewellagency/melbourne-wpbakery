@@ -277,7 +277,7 @@ class Vc_Design_Options_Module_Settings {
 	public function set_setting_tab( $tabs ) {
 		if ( vc_settings()->showConfigurationTabs() ) {
 			if ( ! vc_is_as_theme() || apply_filters( 'vc_settings_page_show_design_tabs', false ) ) {
-				$tabs['vc-color'] = esc_html__( 'Design Options', 'js_composer' );
+				$tabs['vc-color'] = esc_html__( 'Design options', 'js_composer' );
 			}
 		}
 
@@ -435,7 +435,17 @@ class Vc_Design_Options_Module_Settings {
 		$field = $args['id'];
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<div class="color-group"><div class="wpb-color-picker"></div><input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" data-default-value="' . esc_attr( $args['default_color'] ) . '" class="vc_color-control css-control vc_ui-hidden"></div>';
+
+		WPB_Form_Field_Colorpicker::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+				'data_attributes' => [
+					'default-value' => $args['default_color'] ?? '',
+				],
+			],
+		);
 	}
 
 	/**
@@ -447,7 +457,13 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'margin';
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" class="css-control">';
+		WPB_Form_Field_Textfield::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+			]
+		);
 	}
 
 	/**
@@ -459,7 +475,14 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'gutter';
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" class="css-control"> px';
+		WPB_Form_Field_Textfield::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+			]
+		);
+		echo ' px';
 	}
 
 	/**
@@ -471,7 +494,14 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'responsive_max';
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" class="css-control"> px';
+		WPB_Form_Field_Textfield::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+			]
+		);
+		echo ' px';
 	}
 
 	/**
@@ -483,7 +513,14 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'responsive_md';
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" class="css-control"> px';
+		WPB_Form_Field_Textfield::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+			]
+		);
+		echo ' px';
 	}
 
 	/**
@@ -495,7 +532,14 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'responsive_lg';
 		$value = get_option( vc_settings()::$field_prefix . $field );
 		$value = $value ?: $this->get_default( $field );
-		echo '<input type="text" name="' . esc_attr( vc_settings()::$field_prefix . $field ) . '" value="' . esc_attr( $value ) . '" class="css-control"> px';
+		WPB_Form_Field_Textfield::render(
+			[
+				'name' => vc_settings()::$field_prefix . $field,
+				'value' => $value,
+				'classes' => 'css-control',
+			]
+		);
+		echo ' px';
 	}
 
 	/**
@@ -566,13 +610,14 @@ class Vc_Design_Options_Module_Settings {
 		$field = 'use_custom';
 		$checked = get_option( vc_settings()::$field_prefix . $field );
 		$checked = $checked ? $checked : false;
-		?>
-		<label>
-			<input type="checkbox"<?php echo( $checked ? ' checked' : '' ); ?> value="1"
-					id="wpb_js_<?php echo esc_attr( $field ); ?>" name="<?php echo esc_attr( vc_settings()::$field_prefix . $field ); ?>">
-			<?php esc_html_e( 'Enable', 'js_composer' ); ?>
-		</label>
-		<?php
+
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => 'wpb_js_' . $field,
+			'name'    => vc_settings()::$field_prefix . $field,
+			'value'   => '1',
+			'checked' => $checked,
+			'label'   => esc_html__( 'Enable', 'js_composer' ),
+		] );
 	}
 
 	/**

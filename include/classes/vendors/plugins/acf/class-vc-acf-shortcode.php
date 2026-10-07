@@ -79,7 +79,7 @@ class WPBakeryShortCode_Vc_Acf extends WPBakeryShortCode {
 
 			$value = $this->provider->get_field_value( $field_key );
 
-			if ( $atts['show_label'] ) {
+			if ( in_array( $atts['show_label'], [ 'yes', 'true' ], true ) ) {
 				if ( empty( $value ) && ! $show_empty_acf ) {
 					$value = '';
 				} else {
@@ -93,10 +93,11 @@ class WPBakeryShortCode_Vc_Acf extends WPBakeryShortCode {
 		}
 
 		$css_string = implode( ' ', $css_class );
+		$el_id = $atts['el_id'] ? ' id="' . esc_attr( $atts['el_id'] ) . '"' : '';
 
 		$output = '';
 		if ( ! empty( $value ) ) {
-			$output = '<div class="' . esc_attr( $css_string ) . '">' . $value . '</div>';
+			$output = '<div class="' . esc_attr( $css_string ) . '"' . $el_id . '>' . $value . '</div>';
 		}
 
 		return $output; // nosemgrep - we already escaped everything on this step.

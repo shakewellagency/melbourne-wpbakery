@@ -42,6 +42,11 @@ function vc_gitem_template_attribute_post_image( $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	if ( 'attachment' === $post->post_type ) {
 		return wp_get_attachment_image( $post->ID, 'large' );
 	}
@@ -62,7 +67,11 @@ function vc_gitem_template_attribute_featured_image( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return vc_include_template( 'params/vc_grid_item/attributes/featured_image.php', [
 		'post' => $post,
 		'data' => $data,
@@ -84,11 +93,77 @@ function vc_gitem_template_attribute_vc_btn( $value, $data ) {
 		'data' => '',
 	], $data ) );
 
-	return vc_include_template( 'params/vc_grid_item/attributes/vc_btn.php', [
-		'post' => $post,
-		'data' => $data,
-	] );
+	/**
+	 * Extracted variables.
+	 *
+	 * @var null|WP_Post  $post
+	 * @var string $data
+	 */
+
+	$atts = [];
+
+	parse_str( $data, $atts );
+
+	VcShortcodeAutoloader::getInstance()->includeClass( 'WPBakeryShortCode_Vc_Btn' );
+	$vc_btn = new WPBakeryShortCode_Vc_Btn( [ 'base' => 'vc_btn' ] );
+
+	$link_type     = $atts['link'] ?? 'none';
+	$atts = vc_gitem_resolve_vc_btn_atts_link( $atts, $post, $vc_btn, $link_type );
+
+	// Reset scope so output() uses the standard shortcode template instead of
+	// the grid placeholder template (params/vc_grid_item/shortcodes/vc_btn.php).
+	$current_scope = WPBMap::getScope();
+	WPBMap::setScope( '' );
+	$output = $vc_btn->output( $atts );
+	WPBMap::setScope( $current_scope );
+
+	if ( ! empty( $atts['vc_gitem_lightbox'] ) ) {
+		$output = preg_replace(
+			'/<a /',
+			'<a data-lightbox="' . esc_attr( $atts['vc_gitem_lightbox'] ) . '" ',
+			$output,
+			1
+		);
+	}
+
+	return $output;
 }
+
+/**
+ * Translate a grid-item link type into the standard vc_link string format.
+ *
+ * Grid items expose link types like 'post_link', 'image', etc. that need to
+ * be resolved to a real URL before the standard shortcode template can render
+ * them. Lightbox types are signalled via the returned 'vc_gitem_lightbox' key.
+ *
+ * @param array         $atts
+ * @param WP_Post|null  $post
+ * @param WPBakeryShortCode_Vc_Btn $vc_btn
+ * @param string $link_type
+ * @return array
+ */
+function vc_gitem_resolve_vc_btn_atts_link( $atts, $post, $vc_btn, $link_type ) {
+	$target_suffix = ! empty( $atts['link_target'] ) ? '|target:_blank' : '';
+	$atts['link']  = '';
+
+	switch ( $link_type ) {
+		case 'custom':
+			return $vc_btn->resolve_link_custom( $atts );
+		case 'post_link':
+			return $vc_btn->resolve_link_post_link( $atts, $post, $target_suffix );
+		case 'image':
+			return $vc_btn->resolve_link_image( $atts, $post, $target_suffix );
+		case 'image_full':
+			return $vc_btn->resolve_link_image_full( $atts, $post, $target_suffix );
+		case 'image_lightbox':
+			return $vc_btn->resolve_link_image_lightbox( $atts, $post );
+		case 'image_full_lightbox':
+			return $vc_btn->resolve_link_image_full_lightbox( $atts, $post );
+	}
+
+	return $atts;
+}
+
 
 /**
  * Get post image url
@@ -104,6 +179,11 @@ function vc_gitem_template_attribute_post_image_url( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$extra_image_meta = explode( ':', $data );
 	$size = 'large'; // default size.
 	if ( isset( $extra_image_meta[1] ) ) {
@@ -139,6 +219,11 @@ function vc_gitem_template_attribute_post_full_image_url( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$extra_image_meta = explode( ':', $data );
 	$size = 'full'; // default size.
 	if ( isset( $extra_image_meta[1] ) ) {
@@ -202,6 +287,11 @@ function vc_gitem_template_attribute_post_image_url_attr_lightbox( $value, $data
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$href = vc_gitem_template_attribute_post_full_image_url_href( $value, [
 		'post' => $post,
 		'data' => '',
@@ -225,6 +315,11 @@ function vc_gitem_template_attribute_post_full_image_url_attr_lightbox( $value, 
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$href = vc_gitem_template_attribute_post_image_url_href( $value, [
 		'post' => $post,
 		'data' => '',
@@ -240,7 +335,7 @@ function vc_gitem_template_attribute_post_full_image_url_attr_lightbox( $value, 
  * @param string $value
  * @param array $data
  * @return string
- * @depreacted 6.6.0
+ * @deprecated 6.6.0
  */
 function vc_gitem_template_attribute_post_image_url_attr_prettyphoto( $value, $data ) {
 	return vc_gitem_template_attribute_post_image_url_attr_lightbox( $value, $data );
@@ -305,6 +400,11 @@ function vc_gitem_template_attribute_post_image_background_image_css( $value, $d
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$size = 'large'; // default size.
 	if ( ! empty( $data ) ) {
 		$size = $data;
@@ -335,7 +435,11 @@ function vc_gitem_template_attribute_post_link_url( $value, $data ) {
 	extract( array_merge( [
 		'post' => null,
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_permalink( $post->ID );
 }
 
@@ -350,7 +454,11 @@ function vc_gitem_template_attribute_post_date( $value, $data ) {
 	extract( array_merge( [
 		'post' => null,
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_the_date( '', $post->ID );
 }
 
@@ -365,7 +473,11 @@ function vc_gitem_template_attribute_post_datetime( $value, $data ) {
 	extract( array_merge( [
 		'post' => null,
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_the_time( 'F j, Y g:i', $post->ID );
 }
 
@@ -381,7 +493,11 @@ function vc_gitem_template_attribute_post_meta_value( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return strlen( $data ) > 0 ? get_post_meta( $post->ID, $data, true ) : $value;
 }
 
@@ -397,7 +513,11 @@ function vc_gitem_template_attribute_post_data( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return strlen( $data ) > 0 ? apply_filters( 'vc_gitem_template_attribute_' . $data, ( isset( $post->$data ) ? $post->$data : '' ), [
 		'post' => $post,
 		'data' => '',
@@ -416,7 +536,11 @@ function vc_gitem_template_attribute_post_excerpt( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $value, get_post( $post ) ) );
 }
 
@@ -436,7 +560,11 @@ function vc_gitem_template_attribute_post_title( $value, $data ) {
 	if ( isset( $data['post'] ) ) {
 		$id = apply_filters( 'wpml_object_id', $id, 'post', true );
 	}
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_the_title( $id );
 }
 
@@ -452,7 +580,11 @@ function vc_gitem_template_attribute_post_author( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_the_author();
 }
 
@@ -468,7 +600,11 @@ function vc_gitem_template_attribute_post_author_href( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
-
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	return get_author_posts_url( get_the_author_meta( 'ID' ), get_the_author_meta( 'user_nicename' ) );
 }
 
@@ -484,6 +620,11 @@ function vc_gitem_template_attribute_post_categories( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	/**
+	 * Post object instance.
+	 *
+	 * @var WP_Post|null $post
+	 */
 	$atts_extended = [];
 	parse_str( $data, $atts_extended );
 

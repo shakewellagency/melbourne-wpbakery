@@ -14,16 +14,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Get href form field html.
  *
- * @param array $settings
- * @param string $value
+ * Delegates to the unified link param field.
+ * href stores plain URLs - vc_build_link() handles this gracefully.
+ *
+ * @param array  $settings Parameter settings.
+ * @param string $value    Current value (plain URL).
+ * @param string $tag
+ * @param string $param_id
  *
  * @return string
  * @since 4.4
  */
-function vc_href_form_field( $settings, $value ) {
-	if ( ! is_string( $value ) || strlen( $value ) === 0 ) {
-		$value = 'http://';
+function vc_href_form_field( $settings, $value, $tag = '', $param_id = '' ) {
+	if ( ! is_string( $value ) || strlen( $value ) === 0 || 'http://' === $value ) {
+		$value = '';
 	}
 
-	return sprintf( '<div class="vc_href-form-field"><input name="%s" class="wpb_vc_param_value wpb-textinput %s %s_field" type="text" value="%s"/></div>', esc_attr( $settings['param_name'] ), esc_attr( $settings['param_name'] ), esc_attr( $settings['type'] ), $value );
+	// Convert plain URL to pipe-delimited format for the unified link template.
+	if ( $value && false === strpos( $value, 'url:' ) ) {
+		$value = 'url:' . rawurlencode( $value );
+	}
+
+	return vc_link_form_field( $settings, $value, $tag, $param_id );
 }

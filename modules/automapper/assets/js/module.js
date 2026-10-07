@@ -308,6 +308,7 @@ window.i18nLocaleVcAutomapper = window.i18nLocaleSettings;
 				this.close();
 			} else {
 				this.edit_view = new EditFormInnerView({ model: this.model }).render();
+				vc.formComponents.select.initAll();
 			}
 		},
 		$widgetTitle: function () {
@@ -627,6 +628,7 @@ window.i18nLocaleVcAutomapper = window.i18nLocaleSettings;
 			}
 			$( '.edit-form-info' ).initializeTooltips( '.vc_wrapper' );
 			this.setPreview();
+			vc.formComponents.select.initAll();
 		},
 		addAllParams: function () {
 			$( '#vc_atm-params-list' ).empty();
@@ -724,7 +726,7 @@ window.i18nLocaleVcAutomapper = window.i18nLocaleSettings;
 			this.$el.html( template( _.extend({ shortcode_preview: this.getPreview( this.model.toJSON() ) }, this.model.toJSON() ) ) );
 			this.$el.appendTo( parent.$editForm() );
 			parent.$widgetTitle().html(
-				'<span class="vc_atm-header"><input type="text" name="name" value="" id="vc_atm-header-name" class="vc_header-name"></span><span class="in-widget-title"></span>' );
+				'<span class="vc_atm-header"><input type="text" name="name" value="" id="vc_atm-header-name" class="wpb-form-input vc_header-name"></span><span class="in-widget-title"></span>' );
 			$( '#vc_atm-header-name' ).val( this.model.get( 'name' ) );
 			this.addAllParams();
 			parent.$editForm().slideDown();

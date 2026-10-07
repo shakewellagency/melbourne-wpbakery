@@ -3,7 +3,7 @@
  * Configuration file for [vc_accordion] shortcode of 'Old Accordion' element.
  *
  * @see https://kb.wpbakery.com/docs/inner-api/vc_map/ for more detailed information about element attributes.
- * @depreacted 4.6
+ * @deprecated 4.6
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,6 +17,7 @@ return [
 	'is_container' => true,
 	'icon' => 'icon-wpb-ui-accordion',
 	'deprecated' => '4.6',
+	'content_element' => false,
 	'category' => esc_html__( 'Content', 'js_composer' ),
 	'description' => esc_html__( 'Collapsible content panels', 'js_composer' ),
 	'params' => [

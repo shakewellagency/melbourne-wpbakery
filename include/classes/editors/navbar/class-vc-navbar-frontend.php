@@ -29,7 +29,27 @@ class Vc_Navbar_Frontend extends Vc_Navbar {
 		'post_settings',
 		'custom_code',
 		'screen_size',
+		'undo',
+		'redo',
 	];
+
+	/**
+	 * List of controls to be displayed in the "More" dropdown menu.
+	 *
+	 * @since 9.0
+	 * @var array
+	 */
+	public $more_button_controls = [
+		'undo',
+		'redo',
+		'post_settings',
+		'custom_code',
+		'save_buttons_mobile',
+		'backend_editor',
+		'preview',
+		'view_post_mobile',
+	];
+
 	/**
 	 * Filter name for the frontend controls.
 	 *
@@ -55,45 +75,40 @@ class Vc_Navbar_Frontend extends Vc_Navbar {
 	 */
 	public function getControlScreenSize() {
 		$disable_responsive = vc_settings()->get( 'not_responsive_css' );
-		if ( '1' !== $disable_responsive ) {
-            // phpcs:ignore
-			$screen_sizes = apply_filters( 'wpb_navbar_getControlScreenSize', array(
-				[
-					'title' => esc_html__( 'Desktop', 'js_composer' ),
-					'size' => '100%',
-					'key' => 'default',
-					'active' => true,
-				],
-				[
-					'title' => esc_html__( 'Tablet landscape mode', 'js_composer' ),
-					'size' => '1024px',
-					'key' => 'landscape-tablets',
-				],
-				[
-					'title' => esc_html__( 'Tablet portrait mode', 'js_composer' ),
-					'size' => '768px',
-					'key' => 'portrait-tablets',
-				],
-				[
-					'title' => esc_html__( 'Smartphone portrait mode', 'js_composer' ),
-					'size' => '480px',
-					'key' => 'portrait-smartphones',
-
-				],
-			) );
-			$output = '<li class="vc_pull-right vc_hide-mobile"><div class="vc_dropdown" id="vc_screen-size-control"><a href="#" class="vc_dropdown-toggle vc_icon-btn" title="' . esc_attr__( 'Responsive preview', 'js_composer' ) . '"><i class="vc-composer-icon vc_current-layout-icon vc-c-icon-layout_default" id="vc_screen-size-current"></i></a><ul class="vc_dropdown-list">';
-			$screen = current( $screen_sizes );
-			while ( $screen ) {
-				$output .= '<li><a href="#" title="' . esc_attr( $screen['title'] ) . '" class="vc_screen-width vc_icon-btn vc-composer-icon vc-c-icon-layout_' . esc_attr( $screen['key'] ) . ( isset( $screen['active'] ) && $screen['active'] ? ' active' : '' ) . '" data-size="' . esc_attr( $screen['size'] ) . '"></a></li>';
-				next( $screen_sizes );
-				$screen = current( $screen_sizes );
-			}
-			$output .= '</ul></div></li>';
-
-			return $output;
+		if ( '1' === $disable_responsive ) {
+			return '';
 		}
 
-		return '';
+		$screen_sizes = vc_get_shared( 'screen sizes' );
+        // phpcs:ignore:WordPress.NamingConventions.ValidHookName.NotLowercase
+		$screen_sizes = apply_filters( 'wpb_navbar_getControlScreenSize', $screen_sizes );
+		$title = esc_html__( 'Responsive preview', 'js_composer' );
+
+		$output = '<li class="vc_pull-right vc_hide-mobile"><div class="vc_dropdown" id="vc_screen-size-control"><a href="#" class="vc_dropdown-toggle vc_icon-btn" tabindex="7" title="' . $title . '" aria-label="' . $title . '" role="button" aria-haspopup="true"><span id="vc_screen-size-current" class="vc_screen-size-current">';
+		$output .= vc_get_template( 'icons/desktop-ico.tpl.php' );
+		$output .= '</span></a><ul class="vc_dropdown-list" role="menu">';
+
+		$screen = current( $screen_sizes );
+		while ( $screen ) {
+			$title_attr = esc_attr( $screen['title'] );
+			$active_class = isset( $screen['active'] ) && $screen['active'] ? ' active' : '';
+
+			// Map screen key to icon template, with special case for 'default'.
+			$icon_key = 'default' === $screen['key'] ? 'desktop' : $screen['key'];
+
+			// Security: Sanitize $icon_key to prevent path traversal attacks.
+			$icon_key = preg_replace( '/[^a-z0-9\-]/', '', $icon_key );
+
+			$output .= '<li><a href="#" title="' . $title_attr . '" aria-label="' . $title_attr . '" class="vc_screen-width vc_icon-btn' . $active_class . '" data-size="' . esc_attr( $screen['size'] ) . '">';
+			$output .= vc_get_template( 'icons/' . $icon_key . '-ico.tpl.php' );
+			$output .= '</a></li>';
+
+			next( $screen_sizes );
+			$screen = current( $screen_sizes );
+		}
+		$output .= '</ul></div></li>';
+
+		return $output;
 	}
 
 
@@ -115,6 +130,16 @@ class Vc_Navbar_Frontend extends Vc_Navbar {
 	}
 
 	/**
+	 * Renders the save buttons mobiles control with appropriate label based on post status and user capabilities.
+	 *
+	 * @since 9.0
+	 * @return string
+	 */
+	public function getControlSaveButtonsMobile() {
+		return $this->getControlSaveButtons( true );
+	}
+
+	/**
 	 * Controls html for view post functionality.
 	 *
 	 * @since 8.0
@@ -127,10 +152,10 @@ class Vc_Navbar_Frontend extends Vc_Navbar {
 			[
 				'is_mobile' => $is_mobile,
 				'post_id'   => $this->post(),
+				'title'     => wpb_get_title_with_shortcut( 'Exit WPBakery Page Builder edit mode' ),
 			]
 		);
 	}
-
 
 	/**
 	 * Controls html for save and update functionality.
@@ -145,60 +170,48 @@ class Vc_Navbar_Frontend extends Vc_Navbar {
 	}
 
 	/**
-	 * Renders the more control.
+	 * Controls html for backend editor button functionality.
 	 *
-	 * @since 8.0
+	 * @return string
+	 * @deprecated 8.0
+	 */
+	public function getControlBackendEditor() {
+		if ( ! vc_user_access()->part( 'backend_editor' )->can()->get() ) {
+			return '';
+		}
+
+		return vc_get_template(
+			'editors/navbar/vc_control-backend-editor-button.tpl.php',
+			[
+				'title' => __( 'Backend Editor', 'js_composer' ),
+				'link'  => get_edit_post_link( $this->post() ),
+			],
+		);
+	}
+
+	/**
+	 * Controls html for preview button functionality.
+	 *
+	 * @return string
+	 * @deprecated 8.0
+	 */
+	public function getControlPreview() {
+		return vc_get_template(
+			'editors/navbar/vc_control-preview-button.tpl.php',
+			[
+				'title' => __( 'View Page', 'js_composer' ),
+				'link'  => get_permalink( $this->post() ),
+			],
+		);
+	}
+
+	/**
+	 * Renders the save backend control for mobile.
+	 *
+	 * @since 9.0
 	 * @return string
 	 */
-	public function getControlMore() {
-		$post = $this->post();
-		ob_start();
-		?>
-		<li class="vc_pull-right vc_show-mobile">
-			<div class="vc_dropdown vc_dropdown-more" id="vc_more-options">
-				<a class="vc_dropdown-toggle vc_icon-btn" title="More">
-					<i class="vc-composer-icon vc-c-icon-more"></i>
-				</a>
-				<ul class="vc_dropdown-list">
-					<?php
-					$undo_redo = apply_filters( $this->controls_filter_name, [] );
-					foreach ( $undo_redo as $control ) :
-						// @codingStandardsIgnoreLine
-						print $control[1];
-					endforeach;
-					echo wp_kses_post( $this->getControlPostSettings() );
-					echo wp_kses_post( $this->getControlCustomCode() );
-					echo wp_kses_post( $this->getControlSaveButtons( true ) );
-					?>
-					<li class="vc_dropdown-list-item">
-						<?php
-						if ( vc_user_access()->part( 'backend_editor' )->can()->get() ) {
-							?>
-							<a href="<?php echo esc_url( get_edit_post_link( $post ) ) . '&wpb-backend-editor'; ?>">
-								<i class="vc_hide-desktop vc-composer-icon vc-c-icon-backend-editor"></i>
-								<p><?php esc_html_e( 'Backend Editor', 'js_composer' ); ?></p>
-
-							</a>
-							<?php
-						}
-						?>
-					</li>
-					<li class="vc_dropdown-list-item">
-						<a href="<?php echo esc_url( get_permalink( $post ) ); ?>">
-							<i class="vc_hide-desktop vc-composer-icon vc-c-icon-preview"></i>
-							<p><?php esc_html_e( 'View Page', 'js_composer' ); ?></p>
-						</a>
-					</li>
-					<?php
-					echo wp_kses_post( $this->getControlViewPost( true ) );
-					?>
-				</ul>
-			</div>
-		</li>
-		<?php
-		$output = ob_get_contents();
-		ob_end_clean();
-
-		return $output;
+	public function getControlViewPostMobile() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		return $this->getControlViewPost( true );
 	}
 }

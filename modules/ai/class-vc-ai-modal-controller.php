@@ -563,6 +563,17 @@ class Vc_Ai_Modal_Controller {
 	 * @param string $optionality_field_slug
 	 */
 	public function output_optionality_data_attr( $field_slug, $optionality_field_slug ) {
+		return ' data-form-fields-optionality="' . $this->get_optionality_data_attr( $field_slug, $optionality_field_slug ) . '"';
+	}
+
+	/**
+	 * Get data attribute for some form fields optionality.
+	 *
+	 * @since 9.0
+	 * @param string $field_slug
+	 * @param string $optionality_field_slug
+	 */
+	public function get_optionality_data_attr( $field_slug, $optionality_field_slug ) {
 		$output = '';
 
 		if ( 'content_type' === $field_slug ) {
@@ -572,7 +583,7 @@ class Vc_Ai_Modal_Controller {
 			}
 		}
 
-		return ' data-form-fields-optionality="' . $output . '"';
+		return $output;
 	}
 
 	/**

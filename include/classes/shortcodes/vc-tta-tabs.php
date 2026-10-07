@@ -57,6 +57,18 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 	}
 
 	/**
+	 * The tabs family appends its own `vc_tta-o-no-fill` class below, so the
+	 * inherited no-fill slot stays empty to avoid emitting the class twice.
+	 *
+	 * @param array $atts
+	 * @param string $content
+	 * @return string|null
+	 */
+	public function getParamNoFill( $atts, $content ) {
+		return null;
+	}
+
+	/**
 	 * Add specific tta classes.
 	 *
 	 * @return string
@@ -64,7 +76,13 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 	public function getTtaGeneralClasses() {
 		$classes = parent::getTtaGeneralClasses();
 
-		if ( ! empty( $this->atts['no_fill_content_area'] ) ) {
+		// Fill content area: when OFF, keep the legacy `vc_tta-o-no-fill` class
+		// so the panel body stays transparent. When ON, omit the class so it gets filled.
+		$fill = isset( $this->atts['fill_content_area'] )
+			&& ! empty( $this->atts['fill_content_area'] )
+			&& 'false' !== $this->atts['fill_content_area'];
+
+		if ( ! $fill ) {
 			$classes .= ' vc_tta-o-no-fill';
 		}
 
@@ -188,6 +206,7 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 	 */
 	public function getParamTabsList( $atts, $content ) {
 		$is_page_editable = vc_is_page_editable();
+		$heading_tag = $this->resolveSectionTitleTag( $atts['section_title_tag'] ?? '' );
 		$html = [];
 		$html[] = '<div class="vc_tta-tabs-container">';
 		$html[] = '<ul class="vc_tta-tabs-list" role="tablist">';
@@ -200,7 +219,7 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 					$classes[] = $this->activeClass;
 				}
 
-				$title = '<span class="vc_tta-title-text">' . wp_kses_post( $section['title'] ) . '</span>';
+				$title = '<span class="vc_tta-title-text">' . wp_kses_post( (string) $section['title'] ) . '</span>';
 				if ( 'true' === $section['add_icon'] ) {
 					$icon_html = $this->constructIcon( $section );
 					if ( 'left' === $section['i_position'] ) {
@@ -210,6 +229,7 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 					}
 				}
 				$a_html = '<a href="#' . $section['tab_id'] . '" data-vc-tabs data-vc-container=".vc_tta" role="tab" aria-selected="false" id="' . esc_attr( "tab-{$section['tab_id']}" ) . '">' . $title . '</a>';
+				$a_html = '<' . $heading_tag . ' class="vc_tta-panel-title">' . $a_html . '</' . $heading_tag . '>';
 				$html[] = '<li class="' . implode( ' ', $classes ) . '" data-vc-tab role="presentation">' . $a_html . '</li>';
 			}
 		}
@@ -219,6 +239,24 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 
         // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
 		return implode( '', apply_filters( 'vc-tta-get-params-tabs-list', $html, $atts, $content, $this ) );
+	}
+
+	/**
+	 * Resolve the per-section heading tag for the tabs nav.
+	 *
+	 * Mirrors the fallback used by `WPBakeryShortCode_Vc_Tta_Section::getParamHeading()`
+	 * (default `h4`) and enforces the same whitelist the editor dropdown exposes so
+	 * the markup stays predictable even for legacy or unexpected saved values.
+	 *
+	 * @param string $value
+	 * @return string
+	 * @since 9.0
+	 */
+	protected function resolveSectionTitleTag( $value ) {
+		$allowed = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p' ];
+		$value = strtolower( trim( (string) $value ) );
+
+		return in_array( $value, $allowed, true ) ? $value : 'h4';
 	}
 
 	/**
@@ -235,5 +273,15 @@ class WPBakeryShortCode_Vc_Tta_Tabs extends WPBakeryShortCode_Vc_Tta_Accordion {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Get CSS file names for vc_tta_tabs shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
 	}
 }

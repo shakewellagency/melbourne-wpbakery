@@ -1,9 +1,37 @@
 *** WPBakery Page Builder changelog ***
 
-2025-07-09 - version 8.7.4
+2026-08-05 - version 9.0.1
+  - Fix: Deleted params do not trigger fatal error
+  - Fix: Content position is added back for backward compatibility
+  - Fix: Column responsive options are working properly
+  - Fix: Inner element controls are displayed properly
+  - Fix: Undo button works properly with accordion elements
+  - Fix: Color picker label is being displayed properly
+
+2026-07-29 - version 9.0
+  - New: The navigation bar UI has been improved
+  - New: The frontend editor controls UI has been improved
+  - New: The notification UI has been improved
+  - New: The attributes UI has been improved
+  - New: The element edit window layout has been improved for better UI and UX
+  - New: The template window UI has been improved
+  - New: The tooltip UI has been improved
+  - New: The WPBakery admin panel menu has been improved for better UX
+  - New: Five-column presets have been added to post grid elements
+  - New: Blank canvas starter UI has been improved
+  - New: The SEO window UI has been improved
+  - New: The settings window UI has been improved
+  - New: The row layout window UI has been improved
+  - New: The link modal window UI has been improved
+  - Update: The license tab cannot be removed via API
+  - Update: Drag and drop library has been improved
+  - Update: CSS loading structure has been improved to load only the CSS in use
+  - Update: CSS file splitting to reduce the amount of CSS load on the page
+
+2026-07-09 - version 8.7.4
   - Fix: Improved capability and nonce verification to preset saving requests
 
-2025-05-12 - version 8.7.3
+2026-05-12 - version 8.7.3
   - Fix: Added capability and nonce verification to frontend preview requests
 
 2025-10-27 - version 8.7.2

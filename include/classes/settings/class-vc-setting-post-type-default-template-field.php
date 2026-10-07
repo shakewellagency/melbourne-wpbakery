@@ -132,7 +132,7 @@ class Vc_Setting_Post_Type_Default_Template_Field {
 		$template_type = $template_settings[0];
 		$template_id = $this->get_template_id( $template_settings );
 
-		if ( ! isset( $template_id, $template_type ) || '' === $template_id || '' === $template_type ) {
+		if ( '' === $template_id || '' === $template_type ) {
 			return null;
 		}
 		WPBMap::addAllMappedShortcodes();

@@ -25,6 +25,9 @@ function vc_gitem_template_attribute_woocommerce_product( $value, $data ) { // p
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	if ( ! $post || 'product' !== $post->post_type ) {
+		return '';
+	}
 	require_once WC()->plugin_path() . '/includes/abstracts/abstract-wc-product.php';
 	// WC_Product $product.
 	$product = new WC_Product( $post );
@@ -94,6 +97,9 @@ function vc_gitem_template_attribute_woocommerce_order( $value, $data ) { // php
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	if ( ! $post || 'shop_order' !== $post->post_type ) {
+		return '';
+	}
 	require_once WC()->plugin_path() . '/includes/class-wc-order.php';
 	$order = new WC_Order( $post->ID );
 	if ( preg_match( '/_labeled$/', $data ) ) {
@@ -146,6 +152,9 @@ function vc_gitem_template_attribute_woocommerce_product_link( $value, $data ) {
 		'post' => null,
 		'data' => '',
 	], $data ) );
+	if ( ! $post || 'product' !== $post->post_type ) {
+		return '';
+	}
 	$link = do_shortcode( '[add_to_cart_url id="' . $post->ID . '"]' );
 
 	return apply_filters( 'vc_gitem_template_attribute_woocommerce_product_link_value', $link );

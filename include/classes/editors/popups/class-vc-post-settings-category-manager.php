@@ -46,18 +46,65 @@ class Vc_Post_Settings_Category_Manager {
 	 * @param array $categories          Array of category objects.
 	 * @param int   $level               Current indentation level.
 	 * @param bool  $include_selected    Whether to include the selected attribute.
+	 * @return string HTML string with div elements containing checkboxes and labels.
 	 */
 	public function render_category_options_with_indent( $categories = null, $level = 0, $include_selected = true ) {
+		$categories = $categories ? $categories : $this->sorted_categories;
+		$html = '';
+
+		foreach ( $categories as $category ) {
+			$checked = $include_selected && in_array( $category->term_id, $this->selected_categories ) ? ' checked' : '';
+			$checkbox_id = 'category-' . esc_attr( $category->term_id );
+
+			$html .= '<div class="vc-category-item" style="padding-left: ' . ( $level * 27 ) . 'px;">';
+			$html .= '<label for="' . $checkbox_id . '" class="vc_checkbox-label">';
+			$html .= '<input type="checkbox" id="' . $checkbox_id . '" name="post_category[]" value="' . esc_attr( $category->term_id ) . '"' . $checked . ' />';
+			$html .= esc_html( $category->name );
+			$html .= '</label>';
+			$html .= '</div>';
+
+			if ( ! empty( $category->children ) ) {
+				$html .= $this->render_category_options_with_indent( $category->children, $level + 1, $include_selected );
+			}
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Render category options with optional indentation and selection from class properties.
+	 *
+	 * @since 8.2
+	 * @param array $categories          Array of category objects.
+	 * @param int   $level               Current indentation level.
+	 * @param bool  $include_selected    Whether to include the selected attribute.
+	 * @return array
+	 */
+	public function get_category_options_with_indent( $categories = null, $level = 0, $include_selected = true ) {
+		$options = [];
+		if ( 0 === $level ) {
+			$options[] = [
+				'value' => '',
+				'label' => esc_html__( '— Parent category —', 'js_composer' ),
+			];
+		}
 		$categories = $categories ? $categories : $this->sorted_categories;
 
 		foreach ( $categories as $category ) {
 			$indent = str_repeat( '&nbsp;', $level * 3 );
-			$selected = $include_selected && in_array( $category->term_id, $this->selected_categories ) ? ' selected' : '';
-			echo '<option value="' . esc_attr( $category->term_id ) . '"' . esc_attr( $selected ) . '>' . esc_html( $indent . $category->name ) . '</option>';
+			$selected = $include_selected && in_array( $category->term_id, $this->selected_categories );
+			$options[] = [
+				'value' => $category->term_id,
+				'label' => $indent . $category->name,
+				'selected' => $selected,
+			];
 			if ( ! empty( $category->children ) ) {
-				$this->render_category_options_with_indent( $category->children, $level + 1, $include_selected );
+				$child_options = $this->get_category_options_with_indent( $category->children, $level + 1, $include_selected );
+				array_push( $options, ...$child_options );
 			}
 		}
+
+		return $options;
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * Configuration file for [vc_tabs] shortcode of 'Old Tabs' element.
  *
  * @see https://kb.wpbakery.com/docs/inner-api/vc_map/ for more detailed information about element attributes.
- * @depreacted 4.6
+ * @deprecated 4.6
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,6 +18,7 @@ return [
 	'icon' => 'icon-wpb-ui-tab-content',
 	'category' => esc_html__( 'Content', 'js_composer' ),
 	'deprecated' => '4.6',
+	'content_element' => false,
 	'description' => esc_html__( 'Tabbed content', 'js_composer' ),
 	'params' => [
 		[

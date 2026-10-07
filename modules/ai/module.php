@@ -55,6 +55,8 @@ class Vc_Ai_Module {
 
 		add_filter( 'vc_get_editor_locale', [ $this, 'add_module_localization' ] );
 		add_filter( 'vc_get_settings_locale', [ $this, 'add_module_localization' ] );
+
+		add_action( 'wpb_add_after_settings_form', [ $this, 'render_setting_tab_html' ] );
 	}
 
 	/**
@@ -309,5 +311,14 @@ class Vc_Ai_Module {
 		);
 
 		return $localization;
+	}
+
+	/**
+	 * Render setting tab html.
+	 *
+	 * @since 7.7
+	 */
+	public function render_setting_tab_html() {
+		vc_include_template( 'editors/popups/ai/modal.tpl.php' );
 	}
 }

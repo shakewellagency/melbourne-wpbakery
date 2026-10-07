@@ -30,7 +30,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</div>
-		<pre id="wpb_css_editor" class="wpb_content_element custom_code" data-code-type="css" data-ace-location="page-css"><?php echo esc_textarea( $page_settings_data['custom_css'] ); ?></pre>
+		<?php
+		WPB_Form_Field_Textarea_Ace::render([
+			'id' => 'wpb_css_editor',
+			'classes' => 'wpb_content_element',
+			'decoded_value' => rawurldecode( $page_settings_data['custom_css'] ),
+			'data_attributes' => [
+				'code-type' => 'css',
+				'ace-location' => 'page-css',
+			],
+		]);
+		?>
 		<p class="wpb-code-editor-tag">&lt;/style&gt;</p>
 	</div>
 </div>

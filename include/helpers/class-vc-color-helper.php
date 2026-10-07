@@ -250,6 +250,125 @@ class Vc_Color_Helper {
 	}
 
 	/**
+	 * Validate a hex color string with leading #.
+	 *
+	 * Accepts 3-8 hex digits to cover #abc, #aabbcc, #aabbccdd and similar.
+	 *
+	 * @since 9.0
+	 * @param string $color
+	 * @return bool
+	 */
+	public static function isHexColor( $color ) {
+		return is_string( $color ) && (bool) preg_match( '/^#[0-9a-fA-F]{3,8}$/', $color );
+	}
+
+	/**
+	 * Expand a 3-character hex string to 6 characters.
+	 *
+	 * Input must not include the leading #. Non-3-char input is returned unchanged.
+	 *
+	 * @since 9.0
+	 * @param string $hex
+	 * @return string
+	 */
+	public static function normalizeHex( $hex ) {
+		if ( 3 === strlen( $hex ) ) {
+			return $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+		return $hex;
+	}
+
+	/**
+	 * Return the appropriate contrast text color for a given hex background.
+	 *
+	 * Accepts 3-, 4-, 6-, and 8-digit hex values (with or without #).
+	 * Alpha channels (#RGBA / #RRGGBBAA) are stripped before the luminance
+	 * calculation. Returns '#fff' for dark backgrounds and '' for light ones
+	 * or unparsable input.
+	 *
+	 * @since 9.0
+	 * @param string $value Hex color, e.g. '#EBEBEB', '#ebe', '#EBEBEBff'.
+	 * @return string '#fff' or ''.
+	 */
+	public static function contrastColor( $value ) {
+		$hex = ltrim( trim( (string) $value ), '#' );
+		$len = strlen( $hex );
+
+		if ( 3 === $len ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		} elseif ( 4 === $len ) {
+			// Expand #RGBA -> #RRGGBBAA, then strip alpha -> #RRGGBB.
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2] . $hex[3] . $hex[3];
+			$hex = substr( $hex, 0, 6 );
+		} elseif ( 8 === $len ) {
+			$hex = substr( $hex, 0, 6 );
+		}
+
+		if ( ! preg_match( '/^[0-9a-fA-F]{6}$/', $hex ) ) {
+			return '';
+		}
+
+		$r         = hexdec( substr( $hex, 0, 2 ) );
+		$g         = hexdec( substr( $hex, 2, 2 ) );
+		$b         = hexdec( substr( $hex, 4, 2 ) );
+		$luminance = ( $r * 0.299 + $g * 0.587 + $b * 0.114 ) / 255;
+
+		return $luminance > 0.7 ? '' : '#fff';
+	}
+
+	/**
+	 * Generate a unique CSS class name for a hex color value.
+	 *
+	 * Used to scope inline-generated rules to a specific custom color.
+	 *
+	 * @since 9.0
+	 * @param string $prefix Class prefix, e.g. 'vc_toggle_hex_' or 'vc_color-hex-'.
+	 * @param string $color  Hex color value.
+	 * @return string
+	 */
+	public static function hexClass( $prefix, $color ) {
+		return $prefix . substr( md5( $color ), 0, 8 );
+	}
+
+	/**
+	 * Linear-blend each RGB component toward white by the given amount.
+	 *
+	 * @since 9.0
+	 * @param int   $r
+	 * @param int   $g
+	 * @param int   $b
+	 * @param float $amount Blend amount in [0, 1]. 0 keeps the color, 1 returns white.
+	 * @return string Hex color with leading #.
+	 */
+	public static function lightenRgb( $r, $g, $b, $amount ) {
+		return '#' . sprintf(
+			'%02x%02x%02x',
+			min( 255, (int) round( $r + ( 255 - $r ) * $amount ) ),
+			min( 255, (int) round( $g + ( 255 - $g ) * $amount ) ),
+			min( 255, (int) round( $b + ( 255 - $b ) * $amount ) )
+		);
+	}
+
+	/**
+	 * Linear-scale each RGB component toward black by the given amount.
+	 *
+	 * @since 9.0
+	 * @param int   $r
+	 * @param int   $g
+	 * @param int   $b
+	 * @param float $amount Scale factor in [0, 1]. 1 keeps the color, 0 returns black.
+	 * @return string Hex color with leading #.
+	 */
+	public static function darkenRgb( $r, $g, $b, $amount ) {
+		return '#' . sprintf(
+			'%02x%02x%02x',
+			max( 0, (int) round( $r * $amount ) ),
+			max( 0, (int) round( $g * $amount ) ),
+			max( 0, (int) round( $b * $amount ) )
+		);
+	}
+
+	/**
 	 * Given a HEX value, returns a darker color. If no desired amount provided, then the color halfway between
 	 * given HEX and black will be returned.
 	 *

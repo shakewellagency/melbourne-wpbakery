@@ -21,5 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 4.4.3
  */
 function vc_vc_grid_id_form_field( $settings, $value ) {
-	return sprintf( '<div class="vc_param-vc-grid-id"><input name="%s" class="wpb_vc_param_value wpb-textinput %s_field" type="hidden" value="%s" /></div>', esc_attr( $settings['param_name'] ), esc_attr( $settings['param_name'] . ' ' . $settings['type'] ), $value );
+	$output = '<div class="vc_param-vc-grid-id">';
+	$output .= WPB_Form_Field_Hidden::get([
+		'name' => $settings['param_name'],
+		'classes' => 'wpb_vc_param_value ' . $settings['param_name'] . ' ' . $settings['type'] . '_field',
+		'value' => $value,
+	]);
+	$output .= '</div>';
+
+	return $output;
 }

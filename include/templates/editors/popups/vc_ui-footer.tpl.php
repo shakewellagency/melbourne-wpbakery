@@ -3,6 +3,10 @@
  * UI Footer template.
  *
  * @var array $controls
+ * @var string $name
+ * @var string $label
+ * @var string $css_classes
+ * @var string $style
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,6 +32,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<span
 					class="vc_general vc_ui-button vc_ui-button-<?php echo esc_attr( $style ); ?> vc_ui-button-shape-<?php echo isset( $shape ) ? esc_attr( $shape ) : 'rounded'; ?><?php echo strlen( $css_classes ) > 0 ? ' ' . esc_attr( $css_classes ) : ''; ?>"
 					data-vc-ui-element="button-<?php echo esc_attr( $name ); ?>"
+					role="button"
+					tabindex="0"
 					<?php echo ! empty( $data_change_status ) ? 'data-change-status="' . esc_attr( $data_change_status ) . '"' : ''; ?>
 					<?php echo ! empty( $id ) ? 'id="' . esc_attr( $id ) . '"' : ''; ?>
 					<?php echo ! empty( $link ) ? 'data-button-link="' . esc_url( $link ) . '"' : ''; ?>

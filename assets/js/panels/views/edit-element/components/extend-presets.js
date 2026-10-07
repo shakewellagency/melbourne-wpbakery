@@ -1,6 +1,6 @@
 /**
  * vc.ExtendPresets object, provides functionality for managing
- * element settings presets. It includes methods for saving, loading, applying, and
+ * element settings presets. It includes methods for saving, applying, and
  * restoring presets, as well as handling UI interactions such as dropdown menus and dialogs
  * for preset management. The file also integrates AJAX calls to interact with the backend
  * for preset-related operations.
@@ -16,6 +16,7 @@
 		settingsButtonSelector: '[data-vc-ui-element="settings-dropdown-button"]',
 		settingsDropdownSelector: '[data-vc-ui-element="settings-dropdown"]',
 		settingsPresetId: null,
+		isPresetViewActive: false,
 		uiEvents: {
 			'init': 'addEvents',
 			'render': 'hideDropdown',
@@ -27,18 +28,23 @@
 		},
 		hideDropdown: function () {
 			this.$el.find( '[data-vc-ui-element="settings-dropdown"]' ).hide();
+			// Reset flags when hiding panel to ensure clean state on next open
+			this.isPresetViewActive = false;
+			this.isTemplateViewActive = false;
+			// Show tabs when hiding dropdown (reset to normal edit mode)
+			this.$el.find( '.vc_edit-form-tab-control' ).show();
 		},
 		showDropdown: function () {
 			// must be called when content added to DOM
-			var tag = this.model.get( 'shortcode' );
+			const tag = this.model.get( 'shortcode' );
 			if ( window.vc_settings_show && 'vc_column' !== tag ) {
 				this.$el.find( '[data-vc-ui-element="settings-dropdown"]' ).show();
 			}
 		},
 		showDropdownMenu: function () {
-			var tag = this.model.get( 'shortcode' );
+			const tag = this.model.get( 'shortcode' );
 
-			var $this = $( this );
+			const $this = $( this );
 
 			if ( $this.data( 'vcSettingsMenuLoaded' ) && tag === $this.data( 'vcShortcodeName' ) ) {
 				return;
@@ -50,32 +56,128 @@
 			var $tab = this.$el.find( '.vc_edit-form-tab.vc_active' );
 			var tag = this.model.get( 'shortcode' );
 			var _this = this;
+
 			$( document ).off( 'beforeMinimize.vc.paramWindow',
 				this.minimizeButtonSelector ).on( 'beforeMinimize.vc.paramWindow', this.minimizeButtonSelector,
 				function () {
-					$tab.find( '.vc_ui-prompt-presets .vc_ui-prompt-close' ).trigger( 'click' );
+					// Close preset prompt if it's visible
+					const $presetPrompt = $tab.find( '.vc_ui-prompt-presets' );
+					if ( $presetPrompt.hasClass( 'vc_visible' ) ) {
+						$presetPrompt.removeClass( 'vc_visible' );
+						$tab.removeClass( 'vc_ui-content-hidden' );
+					}
+
+					// Close template prompt if it's visible
+					const $templatePrompt = $tab.find( '.vc_ui-prompt-templates' );
+					if ( $templatePrompt.hasClass( 'vc_visible' ) ) {
+						$templatePrompt.removeClass( 'vc_visible' );
+						$tab.removeClass( 'vc_ui-content-hidden' );
+					}
+
+					// Always reset flags to ensure clean state
+					_this.isPresetViewActive = false;
+					_this.isTemplateViewActive = false;
+
+					// Show tabs when exiting preset/template view
+					_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+					// Update resizable minHeight based on panel visibility
+					_this.updateResizableMinHeight?.();
 				}
 			);
 
 			$( document ).off( 'close.vc.paramWindow',
 				this.closeButtonSelector ).on( 'beforeClose.vc.paramWindow', this.closeButtonSelector,
 				function () {
-					$tab.find( '.vc_ui-prompt-presets .vc_ui-prompt-close' ).trigger( 'click' );
+					// Close preset prompt if it's visible
+					const $presetPrompt = $tab.find( '.vc_ui-prompt-presets' );
+					if ( $presetPrompt.hasClass( 'vc_visible' ) ) {
+						$presetPrompt.removeClass( 'vc_visible' );
+						$tab.removeClass( 'vc_ui-content-hidden' );
+					}
+
+					// Close template prompt if it's visible
+					const $templatePrompt = $tab.find( '.vc_ui-prompt-templates' );
+					if ( $templatePrompt.hasClass( 'vc_visible' ) ) {
+						$templatePrompt.removeClass( 'vc_visible' );
+						$tab.removeClass( 'vc_ui-content-hidden' );
+					}
+
+					// Always reset flags to ensure clean state
+					_this.isPresetViewActive = false;
+					_this.isTemplateViewActive = false;
+
+					// Show tabs when exiting preset/template view
+					_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+					// Update resizable minHeight based on panel visibility
+					_this.updateResizableMinHeight?.();
 				}
 			);
 
 			$( document ).off( 'show.vc.accordion', this.settingsButtonSelector ).on( 'show.vc.accordion',
 				this.settingsButtonSelector,
 				function () {
-					var $this = $( this );
+					const $this = $( this );
 
 					if ( $this.data( 'vcSettingsMenuLoaded' ) && tag === $this.data( 'vcShortcodeName' ) ) {
-						return;
-					}
+						// Menu already loaded, just update the disabled states
+						_this.updateDropdownItemStates();
+						// Don't return - let the accordion event continue so dropdown can show
+					} else {
+						_this.reloadSettingsMenuContent();
 
-					_this.reloadSettingsMenuContent();
+						// Update disabled states based on current mode
+						_this.updateDropdownItemStates();
+					}
 				}
 			);
+
+			// Prevent clicks on dropdown menu from closing it unless it's an action item
+			this.$el.on( 'click', this.settingsMenuSelector, ( e ) => {
+				const $target = $( e.target );
+				const $dropdownItem = $target.closest( '.vc_ui-dropdown-item' );
+
+				// If not clicking on a dropdown item (empty space, padding, etc), stop propagation
+				if ( !$dropdownItem.length ) {
+					e.stopPropagation();
+					return;
+				}
+
+				// If clicking on a dropdown item, check if it's disabled
+				if ( $dropdownItem.hasClass( 'select2-results__option--disabled' ) ) {
+					// Item is disabled - already handled in the specific item handlers
+					// Just let it bubble (will be caught by those handlers)
+					return;
+				}
+
+				// Clicking on an enabled action item - let it propagate and close dropdown
+				// (the item's own handler will do its action first, then closeSettings() will be called)
+			});
+		},
+		/**
+		 * Update dropdown item states based on current mode
+		 * - When preset/template view is active: disable save actions, enable edit element
+		 * - When edit form is active: disable edit element, enable save actions
+		 */
+		updateDropdownItemStates () {
+			const $menu = this.$el.find( this.settingsMenuSelector );
+			const $editElement = $menu.find( '.vc_ui-prompt-close' );
+			const $saveTemplate = $menu.find( '[data-vc-save-template]' );
+			const $savePreset = $menu.find( '[data-vc-save-settings-preset]' );
+			const isAnyViewActive = this.isPresetViewActive || this.isTemplateViewActive;
+
+			if ( isAnyViewActive ) {
+				// Preset/template view is active - disable save actions, enable edit element
+				$editElement.removeClass( 'select2-results__option--disabled' );
+				$saveTemplate.addClass( 'select2-results__option--disabled' );
+				$savePreset.addClass( 'select2-results__option--disabled' );
+			} else {
+				// Edit form is active - disable edit element, enable save actions
+				$editElement.addClass( 'select2-results__option--disabled' );
+				$saveTemplate.removeClass( 'select2-results__option--disabled' );
+				$savePreset.removeClass( 'select2-results__option--disabled' );
+			}
 		},
 		saveSettingsAjaxData: function ( shortcodeName, title, isDefault, data ) {
 			return {
@@ -89,8 +191,11 @@
 			};
 		},
 		saveSettings: function ( title, isDefault ) {
-			var shortcodeName = this.model.get( 'shortcode' ),
-				data = JSON.stringify( this.getParamsForSettingsPreset() );
+			const shortcodeName = this.model.get( 'shortcode' ),
+				paramsForPreset = this.cachedParamsForPreset || this.getParamsForSettingsPreset(),
+				data = JSON.stringify( paramsForPreset );
+
+			this.cachedParamsForPreset = null;
 
 			if ( 'undefined' === typeof ( isDefault ) ) {
 				isDefault = false;
@@ -109,6 +214,8 @@
 					this.settingsPresetId = response.id;
 					this.untaintSettingsPresetData();
 				}
+			}).fail( ( e ) => {
+				console.error( 'Failed to save settings preset.', e );
 			}).always( this.resetAjax );
 
 			return this.ajax;
@@ -128,7 +235,7 @@
 		 * @param {function} callback function to execute after element has been added to DOM
 		 */
 		fetchSaveSettingsDialog: function ( callback ) {
-			var $contentContainer = this.$el.find( '.vc_ui-panel-content-container' );
+			const $contentContainer = this.$el.find( '.vc_ui-panel-content-container' );
 
 			if ( $contentContainer.find( '.vc_ui-prompt-presets' ).length ) {
 				if ( 'undefined' !== typeof ( callback ) ) {
@@ -151,53 +258,83 @@
 					if ( 'undefined' !== typeof ( callback ) ) {
 						callback( true );
 					}
+				} else {
+					// Response success is false - invoke callback with false
+					if ( 'undefined' !== typeof ( callback ) ) {
+						callback( false );
+					}
 				}
-			}).fail( function () {
+			}).fail( ( e ) => {
+				console.error( 'Failed to fetch save settings dialog.', e );
 				if ( 'undefined' !== typeof ( callback ) ) {
 					callback( false );
 				}
 			}).always( this.resetAjax );
 		},
 		showSaveSettingsDialog: function ( isDefault ) {
-			var _this = this;
+			const _this = this;
 
 			this.isSettingsPresetDefault = !!isDefault;
+			this.cachedParamsForPreset = this.getParamsForSettingsPreset();
 
 			this.fetchSaveSettingsDialog( function ( created ) {
-				var $contentContainer = _this.$el.find( '.vc_ui-panel-content-container' ),
-					$prompt = $contentContainer.find( '.vc_ui-prompt-presets' ),
-					$title = $prompt.find( '.textfield' );
+				const $contentContainer = _this.$el.find( '.vc_ui-panel-content-container' );
+				const $prompt = $contentContainer.find( '.vc_ui-prompt-presets' );
+
+				// Check if prompt actually exists (fetch was successful)
+				if ( !$prompt.length ) {
+					// Fetch failed - reset flag and exit
+					_this.isPresetViewActive = false;
+					return;
+				}
+
+				const $title = $prompt.find( '.textfield' );
 				$contentContainer.find( '.vc_ui-prompt.vc_visible' ).removeClass( 'vc_visible' );
 
-				var $viewPresetsButton = $prompt.find( '[data-vc-view-settings-preset]' );
-				if ( 'undefined' !== window.vc_vendor_settings_presets[ _this.model.get( 'shortcode' ) ]) {
-					$viewPresetsButton.removeAttr( 'disabled' );
-				} else {
-					$viewPresetsButton.attr( 'disabled', 'disabled' );
-				}
 				$prompt.addClass( 'vc_visible' );
 				$title.trigger( 'focus' );
 				$contentContainer.addClass( 'vc_ui-content-hidden' );
 
+				// Set flag to indicate preset dialog is active (only after dialog is shown)
+				_this.isPresetViewActive = true;
+
+				// Hide all tabs when entering preset view
+				_this.$el.find( '.vc_edit-form-tab-control' ).hide();
+
+				// Update resizable minHeight based on panel visibility
+				_this.updateResizableMinHeight?.();
+
+				_this.resetMinimize();
+
 				if ( !created ) {
 					return;
 				}
-				var $btn = $prompt.find( '#vc_ui-save-preset-btn' );
-				var delay = 0;
+				const $btn = $prompt.find( '#vc_ui-save-preset-btn' );
+				let delay = 0;
+				_this.updateDropdownItemStates();
 				$prompt.on( 'submit', function () {
-					var title = $title.val();
+					const title = $title.val();
 
 					_this.saveSettings( title, _this.isSettingsPresetDefault ).done( function ( e ) {
-						var data = this.getParamsForSettingsPreset();
+						const data = this.getParamsForSettingsPreset();
 						$title.val( '' );
 						_this.setCustomButtonMessage( $btn, undefined, undefined, true );
-						var savedTitle = e.title || title;
+						const savedTitle = e.title || title;
 						vc.events.trigger( 'vc:savePreset', e.id, _this.model.get( 'shortcode' ), savedTitle, data );
 						delay = _.delay( function () {
+							// Reset flag when dialog closes
+							_this.isPresetViewActive = false;
 							$prompt.removeClass( 'vc_visible' );
 							$contentContainer.removeClass( 'vc_ui-content-hidden' );
+
+							// Show tabs when exiting preset view
+							_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+							// Update resizable minHeight based on panel visibility
+							_this.updateResizableMinHeight?.();
 						}, 5000 );
-					}).fail( function () {
+					}).fail( ( e ) => {
+						console.error( 'Failed to save settings preset.', e );
 						_this.setCustomButtonMessage( $btn, window.i18nLocale.ui_danger, 'danger', true );
 					});
 
@@ -205,9 +342,18 @@
 				});
 
 				$prompt.on( 'click', '.vc_ui-prompt-close', function () {
+					// Reset flag when closing dialog
+					_this.isPresetViewActive = false;
 					_this.checkAjax();
 					$prompt.removeClass( 'vc_visible' );
 					$contentContainer.removeClass( 'vc_ui-content-hidden' );
+
+					// Show tabs when exiting preset view
+					_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+					// Update resizable minHeight based on panel visibility
+					_this.updateResizableMinHeight?.();
+
 					_this.clearCustomButtonMessage.call( this, $btn );
 					if ( delay ) {
 						window.clearTimeout( delay );
@@ -215,42 +361,10 @@
 					}
 					return false;
 				});
+
 				$( '.edit-form-info' ).initializeTooltips();
 			});
 		},
-		loadSettingsAjaxData: function ( id ) {
-			return {
-				action: 'vc_action_get_settings_preset',
-				vc_inline: true,
-				id: id,
-				_vcnonce: window.vcAdminNonce
-			};
-		},
-		/**
-		 * Load and render specific preset
-		 *
-		 * @param {number} id
-		 */
-		loadSettings: function ( id ) {
-			this.panelInit = false;
-
-			this.checkAjax();
-			this.ajax = $.ajax({
-				type: 'POST',
-				dataType: 'json',
-				url: window.ajaxurl,
-				data: this.loadSettingsAjaxData( id ),
-				context: this
-			}).done( function ( response ) {
-				if ( response.success ) {
-					this.settingsPresetId = id;
-					this.applySettingsPreset( response.data );
-				}
-			}).always( this.resetAjax );
-
-			return this.ajax;
-		},
-
 		saveAsDefaultSettingsAjaxData: function ( shortcodeName, id ) {
 			return {
 				action: 'vc_action_set_as_default_settings_preset',
@@ -267,8 +381,8 @@
 		 * show "save as" dialog. Otherwise save w/o any prompt.
 		 */
 		saveAsDefaultSettings: function ( id, doneCallback ) {
-			var shortcodeName = this.model.get( 'shortcode' );
-			var presetId = id ? id : this.settingsPresetId;
+			const shortcodeName = this.model.get( 'shortcode' );
+			const presetId = id ? id : this.settingsPresetId;
 			// if user has not loaded preset or made any changes...
 			if ( !presetId ) {
 				this.showSaveSettingsDialog( true );
@@ -288,6 +402,8 @@
 							doneCallback();
 						}
 					}
+				}).fail( ( e ) => {
+					console.error( 'Failed to set preset as default.', e );
 				}).always( this.resetAjax );
 			}
 		},
@@ -303,7 +419,7 @@
 		 * Remove "default" flag from currently default preset
 		 */
 		restoreDefaultSettings: function () {
-			var shortcodeName = this.model.get( 'shortcode' );
+			const shortcodeName = this.model.get( 'shortcode' );
 
 			this.checkAjax();
 			this.ajax = $.ajax({
@@ -316,6 +432,8 @@
 				if ( response.success ) {
 					this.setSettingsMenuContent( response.html );
 				}
+			}).fail( ( e ) => {
+				console.error( 'Failed to restore default settings.', e );
 			}).always( this.resetAjax );
 
 		},
@@ -325,7 +443,7 @@
 		 * @param {string} html
 		 */
 		setSettingsMenuContent: function ( html ) {
-			var $button = this.$el.find( this.settingsButtonSelector ),
+			const $button = this.$el.find( this.settingsButtonSelector ),
 				$menu = this.$el.find( this.settingsMenuSelector ),
 				shortcodeName = this.model.get( 'shortcode' ),
 				_this = this;
@@ -333,23 +451,24 @@
 			$button.data( 'vcShortcodeName', shortcodeName );
 			$menu.html( html );
 
-			if ( window.vc_presets_data && window.vc_presets_data.presetsCount > 0 ) {
-				$menu.find( '[data-vc-view-settings-preset]' ).removeAttr( 'disabled' );
-			} else {
-				$menu.find( '[data-vc-view-settings-preset]' ).attr( 'disabled', 'disabled' );
-			}
+			$menu.find( '[data-vc-save-settings-preset]' ).on( 'click', function ( e ) {
+				if ( $( this ).hasClass( 'select2-results__option--disabled' ) ) {
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				}
 
-			$menu.find( '[data-vc-view-settings-preset]' ).on( 'click', function () {
-				_this.showViewSettingsList();
-				_this.closeSettings();
-			});
-
-			$menu.find( '[data-vc-save-settings-preset]' ).on( 'click', function () {
 				_this.showSaveSettingsDialog();
 				_this.closeSettings();
 			});
 
-			$menu.find( '[data-vc-save-template]' ).on( 'click', function () {
+			$menu.find( '[data-vc-save-template]' ).on( 'click', function ( e ) {
+				if ( $( this ).hasClass( 'select2-results__option--disabled' ) ) {
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				}
+
 				_this.showSaveTemplateDialog();
 				_this.closeSettings();
 			});
@@ -364,6 +483,33 @@
 				_this.closeSettings();
 			});
 
+			$menu.find( '.vc_ui-prompt-close' ).on( 'click', function ( e ) {
+				if ( $( this ).hasClass( 'select2-results__option--disabled' ) ) {
+					e.preventDefault();
+					e.stopPropagation();
+					return false;
+				}
+
+				if ( _this.isPresetViewActive || _this.isTemplateViewActive ) {
+					const $contentContainer = _this.$el.find( '.vc_ui-panel-content-container' );
+					$contentContainer.find( '.vc_ui-prompt.vc_visible' ).removeClass( 'vc_visible' );
+					$contentContainer.removeClass( 'vc_ui-content-hidden' );
+
+					// Show tabs when exiting preset/template view
+					_this.$el.find( '.vc_edit-form-tab-control' ).show();
+
+					// Reset both flags
+					_this.isPresetViewActive = false;
+					_this.isTemplateViewActive = false;
+
+					// Update resizable minHeight based on panel visibility
+					_this.updateResizableMinHeight?.();
+					_this.resetMinimize();
+				}
+				// Always close the dropdown when clicking Edit element
+				_this.closeSettings();
+			});
+
 		},
 		reloadSettingsMenuContentAjaxData: function ( shortcodeName ) {
 			return {
@@ -373,65 +519,6 @@
 				_vcnonce: window.vcAdminNonce
 			};
 		},
-		showViewSettingsList: function () {
-			var $contentContainer = this.$el.find( '.vc_ui-panel-content-container' );
-			$contentContainer.find( '.vc_ui-prompt-view-presets:not(.vc_visible)' ).remove();
-			if ( $contentContainer.find( '.vc_ui-prompt-view-presets' ).length ) {
-				return;
-			}
-			$contentContainer.find( '.vc_ui-prompt.vc_visible' ).removeClass( 'vc_visible' );
-
-			var _this = this;
-			var $prompt = jQuery(
-				'<form class="vc_ui-prompt vc_ui-prompt-view-presets"><div class="vc_ui-prompt-controls"><button type="button" class="vc_general vc_ui-control-button vc_ui-prompt-close"><i class="vc-composer-icon vc-c-icon-close"></i></button></div><div class="vc_ui-prompt-title"><label for="prompt_title" class="wpb_element_label">Elements</label></div><div class="vc_ui-prompt-content"><div class="vc_ui-prompt-column"><div class="vc_ui-template-list vc_ui-list-bar" data-vc-action="collapseAll" style="margin-top: 20px;" data-vc-presets-list-content></div></div></div>' );
-			this.buildsettingsListContent( $prompt );
-			$prompt.appendTo( $contentContainer );
-			$prompt.addClass( 'vc_visible' );
-
-			$contentContainer.addClass( 'vc_ui-content-hidden' );
-
-			var closePrompt = function () {
-				$prompt.remove();
-				$contentContainer.removeClass( 'vc_ui-content-hidden' );
-				return false;
-			};
-
-			$prompt.off( 'click.vc1' ).on( 'click.vc1', '[data-vc-load-settings-preset]', function ( e ) {
-				_this.loadSettings( $( e.currentTarget ).data( 'vcLoadSettingsPreset' ) );
-				closePrompt();
-			});
-
-			$prompt.off( 'click.vc4' ).on( 'click.vc4', '[data-vc-set-default-settings-preset]', function () {
-				_this.saveAsDefaultSettings( $( this ).data( 'vcSetDefaultSettingsPreset' ), function () {
-					_this.buildsettingsListContent( $prompt );
-				});
-			});
-
-			$prompt.off( 'click.vc3' ).on( 'click.vc3', '.vc_ui-prompt-close', function () {
-				closePrompt();
-				_this.checkAjax();
-			});
-		},
-		buildsettingsListContent: function ( $prompt ) {
-			var itemsTemplate = vc.template(
-				'<div class="vc_ui-template"><div class="vc_ui-list-bar-item"><button class="vc_ui-list-bar-item-trigger" title="Apply Element" type="button" data-vc-load-settings-preset="<%- id %>"><%- title %></button><div class="vc_ui-list-bar-item-actions"><button class="vc_general vc_ui-control-button" title="Apply Element" type="button" data-vc-load-settings-preset="<%- id %>"><i class="vc-composer-icon vc-c-icon-add"></i></button><button class="vc_general vc_ui-control-button" title="Delete Element" type="button" data-vc-delete-settings-preset="<%- id %>"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></button></div></div></div>' );
-			var $content = $prompt.find( '[data-vc-presets-list-content]' );
-			$content.empty();
-			_.each( window.vc_presets_data.presets[ 0 ], function ( item, id ) {
-				var title = item;
-				if ( window.vc_presets_data.defaultId > 0 && parseInt( id, 10 ) === window.vc_presets_data.defaultId ) {
-					title = item + ' (default)';
-				}
-				$content.append( itemsTemplate({ title: title, id: id }) );
-			});
-			_.each( window.vc_presets_data.presets[ 1 ], function ( item, id ) {
-				var title = item;
-				if ( window.vc_presets_data.defaultId > 0 && parseInt( id, 10 ) === window.vc_presets_data.defaultId ) {
-					title = item + ' (default)';
-				}
-				$content.append( itemsTemplate({ title: title, id: id }) );
-			});
-		},
 		/**
 		 * Reload settings menu (popup) content
 		 *
@@ -439,9 +526,9 @@
 		 * saved or deleted
 		 */
 		reloadSettingsMenuContent: function () {
-			var shortcodeName = this.model.get( 'shortcode' ),
-				$button = this.$el.find( this.settingsButtonSelector ),
-				success = false;
+			const shortcodeName = this.model.get( 'shortcode' ),
+				$button = this.$el.find( this.settingsButtonSelector );
+			let success = false;
 
 			this.setSettingsMenuContent( '' );
 
@@ -459,6 +546,8 @@
 					$button
 						.data( 'vcSettingsMenuLoaded', true );
 				}
+			}).fail( ( e ) => {
+				console.error( 'Failed to load settings menu content.', e );
 			}).always( function () {
 				if ( !success ) {
 					this.closeSettings();
@@ -478,7 +567,7 @@
 				destroy = false;
 			}
 
-			var $menu = this.$el.find( this.settingsMenuSelector ),
+			const $menu = this.$el.find( this.settingsMenuSelector ),
 				$button = this.$el.find( this.settingsButtonSelector );
 
 			if ( destroy ) {
@@ -498,7 +587,7 @@
 		 * @return {boolean}
 		 */
 		isSettingsPresetDataTainted: function () {
-			var params = JSON.stringify( this.getParamsForSettingsPreset() );
+			let params = JSON.stringify( this.getParamsForSettingsPreset() );
 			params = params.replace( /vc_custom_\d+/, '' );
 
 			return this.$el.data( 'vcSettingsPresetHash' ) !== vc_globalHashCode( params );
@@ -509,13 +598,13 @@
 		 * @see isSettingsPresetDataTainted for reason why vc_custom_* is removed before hashing
 		 */
 		untaintSettingsPresetData: function () {
-			var params = JSON.stringify( this.getParamsForSettingsPreset() );
+			let params = JSON.stringify( this.getParamsForSettingsPreset() );
 			params = params.replace( /vc_custom_\d+/, '' );
 
 			this.$el.data( 'vcSettingsPresetHash', vc_globalHashCode( params ) );
 		},
 		applySettingsPresetAjaxData: function ( params ) {
-			var parentId = this.model.get( 'parent_id' );
+			const parentId = this.model.get( 'parent_id' );
 
 			return {
 				action: 'vc_edit_form',
@@ -548,7 +637,11 @@
 				url: window.ajaxurl,
 				data: this.applySettingsPresetAjaxData( params ),
 				context: this
-			}).done( this.buildParamsContent ).always( this.resetAjax );
+			}).done( this.buildParamsContent )
+				.fail( ( e ) => {
+					console.error( 'Failed to apply settings preset.', e );
+				})
+				.always( this.resetAjax );
 
 			return this;
 		},
@@ -556,7 +649,7 @@
 		 * Same as getParams, but exclude some attributes
 		 */
 		getParamsForSettingsPreset: function () {
-			var shortcode = this.model.get( 'shortcode' ),
+			const shortcode = this.model.get( 'shortcode' ),
 				params = this.getParams();
 
 			if ( 'vc_column' === shortcode || 'vc_column_inner' === shortcode ) {

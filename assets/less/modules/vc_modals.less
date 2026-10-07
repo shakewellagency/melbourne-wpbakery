@@ -41,15 +41,18 @@
   background: rgba(0, 0, 0, 0.5) !important;
 
   .vc_column + .vc_column {
-    padding-top: 15px;
     float: left;
     width: 100%;
+  }
+
+  .vc_modal-popup-content {
+    max-height: 850px;
   }
 }
 
 .vc_modal-popup-content {
   width: 600px;
-  height: 90%;
+  max-height: 90%;
   margin: 30px auto;
   overflow: hidden;
 
@@ -69,17 +72,29 @@
 
 #vc_ui-helper-promo-popup {
   .vc_modal-popup-content {
-    max-height: 750px;
+    max-height: 90vh;
+    height: auto;
     margin: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vc_ui-panel-window-inner {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
   }
 
   .vc_ui-panel-content-container {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+
     .vc_ui-panel-content {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      min-height: 670px;
       padding: 20px;
     }
 
@@ -118,11 +133,19 @@
       color: #0772CE;
       font-size: 16px;
     }
+
+    .vc-feature-text > *:last-child {
+      margin-bottom: 0;
+    }
   }
 
   .vc_ui-panel-footer-container {
     background: #fff;
     text-align: center;
+  }
+
+  .vc_ui-button-group {
+    justify-content: center;
   }
 }
 
@@ -147,6 +170,20 @@
   .vc_description {
     margin: 0 0 30px;
     text-align: center;
+  }
+
+  .vc_heading {
+    font-weight: @wpb_font-weight;
+    font-family: @wpb_font-family-secondary;
+  }
+
+  .vc_description {
+    font-family: @wpb_font-family-primary;
+    font-weight: @wpb_font-weight;
+    font-style: normal;
+    font-size: @wpb_font-size-sm;
+    color: @textGray;
+    line-height: 1.5;
   }
 }
 

@@ -21,7 +21,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 4.2
  */
 function vc_sorted_list_form_field( $settings, $value ) {
-	return sprintf( '<div class="vc_sorted-list"><input name="%s" class="wpb_vc_param_value  %s %s_field" type="hidden" value="%s" /><div class="vc_sorted-list-toolbar">%s</div><ul class="vc_sorted-list-container"></ul></div>', $settings['param_name'], $settings['param_name'], $settings['type'], $value, vc_sorted_list_parts_list( $settings['options'] ) );
+	$options = $settings['options'] ?? [];
+	return sprintf(
+		'<div class="vc_sorted-list">%s<div class="vc_sorted-list-toolbar">%s</div><ul class="vc_sorted-list-container"></ul></div>',
+		WPB_Form_Field_Hidden::get([
+			'name' => $settings['param_name'],
+			'classes' => wpbakery()->editForm()->get_value_control_classes( $settings['param_name'], $settings['type'] . '_field' ),
+			'value' => $value,
+			'is_value_escape' => false,
+		]),
+		vc_sorted_list_parts_list( $options )
+	);
 }
 
 /**

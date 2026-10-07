@@ -14,7 +14,7 @@ $post_type_object = get_post_type_object( $post->post_type );
 
 <div class="vc_col-sm-12 vc_column" id="vc_settings-post_author">
 	<div class="wpb_settings-title">
-		<div class="wpb_element_label"><?php esc_html_e( 'Author', 'js_composer' ); ?></div>
+		<label for="vc_post_author" class="wpb_element_label"><?php esc_html_e( 'Author', 'js_composer' ); ?></label>
 	</div>
 	<div class="edit_form_line">
 		<?php
@@ -27,7 +27,7 @@ $post_type_object = get_post_type_object( $post->post_type );
 			'show' => 'display_name_with_login',
 			'id' => 'vc_post_author',
 			'name' => 'post_author',
-			'class' => 'wpb_vc_param_value wpb-input input vc_post_author',
+			'class' => 'wpb-form-select wpb_vc_param_value wpb-input input vc_post_author',
 		] );
 		?>
 	</div>

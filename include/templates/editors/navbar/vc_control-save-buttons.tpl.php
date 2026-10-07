@@ -21,50 +21,70 @@ if ( ! in_array( $post->post_status, [
 	'future',
 	'private',
 ], true ) ) :
-	?>
-	<?php if ( 'draft' === $post->post_status ) : ?>
-	<a href="javascript:;"
-		id="vc_button-save-draft"
-		class="<?php echo $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-default vc_navbar-btn '; ?> vc_btn-save-draft"
-		title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Save Draft' ) ); ?>">
-		<i class="vc_hide-desktop vc-composer-icon vc-c-icon-save-draft"></i>
-		<p><?php esc_html_e( 'Save Draft', 'js_composer' ); ?></p>
-	</a>
-	<?php elseif ( 'pending' === $post->post_status && $can_publish ) : ?>
-		<a href="javascript:;"
-			id="vc_button-save-as-pending"
-			class="<?php echo $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn '; ?> vc_btn-save"
-			title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Save as Pending' ) ); ?>">
-			<i class="vc_hide-desktop vc-composer-icon vc-c-icon-save-draft"></i>
-			<p><?php esc_html_e( 'Save as Pending', 'js_composer' ); ?></p>
-		</a>
-	<?php endif ?>
-		<?php if ( $can_publish ) : ?>
-		<a href="javascript:;"
-			id="vc_button-update"
-			class="<?php echo $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn '; ?> vc_btn-save"
-			title="<?php echo esc_attr( __( 'Publish', 'js_composer' ) ); ?>"
-			data-change-status="publish">
-			<i class="vc_hide-desktop vc-composer-icon vc-c-icon-publish"></i>
-			<p><?php esc_html_e( 'Publish', 'js_composer' ); ?></p>
-		</a>
-	<?php else : ?>
-		<a href="javascript:;"
-			id="vc_button-update"
-			class="<?php echo $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn '; ?> vc_btn-save"
-			title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Submit for Review' ) ); ?>"
-			data-change-status="pending">
-			<i class="vc_hide-desktop vc-composer-icon vc-c-icon-publish"></i>
-			<p><?php esc_html_e( 'Submit for Review', 'js_composer' ); ?></p>
-		</a>
-	<?php endif ?>
-<?php else : ?>
-	<a href="javascript:;"
-		id="vc_button-update"
-		class="<?php echo $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn '; ?> vc_btn-save"
-		title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Update' ) ); ?>">
-		<i class="vc_hide-desktop vc-composer-icon vc-c-icon-publish"></i>
-		<p><?php esc_html_e( 'Update', 'js_composer' ); ?></p>
-	</a>
-<?php endif ?>
+	if ( 'draft' === $post->post_status ) :
+		vc_include_template(
+			'editors/navbar/vc_control-save-button-template.php',
+			[
+				'id' => 'vc_button-save-draft',
+				'class' => ( $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-default vc_navbar-btn ' ) . 'vc_btn-save-draft',
+				'title' => wpb_get_title_with_shortcut( 'Save draft' ),
+				'icon' => 'save-draft',
+				'text' => __( 'Save draft', 'js_composer' ),
+				'tabindex' => 10,
+			]
+		);
+	elseif ( 'pending' === $post->post_status && $can_publish ) :
+		vc_include_template(
+			'editors/navbar/vc_control-save-button-template.php',
+			[
+				'id' => 'vc_button-save-as-pending',
+				'class' => ( $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn ' ) . 'vc_btn-save',
+				'title' => wpb_get_title_with_shortcut( 'Save as Pending' ),
+				'icon' => 'save-draft',
+				'text' => __( 'Save as Pending', 'js_composer' ),
+				'tabindex' => 10,
+			]
+		);
+	endif;
+	if ( $can_publish ) :
+		vc_include_template(
+			'editors/navbar/vc_control-save-button-template.php',
+			[
+				'id' => 'vc_button-update',
+				'class' => ( $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn ' ) . 'vc_btn-save',
+				'title' => wpb_get_title_with_shortcut( 'Publish' ),
+				'icon' => 'check',
+				'text' => __( 'Publish', 'js_composer' ),
+				'data_change_status' => 'publish',
+				'tabindex' => 11,
+			]
+		);
+		else :
+			vc_include_template(
+				'editors/navbar/vc_control-save-button-template.php',
+				[
+					'id' => 'vc_button-update',
+					'class' => ( $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn ' ) . 'vc_btn-save',
+					'title' => wpb_get_title_with_shortcut( 'Submit for Review' ),
+					'icon' => 'check',
+					'text' => __( 'Submit for Review', 'js_composer' ),
+					'data_change_status' => 'pending',
+					'tabindex' => 11,
+				]
+			);
+		endif;
+else :
+	vc_include_template(
+		'editors/navbar/vc_control-save-button-template.php',
+		[
+			'id' => 'vc_button-update',
+			'class' => ( $is_mobile ? 'vc_icon-btn ' : 'vc_btn vc_btn-primary vc_navbar-btn ' ) . 'vc_btn-save',
+			'title' => wpb_get_title_with_shortcut( 'Update' ),
+			'icon' => 'check',
+			'text' => __( 'Update', 'js_composer' ),
+			'tabindex' => 11,
+		]
+	);
+endif;
+?>
 </li>

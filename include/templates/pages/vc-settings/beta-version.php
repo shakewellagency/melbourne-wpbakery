@@ -16,10 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			'description' => esc_html__( "Enable the plugin's beta version for this website for testing purposes. This feature is not recommended for production/live websites.", 'js_composer' ),
 		] );
 		?>
-		<label>
-			<input type="checkbox"<?php echo esc_attr( $checked ) ? ' checked' : ''; ?> value="1" id="<?php echo esc_attr( 'wpb_js_beta_version' ); ?>" name="<?php echo esc_attr( 'wpb_js_beta_version' ); ?>">
-			<?php esc_html_e( 'Enable', 'js_composer' ); ?><br>
-		</label>
+		<?php
+		WPB_Form_Field_Checkbox::render( [
+			'id'      => 'wpb_js_beta_version',
+			'name'    => 'wpb_js_beta_version',
+			'value'   => '1',
+			'checked' => $checked,
+			'label'   => esc_html__( 'Enable', 'js_composer' ),
+		] );
+		?>
+		<br>
 		<p class="wpb-beta-title-agreement">
 			<?php esc_html_e( 'By enabling beta, I agree to be contacted by WPBakery to collect feedback.', 'js_composer' ); ?>
 		</p>

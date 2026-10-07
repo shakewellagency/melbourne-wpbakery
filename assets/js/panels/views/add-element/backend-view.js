@@ -86,18 +86,22 @@
 				if ( this.$el.is( ':hidden' ) ) {
 					window.vc.closeActivePanel();
 				}
-				window.vc.active_panel = this;
 				this.prepend = _.isBoolean( prepend ) ? prepend : false;
 				this.place_after_id = _.isString( prepend ) ? prepend : false;
-				this.model = _.isObject( model ) ? model : false;
 				this.$content = this.$el.find( '[data-vc-ui-element="panel-add-element-list"]' );
 				this.$buttons = $( '[data-vc-ui-element="add-element-button"]', this.$content );
 
+				// Set model before buildFiltering() so it filters against the new parent context (not the stale one).
+				this.model = _.isObject( model ) ? model : false;
 				this.buildFiltering();
 
 				this.$el.find( '[data-vc-ui-element="panel-tab-control"]' ).eq( 0 ).click();
 
 				this.show();
+
+				// Set model after show() to prevent it from being nullified by closeActivePanel() called inside show()
+				// Note: window.vc.active_panel is already set by the parent show() method
+				this.model = _.isObject( model ) ? model : false;
 
 				// must be after show()
 				this.$el.find( '[data-vc-ui-element="panel-tabs-controls"]' ).vcTabsLine( 'moveTabs' );
@@ -109,7 +113,10 @@
 				}
 
 				if ( !vc.is_mobile ) {
-					$( this.searchSelector ).trigger( 'focus' );
+					const _this = this;
+					setTimeout( () => {
+						$( _this.searchSelector ).trigger( 'focus' );
+					}, 250 );
 				}
 
 				return vc.AddElementUIPanelBackendEditor.__super__.render.call( this );
@@ -463,8 +470,10 @@
 				var order = this.prepend ? this.getFirstPositionIndex() : vc.shortcodes.getNextOrder();
 				var parentId = this.model ? this.model.id : null;
 				var rootId = this.model ? this.model.get( 'root_id' ) : null;
+				// for empty containers we don't lock the storage in such case we will have some html even when noting except container is added
+				const emptyContainers = [ 'vc_section' ];
 
-				if ( false === this.model ) {
+				if ( ! emptyContainers.includes( tag ) && false === this.model ) {
 					window.vc.storage.lock();
 				}
 
@@ -485,17 +494,17 @@
 
 				return vc.element_start_index;
 			},
-			show: function () {
-				this.$el.addClass( 'vc_active' );
-				this.trigger( 'show' );
-			},
-			hide: function () {
+			hide ( e ) {
+				if ( e ) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
 				this.$el.removeClass( 'vc_active' );
 				window.vc.active_panel = false;
 				this.trigger( 'hide' );
 			},
 			showEditForm: function () {
-				window.vc.edit_element_block_view.render( this.model, true );
+				window.vc.edit_element_block_view.render( this.model );
 			},
 			updateAddElementPopUp: function ( id, shortcode, title, data ) {
 				// element pop up box
@@ -504,7 +513,6 @@
 				window.vc_all_presets[ id ] = data;
 
 				$newPreset.find( '[data-vc-shortcode-name]' ).text( title );
-				$newPreset.find( '.vc_element-description' ).text( '' );
 				$newPreset.attr( 'data-preset', id );
 				$newPreset.addClass( 'js-category-_my_elements_' );
 				$newPreset.insertAfter( this.$el.find( '[data-element="' + shortcode + '"]:last' ) );

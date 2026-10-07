@@ -32,14 +32,15 @@ foreach ( $heading_list as $heading_name => $heading_title ) {
 		[
 			'element' => 'use_custom_fonts_' . $heading_name,
 			'value' => 'true',
-		]
+		],
+		true,
 	);
 
 	// This is needed to remove custom heading _tag and _align options.
 	if ( is_array( $heading ) && ! empty( $heading ) ) {
 		foreach ( $heading as $key => $param ) {
 			if ( is_array( $param ) && isset( $param['type'] ) && 'font_container' === $param['type'] ) {
-				$heading[ $key ]['value'] = '';
+				$heading[ $key ]['value'] = 'text_align:center';
 			}
 		}
 	}
@@ -53,23 +54,13 @@ $vc_btn_element_params = vc_btn_element_params();
 // we change some predefined values.
 $change_param_list = [
 	'title' => [ 'value' => __( 'Get now', 'js_composer' ) ],
-	'color' => [ 'std' => 'primary' ],
-	'align' => [ 'value' => [ 'center', 'inline', 'left', 'right' ] ],
 	'button_block' => [ 'std' => 'true' ],
-	'style' => [
-		'value' =>
-				[
-					'Classic' => 'classic',
-					'Modern'  => 'modern',
-					'Flat' => 'flat',
-					'Outline' => 'outline',
-					'3d' => '3d',
-					'Custom' => 'custom',
-					'Outline custom' => 'outline-custom',
-					'Gradient' => 'gradient',
-					'Gradient Custom' => 'gradient-custom',
-				],
-	],
+	'align' => [ 'std' => 'center' ],
+	'custom_background' => [ 'std' => '#0088CC' ],
+	'custom_hover_background' => [ 'std' => '#0074AD' ],
+	'custom_text' => [ 'std' => '#FFFFFF' ],
+	'custom_hover_text' => [ 'std' => '#F7F7F7' ],
+	'style' => [ 'std' => 'classic' ],
 ];
 
 foreach ( $change_param_list as $param_name => $param_value ) {
@@ -87,6 +78,20 @@ foreach ( $change_param_list as $param_name => $param_value ) {
 	}
 }
 
+$button = vc_map_integrate_shortcode(
+	$vc_btn_element_params,
+	'btn_', esc_html__( 'Button', 'js_composer' ),
+	[
+		'title' => 'Get Now',
+		'exclude' => [ 'css' ],
+	],
+	[
+		'element' => 'add_button',
+		'not_empty' => true,
+	],
+	true
+);
+
 $params = array_merge(
 	[
 		[
@@ -96,14 +101,14 @@ $params = array_merge(
 			'param_name' => 'heading',
 			'value' => esc_html__( 'Growth', 'js_composer' ),
 			'description' => esc_html__( 'Enter text for heading line.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-9',
+			'section' => 'general',
 		],
 		[
-			'type' => 'checkbox',
-			'heading' => esc_html__( 'Use custom font?', 'js_composer' ),
+			'type' => 'toggle',
+			'heading' => esc_html__( 'Use custom font', 'js_composer' ),
 			'param_name' => 'use_custom_fonts_heading',
 			'description' => esc_html__( 'Enable custom font option.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-3',
+			'section' => 'general',
 		],
 	],
 	$heading_integration['heading'],
@@ -114,27 +119,17 @@ $params = array_merge(
 			'param_name' => 'subheading',
 			'value' => 'For business',
 			'description' => esc_html__( 'Enter text for subheading line.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-9',
+			'section' => 'general',
 		],
 		[
-			'type' => 'checkbox',
-			'heading' => esc_html__( 'Use custom font?', 'js_composer' ),
+			'type' => 'toggle',
+			'heading' => esc_html__( 'Use custom font', 'js_composer' ),
 			'param_name' => 'use_custom_fonts_subheading',
 			'description' => esc_html__( 'Enable custom font option.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-3',
+			'section' => 'general',
 		],
 	],
 	$heading_integration['subheading'],
-	[
-		[
-			'type' => 'textfield',
-			'heading' => esc_html__( 'Currency', 'js_composer' ),
-			'param_name' => 'currency',
-			'value' => '$',
-			'description' => esc_html__( 'Enter your price currency.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-9',
-		],
-	],
 	[
 		[
 			'type' => 'textfield',
@@ -142,23 +137,40 @@ $params = array_merge(
 			'param_name' => 'price',
 			'value' => '99',
 			'description' => esc_html__( 'Enter your price.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-9',
+			'edit_field_class' => 'vc_col-xs-6',
+			'section' => 'general',
 		],
-	],
-	[
+		[
+			'type' => 'textfield',
+			'heading' => esc_html__( 'Currency', 'js_composer' ),
+			'param_name' => 'currency',
+			'value' => '$',
+			'description' => esc_html__( 'Enter your price currency.', 'js_composer' ),
+			'edit_field_class' => 'vc_col-xs-6',
+			'section' => 'general',
+		],
 		[
 			'type' => 'textfield',
 			'heading' => esc_html__( 'Period', 'js_composer' ),
 			'param_name' => 'period',
 			'value' => '/mo',
 			'description' => esc_html__( 'Enter your price action period.', 'js_composer' ),
-			'edit_field_class' => 'vc_col-sm-9',
+			'edit_field_class' => 'vc_col-xs-6',
+			'section' => 'general',
 		],
-	],
-	[
+		[
+			'type' => 'toggle',
+			'heading' => esc_html__( 'Add button', 'js_composer' ),
+			'description' => esc_html__( 'Add button for call to action.', 'js_composer' ),
+			'param_name' => 'add_button',
+			'edit_field_class' => 'vc_col-xs-6',
+			'section' => 'general',
+			'value' => [ 'yes' ],
+			'std' => 'yes',
+		],
 		[
 			'type' => 'textarea_html',
-			'heading' => esc_html__( 'Text', 'js_composer' ),
+			'heading' => esc_html__( 'Description', 'js_composer' ),
 			'param_name' => 'content',
 			'value' => wp_kses(
 			'<ul class="wpb-plan-features">' .
@@ -172,6 +184,7 @@ $params = array_merge(
 						'li' => [ 'class' => [] ],
 					]
 				),
+			'section' => 'secondary',
 		],
 		[
 			'type' => 'colorpicker',
@@ -179,72 +192,38 @@ $params = array_merge(
 			'heading' => esc_html__( 'Markers color', 'js_composer' ),
 			'param_name' => 'markers_color',
 			'description' => esc_html__( 'Select custom color for your list markers.', 'js_composer' ),
-		],
-		[
-			'type' => 'dropdown',
-			'heading' => esc_html__( 'Add button', 'js_composer' ) . '?',
-			'description' => esc_html__( 'Add button for call to action.', 'js_composer' ),
-			'param_name' => 'add_button',
-			'value' => [
-				esc_html__( 'Yes', 'js_composer' ) => 'yes',
-				esc_html__( 'No', 'js_composer' ) => '',
-			],
+			'section' => 'secondary',
 		],
 	],
-	vc_map_integrate_shortcode($vc_btn_element_params, 'btn_', esc_html__( 'Button', 'js_composer' ),
-		[
-			'title' => 'Get Now',
-			'exclude' => [ 'css' ],
-		],
-		[
-			'element' => 'add_button',
-			'not_empty' => true,
-		]
-	),
-	[
-		vc_map_add_css_animation(),
-		[
-			'type' => 'el_id',
-			'heading' => esc_html__( 'Element ID', 'js_composer' ),
-			'param_name' => 'el_id',
-			'description' => sprintf( esc_html__( 'Enter element ID (Note: make sure it is unique and valid according to %1$sw3c specification%2$s).', 'js_composer' ), '<a href="https://www.w3schools.com/tags/att_global_id.asp" target="_blank">', '</a>' ),
-		],
-		[
-			'type' => 'textfield',
-			'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-			'param_name' => 'el_class',
-			'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
-		],
-		[
-			'type' => 'css_editor',
-			'heading' => esc_html__( 'CSS box', 'js_composer' ),
-			'param_name' => 'css',
-			'group' => esc_html__( 'Design Options', 'js_composer' ),
-			'value' => [
-				'padding-top' => '30px',
-				'padding-right' => '20px',
-				'padding-bottom' => '30px',
-				'padding-left' => '20px',
-				'border-radius' => '5px',
-				'border-top-width' => '1px',
-				'border-right-width' => '1px',
-				'border-bottom-width' => '1px',
-				'border-left-width' => '1px',
-				'border-style' => 'solid',
-				'border-color' => 'rgba(0,0,0,0.01)',
-				'background-color' => '#ECECEC',
-			],
-		],
-	]
+	$button,
 );
 
+$default_values = [
+	'padding-top' => '30px',
+	'padding-right' => '20px',
+	'padding-bottom' => '30px',
+	'padding-left' => '20px',
+	'border-top-left-radius' => '5px',
+	'border-top-right-radius' => '5px',
+	'border-bottom-right-radius' => '5px',
+	'border-bottom-left-radius' => '5px',
+	'border-top-width' => '1px',
+	'border-right-width' => '1px',
+	'border-bottom-width' => '1px',
+	'border-left-width' => '1px',
+	'border-style' => 'solid',
+	'border-color' => 'rgba(0,0,0,0.01)',
+	'background-color' => '#ECECEC',
+];
+
 return [
-	'name' => esc_html__( 'Pricing Table', 'js_composer' ),
+	'name' => esc_html__( 'Pricing table', 'js_composer' ),
 	'base' => 'vc_pricing_table',
 	'icon' => 'icon-wpb-pricing-table',
 	'element_default_class' => 'vc_do_pricing_table',
 	'category' => esc_html__( 'Content', 'js_composer' ),
 	'description' => esc_html__( 'Output pricing table on your page', 'js_composer' ),
 	'since' => '7.0',
-	'params' => $params,
+	'params' => array_merge( $params, vc_config()->get_css_animation_config(), vc_config()->get_general_advanced_settings(), vc_config()->get_design_options_tab( $default_values ) ),
+	'sections' => array_merge( [ 'general', 'secondary', 'content', 'container' ], vc_config()->get_advanced_sections() ),
 ];

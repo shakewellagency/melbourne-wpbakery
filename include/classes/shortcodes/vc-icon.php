@@ -15,4 +15,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 4.4
  */
 class WPBakeryShortCode_Vc_Icon extends WPBakeryShortCode {
+	/**
+	 * Get CSS file names for vc_icon shortcode.
+	 *
+	 * @since 9.0
+	 * @return string
+	 */
+	public function get_shortcode_css_files() {
+		return 'vc_icon_element';
+	}
 }

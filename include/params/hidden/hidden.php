@@ -24,7 +24,16 @@ function vc_hidden_form_field( $settings, $value ) {
 	$value = is_string( $value ) ? $value : '';
 	$value = htmlspecialchars( $value );
 
-	return '<input name="' . esc_attr( $settings['param_name'] ) . '" class="wpb_vc_param_value vc_hidden-field vc_param-name-' . esc_attr( $settings['param_name'] ) . ' ' . esc_attr( $settings['type'] ) . '" type="hidden" value="' . esc_attr( $value ) . '"/>';
+	return WPB_Form_Field_Hidden::get([
+		'name' => $settings['param_name'],
+		'value' => $value,
+		'classes' => wpbakery()->editForm()->get_value_control_classes(
+			$settings['param_name'],
+			$settings['type'],
+			'',
+			'vc_hidden-field'
+		),
+	]);
 }
 
 /**

@@ -14,17 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $url
- * @var $items
- * @var $options
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $title
+ * @var string $url
+ * @var string $items
+ * @var string $el_class
+ * @var string $item_content
+ * @var string $item_author
+ * @var string $item_date
+ * @var string $el_id
  * Shortcode class
- * @var WPBakeryShortCode_Vc_Wp_Rss $this
+ * @var WPBakeryShortCodeFishBones $this
  */
-$title = $url = $items = $options = $el_class = $el_id = '';
+$title = $url = $items = $el_class = $el_id = $item_content = $item_author = $item_date = '';
 
 $output = '';
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
@@ -35,14 +37,13 @@ if ( '' === $url ) {
 	return;
 }
 
-$options = explode( ',', $options );
-if ( in_array( 'show_summary', $options, true ) ) {
+if ( 'true' === $item_content ) {
 	$atts['show_summary'] = true;
 }
-if ( in_array( 'show_author', $options, true ) ) {
+if ( 'true' === $item_author ) {
 	$atts['show_author'] = true;
 }
-if ( in_array( 'show_date', $options, true ) ) {
+if ( 'true' === $item_date ) {
 	$atts['show_date'] = true;
 }
 

@@ -17,7 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	?>
 	<div data-type="files">
 		<?php
-		_print_styles();
+		wp_print_styles();
+
 		print_head_scripts();
 		print_footer_scripts();
 		?>

@@ -15,10 +15,11 @@ require_once vc_path_dir( 'VENDORS_DIR', 'plugins/acf/class-wpb-acf-provider.php
 $provider = new Wpb_Acf_Provider();
 
 return [
-	'name' => esc_html__( 'Advanced Custom Field', 'js_composer' ),
+	'name' => esc_html__( 'Advanced custom field', 'js_composer' ),
 	'base' => 'vc_acf',
 	'icon' => 'vc_icon-acf',
 	'category' => esc_html__( 'Content', 'js_composer' ),
-	'description' => esc_html__( 'Advanced Custom Field', 'js_composer' ),
+	'description' => esc_html__( 'Advanced custom field', 'js_composer' ),
 	'params' => $provider->get_shortcode_params(),
+	'sections' => vc_config()->get_advanced_sections(),
 ];

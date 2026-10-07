@@ -38,7 +38,7 @@ function vc_loop_form_field( $settings, $value ) {
 		$settings['settings'] = [];
 	}
 
-	return '<div class="vc_loop"><input name="' . esc_attr( $settings['param_name'] ) . '" class="wpb_vc_param_value  ' . esc_attr( $settings['param_name'] . ' ' . $settings['type'] ) . '_field" type="hidden" value="' . esc_attr( join( '|', $parsed_value ) ) . '"/><a href="javascript:;" class="button vc_loop-build ' . esc_attr( $settings['param_name'] ) . '_button" data-settings="' . rawurlencode( wp_json_encode( $settings['settings'] ) ) . '">' . esc_html__( 'Build query', 'js_composer' ) . '</a><div class="vc_loop-info">' . $loop_info . '</div></div>';
+	return '<div class="vc_loop"><input name="' . esc_attr( $settings['param_name'] ) . '"' . wpbakery()->editForm()->get_value_control_attr_class( $settings['param_name'], $settings['type'] . '_field' ) . 'type="hidden" value="' . esc_attr( join( '|', $parsed_value ) ) . '"/><a href="javascript:;" class="button vc_loop-build ' . esc_attr( $settings['param_name'] ) . '_button" data-settings="' . rawurlencode( wp_json_encode( $settings['settings'] ) ) . '">' . esc_html__( 'Build query', 'js_composer' ) . '</a><div class="vc_loop-info">' . $loop_info . '</div></div>';
 }
 
 /**
@@ -867,13 +867,14 @@ class VcLoopSettings {
 	/**
 	 * Parses a query string into data.
 	 *
-	 * @param string $value
+	 * @param mixed $value
 	 *
 	 * @return array
 	 * @since 4.2
 	 */
 	public static function parseData( $value ) {
 		$data = [];
+		$value = $value ?? '';
 		$values_pairs = preg_split( '/\|/', $value );
 		foreach ( $values_pairs as $pair ) {
 			if ( ! empty( $pair ) ) {

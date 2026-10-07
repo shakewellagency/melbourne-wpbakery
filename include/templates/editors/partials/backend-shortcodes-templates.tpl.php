@@ -23,7 +23,6 @@ if ( vc_user_access()->part( 'presets' )->can()->get() ) {
 $custom_tag = 'script'; // TODO: Use HTML Shadow dom or ajax response for templates.
 ?>
 <<?php echo esc_attr( $custom_tag ); ?>>
-	var vc_user_mapper = <?php echo wp_json_encode( WPBMap::getUserShortCodes() ); ?>,
 		vc_mapper = <?php echo wp_json_encode( WPBMap::getShortCodes() ); ?>,
 		vc_vendor_settings_presets = <?php echo wp_json_encode( $vc_vendor_settings_presets ); ?>,
 		vc_roles = [],
@@ -34,6 +33,7 @@ $custom_tag = 'script'; // TODO: Use HTML Shadow dom or ajax response for templa
 </<?php echo esc_attr( $custom_tag ); ?>>
 
 <?php vc_include_template( 'editors/partials/vc_settings-image-block.tpl.php' ); ?>
+<?php vc_include_template( 'editors/partials/vc_settings-single-image-block.tpl.php' ); ?>
 
 <?php foreach ( WPBMap::getShortCodes() as $sc_base => $el ) : ?>
 	<<?php echo esc_attr( $custom_tag ); ?> type="text/html" id="vc_shortcode-template-<?php echo esc_attr( $sc_base ); ?>">

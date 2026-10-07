@@ -77,6 +77,7 @@ class Vc_Manager {
 	 * Set updater mode
 	 *
 	 * @since 4.2
+	 * @deprecated 9.0
 	 * @var bool
 	 */
 	private $disable_updater = false;
@@ -153,6 +154,8 @@ class Vc_Manager {
 		 * PARAMS_DIR         - complex params for shortcodes editor form.
 		 * UPDATERS_DIR       - automatic notifications and updating classes.
 		 * MUTUAL_MODULES_DIR - common functionality for modules.
+		 * FORM_FIELDS_DIR    - form fields for UI.
+		 * HOOKS_DIR          - directory with hooks (wp action and filters) classes.
 		 */
 		$this->setPaths( [
 			'APP_ROOT' => $dir,
@@ -174,20 +177,27 @@ class Vc_Manager {
 			'VENDORS_DIR' => $dir . '/include/classes/vendors',
 			'DEPRECATED_DIR' => $dir . '/include/classes/deprecated',
 			'MUTUAL_MODULES_DIR' => $dir . '/include/classes/modules',
+			'FORM_FIELDS_DIR' => $dir . '/include/classes/form-fields',
+			'HOOKS_DIR' => $dir . '/include/classes/hooks',
+			'MIGRATIONS_DIR' => $dir . '/include/classes/migrations',
 		] );
 		// Load API.
 		require_once $this->path( 'HELPERS_DIR', 'helpers_factory.php' );
 		require_once $this->path( 'HELPERS_DIR', 'helpers.php' );
 		require_once $this->path( 'DEPRECATED_DIR', 'interfaces.php' );
+		require_once $this->path( 'DEPRECATED_DIR', 'classes.php' );
 		require_once $this->path( 'CORE_DIR', 'class-vc-sort.php' ); // used by wpb-map.
 		require_once $this->path( 'CORE_DIR', 'class-wpb-map.php' );
 		require_once $this->path( 'CORE_DIR', 'class-vc-shared-library.php' );
+		require_once $this->path( 'CORE_DIR', 'class-vc-css-manager.php' );
 		require_once $this->path( 'HELPERS_DIR', 'helpers_api.php' );
 		require_once $this->path( 'DEPRECATED_DIR', 'helpers_deprecated.php' );
 		require_once $this->path( 'PARAMS_DIR', 'params.php' );
 		require_once $this->path( 'CORE_DIR', 'class-vc-shortcode-autoloader.php' );
 		require_once $this->path( 'SHORTCODES_DIR', 'core/class-vc-shortcodes-manager.php' );
 		require_once $this->path( 'CORE_DIR', 'class-vc-modifications.php' );
+		require_once $this->path( 'FORM_FIELDS_DIR', 'load.php' );
+
 		// Add hooks.
 		add_action( 'plugins_loaded', [
 			$this,
@@ -257,9 +267,6 @@ class Vc_Manager {
 	 * @access public
 	 */
 	public function init() {
-		if ( method_exists( 'LiteSpeed_Cache_API', 'esi_enabled' ) && LiteSpeed_Cache_API::esi_enabled() ) {
-			LiteSpeed_Cache_API::hook_tpl_esi( 'js_composer', 'vc_hook_esi' );
-		}
 		ob_start();
 		do_action( 'vc_before_init' );
 		ob_end_clean(); // FIX for whitespace issues (#76147).
@@ -387,7 +394,7 @@ class Vc_Manager {
 	 * @since  4.2
 	 * @access protected
 	 */
-	protected function setMode() {
+	public function setMode() {
 		/**
 		 * TODO: Create another system (When ajax rebuild).
 		 * Use vc_action param to define mode.
@@ -398,7 +405,7 @@ class Vc_Manager {
 		 * 5. admin_updater - set by vc_action
 		 * 6. page_editable - set by vc_action or transient with vc_action param
 		 */
-		if ( is_admin() ) {
+		if ( is_admin() && is_user_logged_in() ) {
 			$this->mode = $this->getAdminMode();
 		} elseif ( 'true' === vc_get_param( 'vc_editable' ) && vc_get_param( '_vcnonce' ) ) {
 				vc_user_access()->checkAdminNonce()->validateDie()->wpAny([
@@ -432,7 +439,7 @@ class Vc_Manager {
 			$mode = 'admin_frontend_editor';
 		} elseif ( ( vc_user_access()->wpAny( 'edit_posts', 'edit_pages' )->get() ) && ( 'vc_upgrade' === vc_action() || ( 'update-selected' === vc_get_param( 'action' ) && $this->pluginName() === vc_get_param( 'plugins' ) ) ) ) {
 			$mode = 'admin_updater';
-		} elseif ( vc_user_access()->wpAny( 'manage_options' )->get() && array_key_exists( vc_get_param( 'page' ), vc_settings()->getTabs() ) ) {
+		} elseif ( vc_user_access()->wpAny( 'manage_options' )->get() && array_key_exists( (string) vc_get_param( 'page' ), vc_settings()->getTabs() ) ) {
 			$mode = 'admin_settings_page';
 		} else {
 			$mode = 'admin_page';
@@ -547,20 +554,38 @@ class Vc_Manager {
 
 		require_once ABSPATH . 'wp-admin/includes/user.php';
 
-		$editable_roles = get_editable_roles();
-		foreach ( $editable_roles as $role => $settings ) {
-			$part = vc_role_access()->who( $role )->part( 'post_types' );
-			$all_post_types = $part->getAllCaps();
+		global $wp_roles;
 
-			foreach ( $all_post_types as $post_type => $value ) {
-				$part->getRole()->remove_cap( $part->getStateKey() . '/' . $post_type );
+		$state_key = vc_user_access()->part( 'post_types' )->getStateKey();
+		$editable_roles = get_editable_roles();
+
+		foreach ( $editable_roles as $role => $settings ) {
+			if ( ! isset( $wp_roles->roles[ $role ] ) ) {
+				continue;
 			}
-			$part->setState( 'custom' );
+
+			$caps = $wp_roles->roles[ $role ]['capabilities'];
+
+			foreach ( array_keys( $caps ) as $key ) {
+				if ( 0 === strpos( $key, $state_key . '/' ) ) {
+					unset( $caps[ $key ] );
+				}
+			}
+
+			$caps[ $state_key ] = 'custom';
 
 			foreach ( $this->editor_post_types as $post_type ) {
-				$part->setCapRule( $post_type );
+				$caps[ $state_key . '/' . $post_type ] = true;
+			}
+
+			$wp_roles->roles[ $role ]['capabilities'] = $caps;
+
+			if ( isset( $wp_roles->role_objects[ $role ] ) ) {
+				$wp_roles->role_objects[ $role ]->capabilities = $caps;
 			}
 		}
+
+		update_option( $wp_roles->role_key, $wp_roles->roles );
 	}
 
 	/**
@@ -619,24 +644,28 @@ class Vc_Manager {
 	/**
 	 * Setter for disable updater variable.
 	 *
-	 * @param bool $value
-	 *
+	 * @deprecated 9.0
 	 * @since 4.2
 	 */
-	public function disableUpdater( $value = true ) {
-		$this->disable_updater = $value;
+	public function disableUpdater() {
+		_deprecated_function( 'Vc_Manager::disableUpdater()', '9.0' );
 	}
 
 	/**
-	 * Get is vc updater is disabled;
+	 * Check if the updater is disabled.
 	 *
-	 * @return bool
-	 * @see to where updater will be
+	 * Returns true (updater disabled) when:
+	 * - The current context is not admin backend or WP-CLI
 	 *
+	 * The updater should only run in admin or WP-CLI contexts.
+	 *
+	 * @return bool True if updater is disabled, false if enabled.
 	 * @since 4.2
 	 */
 	public function isUpdaterDisabled() {
-		return is_admin() && $this->disable_updater;
+		$is_wp_cli = defined( 'WP_CLI' ) && WP_CLI;
+		$is_allowed_env = is_admin() || $is_wp_cli;
+		return ! $is_allowed_env;
 	}
 
 	/**
@@ -702,6 +731,21 @@ class Vc_Manager {
 		}
 
 		return $this->factory['mapper'];
+	}
+
+	/**
+	 * Getter for WpbMapShortcodeIntegrator instance
+	 *
+	 * @return WpbMapShortcodeIntegrator
+	 * @since  9.0
+	 */
+	public function map_integrator() {
+		if ( ! isset( $this->factory['map_integrator'] ) ) {
+			require_once $this->path( 'CORE_DIR', 'class-wpb-map-shortcode-integrator.php' );
+			$this->factory['map_integrator'] = new WpbMapShortcodeIntegrator();
+		}
+
+		return $this->factory['map_integrator'];
 	}
 
 	/**
@@ -839,6 +883,23 @@ class Vc_Manager {
 		}
 
 		return $this->factory['autoload'];
+	}
+
+	/**
+	 * Gets modules manager instance.
+	 *
+	 * @return Wpb_Config_Lib
+	 * @since  9.0
+	 */
+	public function config() {
+		if ( ! isset( $this->factory['config'] ) ) {
+			do_action( 'vc_before_init_config' );
+			require_once $this->path( 'EDITORS_DIR', '/class-vc-config-lib.php' );
+			$this->factory['config'] = new Wpb_Config_Lib();
+			do_action( 'vc_after_init_config' );
+		}
+
+		return $this->factory['config'];
 	}
 
 	/**

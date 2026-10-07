@@ -3,7 +3,14 @@
  * Custom heading grid builder shortcode element.
  *
  * @var WPBakeryShortCode_Vc_Custom_heading $this
- * @var $atts
+ * @var array $atts
+ * @var string $css
+ * @var string $el_class
+ * @var array $font_container_data
+ * @var array $google_fonts_data
+ * @var string $text
+ * @var string $css_class
+ * @var array $styles
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -30,4 +30,14 @@ class WPBakeryShortCode_Vc_Tour extends WPBakeryShortCode_Vc_Tabs {
 	public function getTabTemplate() {
 		return '<div class="wpb_template">' . do_shortcode( '[vc_tab title="' . esc_attr__( 'Slide', 'js_composer' ) . '" tab_id=""][/vc_tab]' ) . '</div>';
 	}
+
+	/**
+	 * Get CSS file names for vc_tour shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_tta', 'vc_tta_toggle' ];
+	}
 }

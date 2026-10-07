@@ -4,6 +4,7 @@
  *
  * @var bool $is_mobile
  * @var integer $post_id
+ * @var string $title
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,10 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 <li class="vc_pull-right vc_hide-mobile <?php echo esc_attr( $is_mobile ? 'vc_hide-desktop' : '' ); ?>">
 	<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"
 		class="vc_icon-btn vc_back-button"
-		title="<?php echo esc_attr( wpb_get_title_with_shortcut( 'Exit WPBakery Page Builder edit mode' ) ); ?>">
-		<i class="vc-composer-icon vc-c-icon-close"></i>
-		<?php if ( $is_mobile ) : ?>
-			<p><?php esc_html_e( 'Close', 'js_composer' ); ?></p>
-		<?php endif; ?>
+		title="<?php echo esc_attr( $title ); ?>"
+		aria-label="<?php echo esc_attr( $title ); ?>">
+			<?php vc_include_template( 'icons/close-ico.tpl.php' ); ?>
+			<?php if ( $is_mobile ) : ?>
+				<p aria-hidden="true"><?php esc_html_e( 'Close', 'js_composer' ); ?></p>
+			<?php endif; ?>
 	</a>
 </li>

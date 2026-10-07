@@ -14,29 +14,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $type
- * @var $count
- * @var $interval
- * @var $slides_content
- * @var $slides_title
- * @var $link
- * @var $custom_links
- * @var $thumb_size
- * @var $posttypes
- * @var $posts_in
- * @var $categories
- * @var $orderby
- * @var $order
- * @var $el_class
- * @var $el_id
- * @var $css
+ * @var array $atts
+ * @var string $title
+ * @var string $type
+ * @var string $count
+ * @var string $interval
+ * @var string $slides_content
+ * @var string $slides_title
+ * @var string $link
+ * @var string $custom_links
+ * @var string $thumb_size
+ * @var string $posttypes
+ * @var string $posts_in
+ * @var string $categories
+ * @var string $orderby
+ * @var string $order
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $css
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Posts_slider $this
  */
-$title = $type = $count = $interval = $slides_content = $slides_title = $link = $custom_links = $thumb_size = $posttypes = $posts_in = $categories = $order = $orderby = $el_class = $el_id = $css = '';
-$link_image_start = '';
+$title = $type = $count = $interval = $slides_content = $slides_title = $link = $custom_links = $thumb_size = $posttypes = $posts_in = $categories = $order = $orderby = $el_class = $el_id = $css = $css_animation = $link_image_start = '';
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
 
@@ -94,7 +93,8 @@ $query_args['post__not_in'] = [ get_the_ID() ];
 if ( '' !== $count && ! is_numeric( $count ) ) {
 	$count = - 1;
 }
-if ( '' !== $count && is_numeric( $count ) ) {
+
+if ( '0' !== $count && '' !== $count && is_numeric( $count ) ) {
 	$query_args['posts_per_page'] = $count;
 }
 
@@ -201,13 +201,16 @@ while ( $my_query->have_posts() ) {
 	}
 
 	$description = '';
+	$description_wrapper_start = '<div class="flex-caption">';
+	$description_wrapper_end = '</div>';
+	if ( $slides_title ) {
+		$description .= '<h2 class="post-title">' . $link_image_start . $post_title . $link_image_end . '</h2>';
+	}
 	if ( '' !== $slides_content && '' !== $content && ( ' wpb_flexslider flexslider_fade flexslider' === $type || ' wpb_flexslider flexslider_slide flexslider' === $type ) ) {
-		$description = '<div class="flex-caption">';
-		if ( $slides_title ) {
-			$description .= '<h2 class="post-title">' . $link_image_start . $post_title . $link_image_end . '</h2>';
-		}
 		$description .= $content;
-		$description .= '</div>';
+	}
+	if ( $description ) {
+		$description = $description_wrapper_start . $description . $description_wrapper_end;
 	}
 
 	$teasers .= $el_start . $link_image_start . $thumbnail . $link_image_end . $description . $el_end;
@@ -220,10 +223,11 @@ if ( $teasers ) {
 	$teasers = esc_html__( 'Nothing found.', 'js_composer' );
 }
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $class_to_filter = 'wpb_gallery wpb_posts_slider wpb_content_element';
-$class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . ' ' . esc_attr( $element_class ) . $this->getExtraClass( $el_class );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . ' ' . esc_attr( $element_class ) . $this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $settings['base'], $atts );
 
 $wrapper_attributes = [];
 if ( ! empty( $el_id ) ) {

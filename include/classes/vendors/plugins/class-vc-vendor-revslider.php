@@ -58,48 +58,6 @@ class Vc_Vendor_Revslider {
 	}
 
 	/**
-	 * Map shortcode.
-	 *
-	 * @param array $revsliders
-	 *
-	 * @since 4.4
-	 *
-	 * @deprecated 4.9
-	 */
-	public function mapShortcode( $revsliders = [] ) {
-		vc_map( [
-			'base' => 'rev_slider_vc',
-			'name' => esc_html__( 'Revolution Slider', 'js_composer' ),
-			'icon' => 'icon-wpb-revslider',
-			'category' => esc_html__( 'Content', 'js_composer' ),
-			'description' => esc_html__( 'Place Revolution slider', 'js_composer' ),
-			'params' => [
-				[
-					'type' => 'textfield',
-					'heading' => esc_html__( 'Widget title', 'js_composer' ),
-					'param_name' => 'title',
-					'description' => esc_html__( 'Enter text used as widget title (Note: located above content element).', 'js_composer' ),
-				],
-				[
-					'type' => 'dropdown',
-					'heading' => esc_html__( 'Revolution Slider', 'js_composer' ),
-					'param_name' => 'alias',
-					'admin_label' => true,
-					'value' => $revsliders,
-					'save_always' => true,
-					'description' => esc_html__( 'Select your Revolution Slider.', 'js_composer' ),
-				],
-				[
-					'type' => 'textfield',
-					'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-					'param_name' => 'el_class',
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
-				],
-			],
-		] );
-	}
-
-	/**
 	 * Replaces id of revslider for frontend editor.
 	 *
 	 * @param string $output
@@ -156,13 +114,10 @@ class Vc_Vendor_Revslider {
 					'save_always' => true,
 					'description' => esc_html__( 'Select your Revolution Slider.', 'js_composer' ),
 				],
-				[
-					'type' => 'textfield',
-					'heading' => esc_html__( 'Extra class name', 'js_composer' ),
-					'param_name' => 'el_class',
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS.', 'js_composer' ),
-				],
+				vc_config()->get_extra_class_params(),
+				vc_config()->get_element_id_params(),
 			],
+			'sections' => vc_config()->get_advanced_sections(),
 		];
 	}
 }

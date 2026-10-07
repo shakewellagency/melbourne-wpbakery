@@ -16,6 +16,97 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Vc_WXR_Parser_XML {
 	/**
+	 * WXR version number extracted from the feed.
+	 *
+	 * @var string|false
+	 */
+	public $wxr_version;
+
+	/**
+	 * Whether the parser is currently inside an <item> element.
+	 *
+	 * @var bool
+	 */
+	public $in_post;
+
+	/**
+	 * Buffer for accumulating character data while parsing.
+	 *
+	 * @var string|false
+	 */
+	public $cdata;
+
+	/**
+	 * Holds data for the current entity (post/term/category/tag) being parsed.
+	 *
+	 * @var array|false
+	 */
+	public $data;
+
+	/**
+	 * Holds data for the current sub-entity (comment/meta) being parsed.
+	 *
+	 * @var array|false
+	 */
+	public $sub_data;
+
+	/**
+	 * Current tag (without namespace) being processed, or false when none.
+	 *
+	 * @var string|false
+	 */
+	public $in_tag;
+
+	/**
+	 * Current sub-tag (without namespace) being processed, or false when none.
+	 *
+	 * @var string|false
+	 */
+	public $in_sub_tag;
+
+	/**
+	 * Collected authors keyed by author login.
+	 *
+	 * @var array
+	 */
+	public $authors;
+
+	/**
+	 * Collected posts.
+	 *
+	 * @var array
+	 */
+	public $posts;
+
+	/**
+	 * Collected terms.
+	 *
+	 * @var array
+	 */
+	public $term;
+
+	/**
+	 * Collected categories.
+	 *
+	 * @var array
+	 */
+	public $category;
+
+	/**
+	 * Collected tags.
+	 *
+	 * @var array
+	 */
+	public $tag;
+
+	/**
+	 * Base site URL parsed from the WXR feed.
+	 *
+	 * @var string|null
+	 */
+	public $base_url;
+
+	/**
 	 * WP tags.
 	 *
 	 * @var array
@@ -97,6 +188,7 @@ class Vc_WXR_Parser_XML {
 		$xml = xml_parser_create( 'UTF-8' );
 		xml_parser_set_option( $xml, XML_OPTION_SKIP_WHITE, 1 );
 		xml_parser_set_option( $xml, XML_OPTION_CASE_FOLDING, 0 );
+        // phpcs:ignore Generic.PHP.DeprecatedFunctions.Deprecated
 		xml_set_object( $xml, $this );
 		xml_set_character_data_handler( $xml, 'cdata' );
 		xml_set_element_handler( $xml, 'tag_open', 'tag_close' );

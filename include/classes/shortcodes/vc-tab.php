@@ -100,7 +100,15 @@ class WPBakeryShortCode_Vc_Tab extends WPBakeryShortCode_Vc_Column {
  * @since 4.4
  */
 function vc_tab_id_settings_field( $settings, $value ) {
-	return sprintf( '<div class="vc_tab_id_block"><input name="%s" class="wpb_vc_param_value wpb-textinput %s %s_field" type="hidden" value="%s" /><label>%s</label></div>', $settings['param_name'], $settings['param_name'], $settings['type'], $value, $value );
+	return sprintf(
+		'<div class="vc_tab_id_block">%s<label>%s</label></div>',
+		WPB_Form_Field_Hidden::get([
+			'name' => $settings['param_name'],
+			'value' => $value,
+			'classes' => 'wpb_vc_param_value wpb-textinput ' . $settings['param_name'] . ' ' . $settings['type'] . '_field',
+		]),
+		$value
+	);
 }
 
 vc_add_shortcode_param( 'tab_id', 'vc_tab_id_settings_field' );

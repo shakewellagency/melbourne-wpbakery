@@ -56,6 +56,13 @@ class Vc_WXR_Parser_Regex {
 	 */
 	public $base_url = '';
 
+	/**
+	 * Whether gzip functions are available for reading compressed files.
+	 *
+	 * @var bool
+	 */
+	public $has_gzip;
+
 
 	/**
 	 * Vc_WXR_Parser_Regex constructor.
@@ -73,6 +80,7 @@ class Vc_WXR_Parser_Regex {
 	public function parse( $file ) { // phpcs:ignore:Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
 		$wxr_version = false;
 		$in_post = false;
+		$post = '';
 
 		$fp = $this->fopen( $file, 'r' );
 		if ( $fp ) {

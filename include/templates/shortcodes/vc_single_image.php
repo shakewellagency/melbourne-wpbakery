@@ -14,32 +14,40 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $source
- * @var $image
- * @var $custom_src
- * @var $onclick
- * @var $img_size
- * @var $external_img_size
- * @var $caption
- * @var $img_link_large
- * @var $link
- * @var $img_link_target
- * @var $alignment
- * @var $el_class
- * @var $el_id
- * @var $css_animation
- * @var $style
- * @var $external_style
- * @var $border_color
- * @var $css
+ * @var array $atts
  * Shortcode class
  * @var WPBakeryShortCode_Vc_Single_image $this
  */
-$title = $source = $image = $custom_src = $onclick = $img_size = $external_img_size = $caption = $img_link_large = $link = $img_link_target = $alignment = $el_class = $el_id = $css_animation = $style = $external_style = $border_color = $css = '';
+$init_atts = $atts;
+$title = $source = $image = $custom_src = $onclick = $img_size = $external_img_size = $caption = $img_link_large = $link = $alignment = $el_class = $el_id = $css_animation = $style = $external_style = $border_color = $css = '';
 $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
+
+/**
+ * Extracted values.
+ *
+ * @var string $title
+ * @var string $source
+ * @var string $image
+ * @var string $custom_src
+ * @var string $onclick
+ * @var string $img_size
+ * @var string $external_img_size
+ * @var string $caption
+ * @var string|null $img_link_large
+ * @var string $link
+ * @var string $alignment
+ * @var string $el_class
+ * @var string $el_id
+ * @var string $css_animation
+ * @var string $style
+ * @var string $external_style
+ * @var string $border_color
+ * @var string $css
+ * @var string $external_border_color
+ * @var string $img_id
+ * @var string $add_caption
+ */
 
 $default_src = vc_asset_url( 'vc/no_image.png' );
 
@@ -55,12 +63,40 @@ if ( 'external_link' === $source ) {
 	$border_color = $external_border_color;
 }
 
-$border_color = ( '' !== $border_color ) ? ' vc_box_border_' . $border_color : '';
+$border_color_style = '';
+$is_outline_style = 0 === strpos( $style, 'vc_box_outline' );
+$is_border_style = $is_outline_style || 0 === strpos( $style, 'vc_box_border' );
+if ( ! $is_border_style ) {
+	$border_color = '';
+} else {
+	if ( '' === $border_color ) {
+		$border_color = '#EBEBEB';
+	}
+	if ( preg_match( '/^(#|rgb|hsl)/i', $border_color ) ) {
+		$border_property = $is_outline_style ? 'border-color' : 'background-color';
+		$border_color_style = $border_property . ':' . esc_attr( $border_color ) . ';';
+		$border_color = '';
+	} else {
+		$border_color = ' vc_box_border_' . $border_color;
+	}
+}
 
 $img = false;
 
 switch ( $source ) {
 	case 'media_library':
+		$image_data = json_decode( $image, true );
+		if ( is_array( $image_data ) ) {
+			$image = array_key_first( $image_data );
+
+			$parts = [];
+			foreach ( array_values( $image_data )[0] as $key => $value ) {
+				$parts[] = $key . ':' . rawurlencode( $value );
+			}
+			$link = implode( '|', $parts );
+		}
+
+		// no break here cos we process then the same way how we process feature image.
 	case 'featured_image':
 		if ( 'featured_image' === $source ) {
 			$post_id = get_the_ID();
@@ -131,14 +167,6 @@ if ( vc_has_class( 'prettyphoto', $el_class ) ) {
 	$onclick = 'link_image';
 }
 
-// backward compatibility. will be removed in 4.7+.
-if ( ! empty( $atts['img_link'] ) ) {
-	$link = $atts['img_link'];
-	if ( ! preg_match( '/^(https?\:\/\/|\/\/)/', $link ) ) {
-		$link = 'http://' . $link;
-	}
-}
-
 // backward compatibility.
 if ( in_array( $link, [
 	'none',
@@ -179,10 +207,6 @@ switch ( $onclick ) {
 
 		break;
 
-	case 'custom_link':
-		// $link is already defined.
-		break;
-
 	case 'zoom':
 		wp_enqueue_script( 'vc_image_zoom' );
 
@@ -206,23 +230,48 @@ if ( vc_has_class( 'prettyphoto', $el_class ) ) {
 }
 
 $wrapper_class = 'vc_single_image-wrapper ' . esc_attr( $style ) . ' ' . esc_attr( $border_color );
+$wrapper_inline_style = $border_color_style;
 
 if ( $link ) {
-	$a_attrs['href'] = esc_url( $link );
-	$a_attrs['target'] = $img_link_target;
+	// B.C for href param type conversion since 9.0.
+	$link_par_list = [ 'url:', 'target:', 'rel:', 'title:' ];
+	$is_link_param_type = preg_match( '/' . implode( '|', $link_par_list ) . '/', $link );
+
+	if ( ! $is_link_param_type ) {
+		$link = 'url:' . rawurlencode( $link );
+
+		if ( ! empty( $init_atts['img_link_target'] ) && '_blank' === $init_atts['img_link_target'] ) {
+			$link .= '|target:_blank';
+		}
+	}
+
+	$wpb_link = vc_build_link( $link );
+	$wpb_link['title'] = get_the_title( $image );
+
 	if ( ! empty( $a_attrs['class'] ) ) {
 		$wrapper_class .= ' ' . $a_attrs['class'];
-		unset( $a_attrs['class'] );
 	}
-	$html = '<a ' . vc_stringify_attributes( $a_attrs ) . ' class="' . $wrapper_class . '">' . $img['thumbnail'] . '</a>';
+	unset( $a_attrs['class'] );
+
+	if ( '' !== $wrapper_inline_style ) {
+		$a_attrs['style'] = $wrapper_inline_style;
+	}
+	$html = vc_get_template( 'partials/element-link.php', [
+		'a_attrs' => $a_attrs,
+		'class' => $wrapper_class,
+		'text' => $img['thumbnail'],
+		'wpb_link' => $wpb_link,
+	] );
 } else {
-	$html = '<div class="' . $wrapper_class . '">' . $img['thumbnail'] . '</div>';
+	$style_attr = '' !== $wrapper_inline_style ? ' style="' . esc_attr( $wrapper_inline_style ) . '"' : '';
+	$html = '<div class="' . $wrapper_class . '"' . $style_attr . '>' . $img['thumbnail'] . '</div>';
 }
 
-$element_class = empty( $this->settings['element_default_class'] ) ? '' : $this->settings['element_default_class'];
+$settings = $this->getSettings();
+$element_class = empty( $settings['element_default_class'] ) ? '' : $settings['element_default_class'];
 $class_to_filter = 'wpb_single_image wpb_content_element vc_align_' . $alignment . ' ' . esc_attr( $element_class ) . $this->getCSSAnimation( $css_animation );
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . $this->getExtraClass( $el_class );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $settings['base'], $atts );
 
 if ( in_array( $source, [ 'media_library', 'featured_image' ], true ) && 'yes' === $add_caption ) {
 	$img_id = apply_filters( 'wpml_object_id', $img_id, 'attachment', true );

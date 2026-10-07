@@ -82,10 +82,6 @@ class Vc_Grid_Item {
 			$this,
 			'addVcIconShortcodesTemplates',
 		] );
-		add_filter( 'vc_shortcode_set_template_vc_button2', [
-			$this,
-			'addVcButton2ShortcodesTemplates',
-		] );
 		add_filter( 'vc_shortcode_set_template_vc_single_image', [
 			$this,
 			'addVcSingleImageShortcodesTemplates',
@@ -112,24 +108,6 @@ class Vc_Grid_Item {
 	public function addVcIconShortcodesTemplates( $template ) {
 		if ( Vc_Grid_Item_Editor::postType() === WPBMap::getScope() ) {
 			$file = vc_path_dir( 'TEMPLATES_DIR', 'params/vc_grid_item/shortcodes/vc_icon.php' );
-			if ( is_file( $file ) ) {
-				return $file;
-			}
-		}
-
-		return $template;
-	}
-
-	/**
-	 * Used by filter vc_shortcode_set_template_vc_button2 to set custom template for vc_button2 shortcode.
-	 *
-	 * @param string $template
-	 *
-	 * @return string
-	 */
-	public function addVcButton2ShortcodesTemplates( $template ) {
-		if ( Vc_Grid_Item_Editor::postType() === WPBMap::getScope() ) {
-			$file = vc_path_dir( 'TEMPLATES_DIR', 'params/vc_grid_item/shortcodes/vc_button2.php' );
 			if ( is_file( $file ) ) {
 				return $file;
 			}
@@ -176,7 +154,7 @@ class Vc_Grid_Item {
 	}
 
 	/**
-	 * Used by filter vc_shortcode_set_template_vc_button2 to set custom template for vc_button2 shortcode.
+	 * Used by filter vc_shortcode_set_template_vc_btn to set custom template for vc_btn shortcode.
 	 *
 	 * @param string $template
 	 *

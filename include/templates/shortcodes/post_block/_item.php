@@ -3,6 +3,8 @@
  * Additional template configuration for [vc_item] shortcode.
  *
  * @var array $block_data
+ * @var object $post
+ * @var object $this
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

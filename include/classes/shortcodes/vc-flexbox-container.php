@@ -186,6 +186,54 @@ class WPBakeryShortCode_Vc_Flexbox_Container extends WPBakeryShortCode {
 	}
 
 	/**
+	 * Get column control settings.
+	 *
+	 * @since 9.0
+	 *
+	 * @param string $extended_css
+	 * @return array
+	 */
+	public function get_column_control_settings( $extended_css = '' ) {
+		return [
+			'move' => [
+				'class' => 'column_move vc_column-move ',
+				'title' => esc_attr__( 'Drag Flexbox container to reorder', 'js_composer' ),
+				'icon' => 'vc-c-param-group-dragndrop',
+			],
+			'delete' => [
+				'class' => 'column_delete vc_column-delete ',
+				'title' => esc_attr__( 'Delete Flexbox container', 'js_composer' ),
+				'icon' => 'vc-c-trash',
+			],
+			'edit' => [
+				'class' => 'column_edit vc_column-edit ',
+				'title' => esc_attr__( 'Edit Flexbox container', 'js_composer' ),
+				'icon' => 'vc-c-edit',
+			],
+			'clone' => [
+				'class' => 'column_clone vc_column-clone ',
+				'title' => esc_attr__( 'Clone Flexbox container', 'js_composer' ),
+				'icon' => 'vc-c-icon-clone',
+			],
+			'copy' => [
+				'class' => 'column_copy vc_column-copy ',
+				'title' => esc_attr__( 'Copy Flexbox container', 'js_composer' ),
+				'icon' => 'vc-c-icon-copy',
+			],
+			'paste' => [
+				'class' => 'column_paste vc_column-paste ',
+				'title' => esc_attr__( 'Paste', 'js_composer' ),
+				'icon' => 'vc-c-icon-paste',
+			],
+			'toggle' => [
+				'class' => 'column_toggle vc_column-toggle ',
+				'title' => esc_attr__( 'Toggle Flexbox container', 'js_composer' ),
+				'icon' => 'vc-c-icon-arrow_drop_down',
+			],
+		];
+	}
+
+	/**
 	 * Returns HTML for a specific control based on access.
 	 *
 	 * @since 8.7
@@ -196,15 +244,7 @@ class WPBakeryShortCode_Vc_Flexbox_Container extends WPBakeryShortCode {
 	 * @return string HTML for the control or empty string.
 	 */
 	public function getControlHtml( $control, $edit_access, $all_access ) {
-		$controls_map = [
-			'move'   => ' <a class="vc_control column_move vc_column-move" href="#" title="' . esc_attr__( 'Drag Flexbox container to reorder', 'js_composer' ) . '" data-vc-control="move"><i class="vc-composer-icon vc-c-icon-dragndrop"></i></a>',
-			'delete' => '<a class="vc_control column_delete vc_column-delete" href="#" title="' . esc_attr__( 'Delete Flexbox container', 'js_composer' ) . '" data-vc-control="delete"><i class="vc-composer-icon vc-c-icon-delete_empty"></i></a>',
-			'edit'   => ' <a class="vc_control column_edit vc_column-edit" href="#" title="' . esc_attr__( 'Edit Flexbox container', 'js_composer' ) . '" data-vc-control="edit"><i class="vc-composer-icon vc-c-icon-mode_edit"></i></a>',
-			'clone'  => ' <a class="vc_control column_clone vc_column-clone" href="#" title="' . esc_attr__( 'Clone Flexbox container', 'js_composer' ) . '" data-vc-control="clone"><i class="vc-composer-icon vc-c-icon-clone"></i></a>',
-			'copy'   => ' <a class="vc_control column_copy vc_column-copy" href="#" title="' . esc_attr__( 'Copy Flexbox container', 'js_composer' ) . '" data-vc-control="copy"><i class="vc-composer-icon vc-c-icon-copy"></i></a>',
-			'paste'  => ' <a class="vc_control column_paste vc_column-paste" href="#" title="' . esc_attr__( 'Paste', 'js_composer' ) . '" data-vc-control="paste"><i class="vc-composer-icon vc-c-icon-paste"></i></a>',
-			'toggle' => ' <a class="vc_control column_toggle vc_column-toggle" href="#" title="' . esc_attr__( 'Toggle Flexbox container', 'js_composer' ) . '" data-vc-control="toggle"><i class="vc-composer-icon vc-c-icon-arrow_drop_down"></i></a>',
-		];
+		$controls_map = $this->get_column_controls_html_list();
 
 		if ( ! isset( $controls_map[ $control ] ) ) {
 			return '';
@@ -250,6 +290,16 @@ class WPBakeryShortCode_Vc_Flexbox_Container extends WPBakeryShortCode {
 		$el_class = $css = $el_id = $css_animation = $disable_element = '';
 		extract( $atts );
 
+		/**
+		 * Extracted attributes.
+		 *
+		 * @var string $el_class
+		 * @var string $css
+		 * @var string $el_id
+		 * @var string $css_animation
+		 * @var string $disable_element
+		 */
+
 		$el_class = $this->getExtraClass( $el_class ) . $this->getCSSAnimation( $css_animation );
 
 		$css_classes = [
@@ -259,7 +309,7 @@ class WPBakeryShortCode_Vc_Flexbox_Container extends WPBakeryShortCode {
 		];
 
 		if ( 'yes' === $disable_element && vc_is_page_editable() ) {
-			$css_classes[] = 'vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
+			$css_classes[] = 'vc_hidden-xl vc_hidden-lg vc_hidden-xs vc_hidden-sm vc_hidden-md';
 		}
 
 		$wrapper_attributes = [];
@@ -270,9 +320,7 @@ class WPBakeryShortCode_Vc_Flexbox_Container extends WPBakeryShortCode {
 		$css_class = preg_replace( '/\s+/', ' ', apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, implode( ' ', array_filter( array_unique( $css_classes ) ) ), $this->settings['base'], $atts ) );
 		$gap = isset( $atts['gap'] ) ? '--gap: ' . $atts['gap'] . ';' : '0px';
 		$wrapper_attributes[] = 'class="' . esc_attr( trim( $css_class ) ) . '"';
-		if ( ! empty( $gap ) ) {
-			$wrapper_attributes[] = 'style="' . esc_attr( $gap ) . '"';
-		}
+		$wrapper_attributes[] = 'style="' . esc_attr( $gap ) . '"';
 
 		echo implode( ' ', $wrapper_attributes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}

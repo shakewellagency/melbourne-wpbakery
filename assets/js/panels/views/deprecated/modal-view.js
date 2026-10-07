@@ -31,18 +31,6 @@
 			this.$el.modal( 'show' );
 			return this;
 		},
-		showMessage: function ( text, type ) {
-			if ( this.message_box_timeout && this.$el.find( '.vc_message' ).remove() ) {
-				window.clearTimeout( this.message_box_timeout );
-			}
-			this.message_box_timeout = false;
-			var $messageBox = $( '<div class="vc_message type-' + type + '"></div>' );
-			this.$el.find( '.vc_modal-body' ).prepend( $messageBox );
-			$messageBox.text( text ).fadeIn();
-			this.message_box_timeout = window.setTimeout( function () {
-				$messageBox.remove();
-			}, 6000 );
-		},
 		hide: function () {
 			$( window ).off( 'resize.ModalView' );
 		},

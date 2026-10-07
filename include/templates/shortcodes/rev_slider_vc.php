@@ -14,10 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $alias
- * @var $el_class
+ * @var array $atts
+ * @var string $title
+ * @var string $alias
+ * @var string $el_class
  * Shortcode class
  * @var WPBakeryShortCode_Rev_Slider_Vc $this
  */
@@ -27,9 +27,11 @@ $atts = vc_map_get_attributes( $this->getShortcode(), $atts );
 extract( $atts );
 
 $el_class = $this->getExtraClass( $el_class );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'wpb_revslider_element wpb_content_element' . $el_class, $this->settings['base'], $atts );
+$el_id = $atts['el_id'] ? ' id="' . esc_attr( $atts['el_id'] ) . '"' : '';
 
-$output .= '<div class="' . esc_attr( $css_class ) . '">';
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, 'wpb_revslider_element wpb_content_element' . $el_class, $this->getSettings()['base'], $atts );
+
+$output .= '<div class="' . esc_attr( $css_class ) . '"' . $el_id . '>';
 $output .= wpb_widget_title( [
 	'title' => $title,
 	'extraclass' => 'wpb_revslider_heading',

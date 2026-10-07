@@ -90,11 +90,15 @@ class Vc_Updating_Manager {
 		if ( isset( $transient->response[ $this->plugin_slug ] ) ) {
 			return $transient;
 		}
+
+		// Get installed version (from file if we just updated, otherwise from memory).
+		$installed_version = $this->get_installed_version();
+
 		// Get the remote version.
 		$remote_version = $this->getRemote_version();
 
 		// If a newer version is available, add the update.
-		if ( version_compare( $this->current_version, $remote_version, '<' ) ) {
+		if ( version_compare( $installed_version, $remote_version, '<' ) ) {
 			$obj = new stdClass();
 			$obj->slug = $this->slug;
 			$obj->new_version = $remote_version;
@@ -202,6 +206,32 @@ class Vc_Updating_Manager {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get the actual installed version, reading from file if needed.
+	 *
+	 * @since 9.0
+	 *
+	 * @return string
+	 */
+	private function get_installed_version() {
+		// If we just completed an update, read version from file.
+		if ( did_action( 'upgrader_process_complete' ) ) {
+			if ( ! function_exists( 'get_plugin_data' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+			$plugin_file = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
+			if ( file_exists( $plugin_file ) ) {
+				$plugin_data = get_plugin_data( $plugin_file, false, false );
+				if ( ! empty( $plugin_data['Version'] ) ) {
+					return $plugin_data['Version'];
+				}
+			}
+		}
+
+		// Otherwise use the cached version.
+		return $this->current_version;
 	}
 
 	/**

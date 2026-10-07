@@ -50,10 +50,11 @@ class Vc_Templates_Panel_Editor {
 			'loadDefaultTemplatesLimit',
 		] );
 
+		// Priority 20 so we override Templatera's category-level output (registered at 10).
 		add_filter( 'vc_templates_render_category', [
 			$this,
 			'renderTemplateBlock',
-		], 10 );
+		], 20 );
 		add_filter( 'vc_templates_render_template', [
 			$this,
 			'renderTemplateWindow',
@@ -98,72 +99,155 @@ class Vc_Templates_Panel_Editor {
 	}
 
 	/**
-	 *  Render the template block for a given category.
+	 * Render the template block for a given category.
 	 *
 	 * @param array $category
-	 * @return mixed
+	 * @return array
 	 */
-	public function renderTemplateBlock( $category ) { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh, CognitiveComplexity.Complexity.MaximumComplexity.TooHigh
-		if ( 'my_templates' === $category['category'] ) {
-			$category['output'] = '';
+	public function renderTemplateBlock( $category ) {
+		$category_key = isset( $category['category'] ) ? $category['category'] : '';
 
-			if ( vc_user_access()->part( 'templates' )->checkStateAny( true, null )->get() ) {
-				$category['output'] .= '
-				<div class="vc_column vc_col-sm-12" data-vc-hide-on-search="true">
-					<div class="vc_element_label">' . esc_html__( 'Save current layout as a template', 'js_composer' ) . '</div>
-					<div class="vc_input-group">
-						<input name="padding" data-js-element="vc-templates-input" class="vc_form-control wpb-textinput vc_panel-templates-name" type="text" value="" placeholder="' . esc_attr__( 'Template name', 'js_composer' ) . '">
-						<span class="vc_input-group-btn">
-							<button class="vc_general vc_ui-button vc_ui-button-size-md vc_ui-button-action vc_ui-button-shape-rounded vc_template-save-btn" id="vc_ui-save-template-btn" data-vc-ui-element="button-save">' . esc_html__( 'Save Template', 'js_composer' ) . '</button>
-						</span>
-					</div>
-					<span class="vc_description">' . esc_html__( 'Save layout and reuse it on different sections of this site.', 'js_composer' ) . '</span>
-				</div>';
-			}
-
-			$category['output'] .= '<div class="vc_column vc_col-sm-12" data-vc-hide-on-search="true">';
-			if ( isset( $category['category_name'] ) ) {
-				$category['output'] .= '<h3>' . esc_html( $category['category_name'] ) . '</h3>';
-			}
-			if ( isset( $category['category_description'] ) ) {
-				$category['output'] .= '<p class="vc_description">' . esc_html( $category['category_description'] ) . '</p>';
-			}
-
-			$category['output'] .= '</div>';
-			$category['output'] .= '
-			<div class="vc_column vc_col-sm-12">
-				<div class="vc_ui-template-list vc_templates-list-my_templates vc_ui-list-bar" data-vc-action="collapseAll">';
-			if ( ! empty( $category['templates'] ) ) {
-				foreach ( $category['templates'] as $template ) {
-					$category['output'] .= $this->renderTemplateListItem( $template );
-				}
-			}
-			$category['output'] .= '
-				</div>
-			</div>';
-		} elseif ( 'default_templates' === $category['category'] ) {
-				$category['output'] = '<div class="vc_col-md-12">';
-			if ( isset( $category['category_name'] ) ) {
-				$category['output'] .= '<h3>' . esc_html( $category['category_name'] ) . '</h3>';
-			}
-			if ( isset( $category['category_description'] ) ) {
-				$category['output'] .= '<p class="vc_description">' . esc_html( $category['category_description'] ) . '</p>';
-			}
-				$category['output'] .= '</div>';
-				$category['output'] .= '
-				<div class="vc_column vc_col-sm-12">
-					<div class="vc_ui-template-list vc_templates-list-default_templates vc_ui-list-bar" data-vc-action="collapseAll">';
-			if ( ! empty( $category['templates'] ) ) {
-				foreach ( $category['templates'] as $template ) {
-					$category['output'] .= $this->renderTemplateListItem( $template );
-				}
-			}
-				$category['output'] .= '
-				</div>
-			</div>';
+		if ( 'my_templates' === $category_key ) {
+			$category['output'] = $this->renderMyTemplatesBlock( $category );
+		} elseif ( 'default_templates' === $category_key ) {
+			$category['output'] = $this->renderDefaultTemplatesBlock( $category );
 		}
 
 		return $category;
+	}
+
+	/**
+	 * Render the My templates tab body as a card grid.
+	 *
+	 * @param array $category
+	 * @return string
+	 */
+	protected function renderMyTemplatesBlock( $category ) {
+		$output = '';
+
+		if ( vc_user_access()->part( 'templates' )->checkStateAny( true, null )->get() ) {
+			$output .= vc_get_template( 'editors/popups/shared-templates/save-current-layout.php' );
+		}
+
+		$grid_classes = 'vc_ui-template-card-grid vc_templates-list-my_templates';
+		$category_name = isset( $category['category_name'] ) ? $category['category_name'] : esc_html__( 'My templates', 'js_composer' );
+
+		$output .= '<div class="vc_column vc_col-sm-12 vc_ui-templates-grid-column vc_ui-template-section" data-section="my_templates">';
+		$output .= '<h3 class="vc_ui-template-section-title">' . esc_html( $category_name ) . '</h3>';
+		$output .= '<div class="' . esc_attr( $grid_classes ) . '" data-vc-grid="my_templates">';
+		if ( ! empty( $category['templates'] ) ) {
+			foreach ( $category['templates'] as $template ) {
+				$output .= $this->renderTemplateCard( $template );
+			}
+		}
+		$output .= '</div>';
+		$output .= '<p class="vc_ui-template-grid-empty" data-vc-grid-empty="my_templates">'
+			. esc_html__( 'You don\'t have any templates saved yet.', 'js_composer' )
+			. '</p>';
+		$output .= '</div>';
+
+		return $output;
+	}
+
+	/**
+	 * Render the Default Templates tab body using the legacy list-bar layout.
+	 *
+	 * @param array $category
+	 * @return string
+	 */
+	protected function renderDefaultTemplatesBlock( $category ) {
+		$output = '<div class="vc_col-md-12">';
+		if ( isset( $category['category_name'] ) ) {
+			$output .= '<h3>' . esc_html( $category['category_name'] ) . '</h3>';
+		}
+		if ( isset( $category['category_description'] ) ) {
+			$output .= '<p class="vc_description">' . esc_html( $category['category_description'] ) . '</p>';
+		}
+		$output .= '</div>';
+		$output .= '<div class="vc_column vc_col-sm-12">';
+		$output .= '<div class="vc_ui-template-list vc_templates-list-default_templates vc_ui-list-bar" data-vc-action="collapseAll">';
+		if ( ! empty( $category['templates'] ) ) {
+			foreach ( $category['templates'] as $template ) {
+				$output .= $this->renderTemplateListItem( $template );
+			}
+		}
+		$output .= '</div></div>';
+
+		return $output;
+	}
+
+	/**
+	 * Render a single My Templates / Templatera-templates card.
+	 *
+	 * @param array $template
+	 * @return string
+	 */
+	public function renderTemplateCard( $template ) {
+		$name = isset( $template['name'] ) ? $template['name'] : esc_html__( 'No title', 'js_composer' );
+		$template_id = isset( $template['unique_id'] ) ? $template['unique_id'] : '';
+		$template_id_hash = md5( $template_id );
+		$template_type = isset( $template['type'] ) ? $template['type'] : 'my_templates';
+		$template_name_slug = vc_slugify( $name );
+		$can_modify = vc_user_access()->part( 'templates' )->checkStateAny( true, null )->get();
+
+		ob_start();
+		?>
+		<div class="vc_ui-template-card vc_templates-template-type-<?php echo esc_attr( $template_type ); ?>"
+			data-template_id="<?php echo esc_attr( $template_id ); ?>"
+			data-template_id_hash="<?php echo esc_attr( $template_id_hash ); ?>"
+			data-template_unique_id="<?php echo esc_attr( $template_id ); ?>"
+			data-template_name="<?php echo esc_attr( $template_name_slug ); ?>"
+			data-template_type="<?php echo esc_attr( $template_type ); ?>"
+			data-category="<?php echo esc_attr( $template_type ); ?>">
+			<?php $is_templatera = 'templatera_templates' === $template_type; ?>
+			<span class="vc_ui-template-card-thumb">
+				<span class="vc_ui-template-card-overlay">
+					<button type="button"
+						class="vc_ui-template-card-action"
+						data-template-handler
+						title="<?php esc_attr_e( 'Add template', 'js_composer' ); ?>"
+						aria-label="<?php esc_attr_e( 'Add template', 'js_composer' ); ?>">
+						<i class="vc-composer-icon vc-c-add-circle" aria-hidden="true"></i>
+					</button>
+					<?php if ( $can_modify && $is_templatera ) : ?>
+						<span class="vc_ui-template-card-menu">
+							<button type="button"
+								class="vc_ui-template-card-action vc_template-options-toggle"
+								data-edit-url="<?php echo esc_url( admin_url( 'post.php?post=' . $template_id . '&action=edit' ) ); ?>"
+								title="<?php esc_attr_e( 'Template options', 'js_composer' ); ?>"
+								aria-label="<?php esc_attr_e( 'Template options', 'js_composer' ); ?>"
+								aria-haspopup="menu"
+								aria-expanded="false">
+								<i class="vc-composer-icon vc-c-controls-menu" aria-hidden="true"></i>
+							</button>
+							<div class="vc_template-options-dropdown wpb-form-select-dropdown select2-dropdown select2-dropdown--below" hidden>
+								<div class="select2-results">
+									<ul class="select2-results__options" role="menu">
+										<li class="select2-results__option" role="menuitem" data-action="edit" tabindex="-1">
+											<?php esc_html_e( 'Edit template', 'js_composer' ); ?>
+										</li>
+										<li class="select2-results__option" role="menuitem" data-action="delete" tabindex="-1">
+											<?php esc_html_e( 'Delete template', 'js_composer' ); ?>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</span>
+					<?php elseif ( $can_modify ) : ?>
+						<button type="button"
+							class="vc_ui-template-card-action"
+							data-vc-ui-delete="template-title"
+							title="<?php esc_attr_e( 'Delete template', 'js_composer' ); ?>"
+							aria-label="<?php esc_attr_e( 'Delete template', 'js_composer' ); ?>">
+							<i class="vc-composer-icon vc-c-trash" aria-hidden="true"></i>
+						</button>
+					<?php endif; ?>
+				</span>
+			</span>
+			<span class="vc_ui-template-card-name" data-vc-ui-element="template-title" title="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $name ); ?></span>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 
 	/** Output rendered template in new panel dialog
@@ -313,7 +397,9 @@ class Vc_Templates_Panel_Editor {
 	 */
 	public function renderUITemplate() {
 		vc_include_template( 'editors/popups/vc_ui-panel-templates.tpl.php', [
+			'id' => 'templates',
 			'box' => $this,
+			'wrapper_classes' => 'vc_templates-panel',
 		] );
 
 		return '';
@@ -364,7 +450,7 @@ class Vc_Templates_Panel_Editor {
 			'unique_id' => $template_id,
 		];
 		// @codingStandardsIgnoreLine
-		print $this->renderTemplateListItem( $template );
+		print $this->renderTemplateCard( $template );
 		die;
 	}
 
@@ -549,7 +635,7 @@ class Vc_Templates_Panel_Editor {
 			// this has only 'name' and 'template' key  and index 'key' is template id.
 			$arr_category = [
 				'category' => 'my_templates',
-				'category_name' => esc_html__( 'My Templates', 'js_composer' ),
+				'category_name' => esc_html__( 'My templates', 'js_composer' ),
 				'category_description' => esc_html__( 'Append previously saved template to the current layout.', 'js_composer' ),
 				'category_weight' => 10,
 			];
@@ -872,12 +958,17 @@ class Vc_Templates_Panel_Editor {
 	 * @return string
 	 */
 	public function renderTemplateListItem( $template ) {
+		$type = isset( $template['type'] ) ? $template['type'] : 'custom';
+		if ( 'my_templates' === $type || 'templatera_templates' === $type ) {
+			return $this->renderTemplateCard( $template );
+		}
+
 		$name = isset( $template['name'] ) ? esc_html( $template['name'] ) : esc_html__( 'No title', 'js_composer' );
 		$template_id = esc_attr( $template['unique_id'] );
 		$template_id_hash = md5( $template_id ); // needed for jquery target for TTA.
 		$template_name = esc_html( $name );
 		$template_name_lower = esc_attr( vc_slugify( $template_name ) );
-		$template_type = esc_attr( isset( $template['type'] ) ? $template['type'] : 'custom' );
+		$template_type = esc_attr( $type );
 		$custom_class = esc_attr( isset( $template['custom_class'] ) ? $template['custom_class'] : '' );
 
 		$output = <<<HTML

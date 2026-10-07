@@ -1,6 +1,6 @@
 <?php
 /**
- * The template for displaying [vc_wp_categories] shortcode of output of 'WP Categories' element.
+ * The template for displaying [vc_wp_categories] shortcode of output of 'WP categories' element.
  *
  * This template can be overridden by copying it to yourtheme/vc_templates/vc_wp_categories.php.
  *
@@ -14,13 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $title
- * @var $options
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $title
+ * @var string $options
+ * @var string $el_class
+ * @var string $el_id
  * Shortcode class
- * @var WPBakeryShortCode_Vc_Wp_Categories $this
+ * @var WPBakeryShortCodeFishBones $this
  */
 $title = $options = $el_class = $el_id = '';
 $output = '';

@@ -18,15 +18,21 @@ class WPBakeryShortCode_Vc_Media_Grid extends WPBakeryShortCode_Vc_Basic_Grid {
 	/**
 	 * WPBakeryShortCode_Vc_Media_Grid constructor.
 	 *
+	 * Media-grid default is 6 items per row (denser thumbnail layout).
+	 * BC conversion between `items_per_row` and legacy `element_width`
+	 * is inherited from {@see WPBakeryShortCode_Vc_Basic_Grid::buildAtts()}.
+	 *
 	 * @param array $settings
 	 */
 	public function __construct( $settings ) {
 		parent::__construct( $settings );
+		$this->attributes_defaults['items_per_row'] = '6';
 		add_filter( $this->shortcode . '_items_list', [
 			$this,
 			'setItemsIfEmpty',
 		] );
 	}
+
 
 	/**
 	 * Get name.
@@ -146,5 +152,15 @@ class WPBakeryShortCode_Vc_Media_Grid extends WPBakeryShortCode_Vc_Basic_Grid {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Get CSS file names for vc_media_grid shortcode.
+	 *
+	 * @since 9.0
+	 * @return array
+	 */
+	public function get_shortcode_css_files() {
+		return [ 'vc_gallery', 'vc_image_gallery' ];
 	}
 }

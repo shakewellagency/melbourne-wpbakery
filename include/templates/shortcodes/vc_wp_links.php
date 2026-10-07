@@ -14,15 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Shortcode attributes
  *
- * @var $atts
- * @var $category
- * @var $orderby
- * @var $options
- * @var $limit
- * @var $el_class
- * @var $el_id
+ * @var array $atts
+ * @var string $category
+ * @var string $orderby
+ * @var string $options
+ * @var string $limit
+ * @var string $el_class
+ * @var string $el_id
  * Shortcode class
- * @var WPBakeryShortCode_Vc_Wp_Links $this
+ * @var WPBakeryShortCodeFishBones $this
  */
 $category = $options = $orderby = $limit = $el_class = $el_id = '';
 $output = '';

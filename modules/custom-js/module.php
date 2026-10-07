@@ -105,7 +105,7 @@ class Vc_Custom_Js_Module {
 
 		$id = wpb_update_id_with_preview_id( $id );
 
-		$post_header_html = get_post_meta( $id, '_wpb_post_custom_js_header', true );
+		$post_header_html = $this->get_post_header_js( $id );
 
 		if ( empty( $post_header_html ) ) {
 			return $is_print;
@@ -113,6 +113,16 @@ class Vc_Custom_Js_Module {
 
 		$this->output_custom_js( $post_header_html, 'header' );
 		return $is_print;
+	}
+
+	/**
+	 * Get post header js.
+	 *
+	 * @param int $id
+	 * @return string
+	 */
+	public function get_post_header_js( $id ) {
+		return get_post_meta( $id, '_wpb_post_custom_js_header', true );
 	}
 
 	/**
@@ -129,13 +139,23 @@ class Vc_Custom_Js_Module {
 
 		$id = wpb_update_id_with_preview_id( $id );
 
-		$post_footer_html = get_post_meta( $id, '_wpb_post_custom_js_footer', true );
+		$post_footer_html = $this->get_post_footer_js( $id );
 
 		if ( empty( $post_footer_html ) ) {
 			return;
 		}
 
 		$this->output_custom_js( $post_footer_html, 'footer' );
+	}
+
+	/**
+	 * Get post footer js.
+	 *
+	 * @param int $id
+	 * @return string
+	 */
+	public function get_post_footer_js( $id ) {
+		return get_post_meta( $id, '_wpb_post_custom_js_footer', true );
 	}
 
 	/**

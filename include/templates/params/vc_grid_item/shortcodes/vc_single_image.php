@@ -4,6 +4,10 @@
  *
  * @var WPBakeryShortCode_Vc_Single_image $this
  * @var array $atts
+ * @var string $style
+ * @var string $border_color
+ * @var string $source
+ * @var string $custom_src
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -58,7 +62,7 @@ $image_string = ! empty( $link ) ? '<' . $link . '>' . $img['thumbnail'] . '</a>
 
 $class_to_filter = 'wpb_single_image wpb_content_element vc_align_' . $alignment . ' ' . $this->getCSSAnimation( $css_animation );
 $class_to_filter .= vc_shortcode_custom_css_class( $css, ' ' ) . $this->getExtraClass( $el_class );
-$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->settings['base'], $atts );
+$css_class = apply_filters( VC_SHORTCODE_CUSTOM_CSS_FILTER_TAG, $class_to_filter, $this->getSettings()['base'], $atts );
 
 $output = '
 	<div class="' . esc_attr( $css_class ) . '">

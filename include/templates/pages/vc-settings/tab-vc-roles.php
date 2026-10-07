@@ -92,16 +92,16 @@ $vc_role = new Vc_Roles();
 			<?php endforeach; ?>
 		</div>
 	</div>
-	<span class="vc_settings-spinner vc_ui-wp-spinner" style="display: none;" id="vc_wp-spinner"></span>
 	<!-- Settings template end -->
 	<?php
 	wp_nonce_field( 'vc_settings-' . $tab . '-action', 'vc_nonce_field' );
+
 	$submit_button_attributes = [];
-    // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
+	// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes', $submit_button_attributes, $tab );
-    // phpcs:ignore:WordPress.NamingConventions.ValidHookName.UseUnderscores
+	// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	$submit_button_attributes = apply_filters( 'vc_settings-tab-submit-button-attributes-' . $tab, $submit_button_attributes, $tab );
-	submit_button( esc_html__( 'Save Changes', 'js_composer' ), 'primary', 'submit_btn', true, $submit_button_attributes );
+	vc_include_template( 'pages/vc-settings/partials/submit-button.php', [ 'attributes' => $submit_button_attributes ] );
 	?>
 	<input type="hidden" name="action" value="vc_roles_settings_save"
 			id="vc_settings-<?php echo esc_attr( $tab ); ?>-action"/>

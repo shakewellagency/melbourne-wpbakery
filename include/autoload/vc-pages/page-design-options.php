@@ -3,7 +3,7 @@
  * Autoload lib related to our plugin design options functionality.
  *
  * @note we require our autoload files everytime and everywhere after plugin load.
- * @depreacted 7.7
+ * @deprecated 7.7
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
